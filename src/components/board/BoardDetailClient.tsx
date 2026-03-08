@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { getBoardBackground } from "@/lib/backgrounds";
 import { sortByPosition } from "@/lib/fractional-index";
-import type { BoardWithDetails } from "@/types";
+import type { BoardWithDetails, CardUpdatePatch } from "@/types";
 import AddListButton from "@/components/list/AddListButton";
 import ListColumn from "@/components/list/ListColumn";
 import BoardHeader from "@/components/board/BoardHeader";
@@ -32,6 +32,9 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
   const addList = useBoardStore((state) => state.addList);
   const updateListTitle = useBoardStore((state) => state.updateListTitle);
   const removeList = useBoardStore((state) => state.removeList);
+  const addCard = useBoardStore((state) => state.addCard);
+  const updateCard = useBoardStore((state) => state.updateCard);
+  const removeCard = useBoardStore((state) => state.removeCard);
 
   const initialLists = useMemo(
     () =>
@@ -96,6 +99,37 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
     }
   };
 
+  const handleAddCard = async (listId: string, title: string) => {
+    try {
+      const card = await addCard(listId, title);
+      toast.success(`Created card "${card.title}".`);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const handleUpdateCard = async (cardId: string, input: CardUpdatePatch) => {
+    try {
+      await updateCard({ cardId, ...input });
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const handleDeleteCard = async (cardId: string) => {
+    const card = lists.flatMap((list) => list.cards).find((item) => item.id === cardId);
+
+    try {
+      await removeCard(cardId);
+      toast.success(`Deleted card "${card?.title ?? "Untitled"}".`);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      throw error;
+    }
+  };
+
   return (
     <div
       className="flex min-h-[calc(100vh-4rem)] flex-col rounded-xl"
@@ -110,6 +144,9 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
             list={list}
             onUpdateTitle={(title) => handleUpdateListTitle(list.id, title)}
             onDelete={() => handleDeleteList(list.id)}
+            onAddCard={(title) => handleAddCard(list.id, title)}
+            onUpdateCard={handleUpdateCard}
+            onDeleteCard={handleDeleteCard}
           />
         ))}
         <AddListButton onAdd={handleAddList} />

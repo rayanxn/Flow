@@ -21,6 +21,22 @@ export type List = Database["public"]["Tables"]["lists"]["Row"];
 // Card type
 export type Card = Database["public"]["Tables"]["cards"]["Row"];
 
+export interface CardUpdatePatch {
+  title?: string;
+  description?: string | null;
+  dueDate?: string | null;
+}
+
+export interface UpdateCardValues extends CardUpdatePatch {
+  cardId: string;
+}
+
+export interface MoveCardValues {
+  cardId: string;
+  listId: string;
+  position: string;
+}
+
 // Board with nested lists and cards
 export interface BoardWithDetails extends Board {
   lists: ListWithCards[];
