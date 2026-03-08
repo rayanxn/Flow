@@ -2,27 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAuthenticatedUser } from "@/lib/auth";
 import { parseBoardFormValues } from "@/lib/boards";
-import { createClient } from "@/lib/supabase/server";
 import type { Board, BoardFormValues, UpdateBoardValues } from "@/types";
-
-async function requireAuthenticatedUser() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!user) {
-    throw new Error("You must be signed in to manage boards.");
-  }
-
-  return { supabase, user };
-}
 
 function revalidateBoardViews(boardId?: string) {
   revalidatePath("/boards");

@@ -83,8 +83,8 @@ export default function BoardsPageClient({ initialBoards }: BoardsPageClientProp
           <p className="text-sm font-medium text-muted-foreground">Workspace</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">Boards</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Create, rename, and archive boards without losing your work. Board detail and list
-            management land in the next implementation phase.
+            Create, rename, and archive boards without losing your work. Click a board to manage its
+            lists and cards.
           </p>
         </div>
 

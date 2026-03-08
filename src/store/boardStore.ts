@@ -9,13 +9,20 @@ import {
   restoreBoard as restoreBoardAction,
   updateBoard as updateBoardAction,
 } from "@/actions/boards";
+import {
+  createList as createListAction,
+  deleteList as deleteListAction,
+  updateListTitle as updateListTitleAction,
+} from "@/actions/lists";
 import { splitBoards, upsertBoard } from "@/lib/boards";
-import type { Board, BoardFormValues, UpdateBoardValues } from "@/types";
+import { sortByPosition } from "@/lib/fractional-index";
+import type { Board, BoardFormValues, BoardWithDetails, List, ListWithCards, UpdateBoardValues } from "@/types";
 
 interface BoardState {
   boards: Board[];
   archivedBoards: Board[];
   currentBoard: Board | null;
+  currentBoardLists: ListWithCards[];
   isLoading: boolean;
   hasHydrated: boolean;
   error: string | null;
@@ -26,6 +33,11 @@ interface BoardState {
   restoreBoard: (boardId: string) => Promise<Board>;
   deleteBoard: (boardId: string) => Promise<void>;
   setCurrentBoard: (board: Board | null) => void;
+  setCurrentBoardDetail: (board: BoardWithDetails) => void;
+  clearCurrentBoardDetail: () => void;
+  addList: (boardId: string, title: string) => Promise<List>;
+  updateListTitle: (listId: string, title: string) => Promise<void>;
+  removeList: (listId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -41,6 +53,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   boards: [],
   archivedBoards: [],
   currentBoard: null,
+  currentBoardLists: [],
   isLoading: false,
   hasHydrated: false,
   error: null,
@@ -157,6 +170,61 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
   setCurrentBoard(board) {
     set({ currentBoard: board });
+  },
+  setCurrentBoardDetail(board) {
+    const { lists, ...boardData } = board;
+
+    set({
+      currentBoard: boardData,
+      currentBoardLists: sortByPosition(lists).map((list) => ({
+        ...list,
+        cards: sortByPosition(list.cards),
+      })),
+    });
+  },
+  clearCurrentBoardDetail() {
+    set({ currentBoard: null, currentBoardLists: [] });
+  },
+  async addList(boardId, title) {
+    try {
+      const list = await createListAction(boardId, title);
+      const listWithCards: ListWithCards = { ...list, cards: [] };
+
+      set({
+        currentBoardLists: [...get().currentBoardLists, listWithCards],
+      });
+
+      return list;
+    } catch (error) {
+      set({ error: getErrorMessage(error) });
+      throw error;
+    }
+  },
+  async updateListTitle(listId, title) {
+    try {
+      const updatedList = await updateListTitleAction(listId, title);
+
+      set({
+        currentBoardLists: get().currentBoardLists.map((list) =>
+          list.id === listId ? { ...list, title: updatedList.title } : list
+        ),
+      });
+    } catch (error) {
+      set({ error: getErrorMessage(error) });
+      throw error;
+    }
+  },
+  async removeList(listId) {
+    try {
+      await deleteListAction(listId);
+
+      set({
+        currentBoardLists: get().currentBoardLists.filter((list) => list.id !== listId),
+      });
+    } catch (error) {
+      set({ error: getErrorMessage(error) });
+      throw error;
+    }
   },
   clearError() {
     set({ error: null });

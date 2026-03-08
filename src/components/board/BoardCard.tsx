@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Archive, MoreHorizontal, PencilLine, RotateCcw, Trash2 } from "lucide-react";
 
@@ -55,16 +56,32 @@ export default function BoardCard({
   return (
     <>
       <Card className="overflow-hidden border-border/70 py-0 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-        <div
-          className="h-28 w-full"
-          style={{ background: background.cssBackground }}
-          aria-hidden="true"
-        />
+        {mode === "active" ? (
+          <Link href={`/boards/${board.id}`} className="block">
+            <div
+              className="h-28 w-full"
+              style={{ background: background.cssBackground }}
+              aria-hidden="true"
+            />
+          </Link>
+        ) : (
+          <div
+            className="h-28 w-full"
+            style={{ background: background.cssBackground }}
+            aria-hidden="true"
+          />
+        )}
 
         <CardContent className="space-y-4 px-4 py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="truncate text-lg font-semibold">{board.title}</h3>
+              {mode === "active" ? (
+                <Link href={`/boards/${board.id}`} className="block">
+                  <h3 className="truncate text-lg font-semibold hover:underline">{board.title}</h3>
+                </Link>
+              ) : (
+                <h3 className="truncate text-lg font-semibold">{board.title}</h3>
+              )}
               <p className="mt-1 text-sm text-muted-foreground">{archiveLabel}</p>
             </div>
 
