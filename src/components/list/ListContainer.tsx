@@ -1,31 +1,56 @@
 "use client";
 
-import type { Card } from "@/types";
+import { useMemo, useState } from "react";
+
+import type { Card as CardRecord, CardUpdatePatch } from "@/types";
+import AddCardInput from "@/components/card/AddCardInput";
+import CardModal from "@/components/card/CardModal";
+import TaskCard from "@/components/card/Card";
 
 interface ListContainerProps {
-  cards: Card[];
+  cards: CardRecord[];
+  onAddCard: (title: string) => Promise<void>;
+  onUpdateCard: (cardId: string, input: CardUpdatePatch) => Promise<void>;
+  onDeleteCard: (cardId: string) => Promise<void>;
 }
 
-export default function ListContainer({ cards }: ListContainerProps) {
-  if (cards.length === 0) {
-    return (
-      <div className="flex-1 px-2 py-1">
-        <p className="py-3 text-center text-sm text-muted-foreground">No cards yet</p>
-      </div>
-    );
-  }
+export default function ListContainer({
+  cards,
+  onAddCard,
+  onUpdateCard,
+  onDeleteCard,
+}: ListContainerProps) {
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  const selectedCard = useMemo(
+    () => cards.find((card) => card.id === selectedCardId) ?? null,
+    [cards, selectedCardId]
+  );
 
   return (
-    <div className="flex-1 space-y-2 overflow-y-auto px-2 py-1">
-      {cards.map((card) => (
-        <div
-          key={card.id}
-          className="rounded-lg border bg-card px-3 py-2 text-sm shadow-sm"
-        >
-          {card.title}
-        </div>
-      ))}
-      <p className="px-1 py-1 text-sm text-muted-foreground">Add a card...</p>
-    </div>
+    <>
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 py-1">
+        {cards.length === 0 ? (
+          <p className="py-3 text-center text-sm text-muted-foreground">No cards yet</p>
+        ) : (
+          cards.map((card) => (
+            <TaskCard key={card.id} card={card} onOpen={() => setSelectedCardId(card.id)} />
+          ))
+        )}
+        <AddCardInput onAdd={onAddCard} />
+      </div>
+
+      <CardModal
+        card={selectedCard}
+        open={Boolean(selectedCard)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCardId(null);
+          }
+        }}
+        onUpdate={onUpdateCard}
+        onDelete={onDeleteCard}
+      />
+    </>
   );
 }
