@@ -47,6 +47,39 @@ export interface ListWithCards extends List {
   cards: Card[];
 }
 
+// Collaboration types
+export type BoardRole = "owner" | "admin" | "member";
+export type BoardVisibility = "private" | "public";
+
+export type BoardMembership = Database["public"]["Tables"]["board_memberships"]["Row"];
+export type BoardInvitation = Database["public"]["Tables"]["board_invitations"]["Row"];
+
+export interface BoardMemberWithProfile extends BoardMembership {
+  profiles: Profile;
+}
+
+export interface BoardParticipant {
+  userId: string;
+  role: BoardRole;
+  profile: Profile;
+}
+
+export interface InviteMemberValues {
+  boardId: string;
+  email: string;
+  role: "admin" | "member";
+}
+
+export interface UpdateBoardVisibilityValues {
+  boardId: string;
+  visibility: BoardVisibility;
+}
+
+export interface BoardInvitationWithDetails extends BoardInvitation {
+  boards: Pick<Board, "id" | "title" | "background">;
+  profiles: Pick<Profile, "id" | "email" | "full_name">;
+}
+
 // Realtime payload types
 export type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE";
 

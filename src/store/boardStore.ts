@@ -8,6 +8,7 @@ import {
   deleteBoard as deleteBoardAction,
   restoreBoard as restoreBoardAction,
   updateBoard as updateBoardAction,
+  updateBoardVisibility as updateBoardVisibilityAction,
 } from "@/actions/boards";
 import {
   createCard as createCardAction,
@@ -26,6 +27,7 @@ import { sortByPosition } from "@/lib/fractional-index";
 import type {
   Board,
   BoardFormValues,
+  BoardVisibility,
   BoardWithDetails,
   Card,
   List,
@@ -49,6 +51,7 @@ interface BoardState {
   archiveBoard: (boardId: string) => Promise<Board>;
   restoreBoard: (boardId: string) => Promise<Board>;
   deleteBoard: (boardId: string) => Promise<void>;
+  updateBoardVisibility: (boardId: string, visibility: BoardVisibility) => Promise<Board>;
   setCurrentBoard: (board: Board | null) => void;
   setCurrentBoardDetail: (board: BoardWithDetails) => void;
   clearCurrentBoardDetail: () => void;
@@ -272,6 +275,27 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         hasHydrated: true,
         isLoading: false,
       });
+    } catch (error) {
+      set({ isLoading: false, error: getErrorMessage(error) });
+      throw error;
+    }
+  },
+  async updateBoardVisibility(boardId, visibility) {
+    set({ isLoading: true, error: null });
+
+    try {
+      const board = await updateBoardVisibilityAction(boardId, visibility);
+      const nextBoards = [...get().boards, ...get().archivedBoards];
+      const currentBoard = get().currentBoard;
+
+      set({
+        ...splitBoards(upsertBoard(nextBoards, board)),
+        currentBoard: currentBoard?.id === board.id ? board : currentBoard,
+        hasHydrated: true,
+        isLoading: false,
+      });
+
+      return board;
     } catch (error) {
       set({ isLoading: false, error: getErrorMessage(error) });
       throw error;

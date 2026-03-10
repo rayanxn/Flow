@@ -13,15 +13,14 @@ function revalidateListViews(boardId: string) {
 }
 
 export async function createList(boardId: string, title: string): Promise<List> {
-  const { supabase, user } = await requireAuthenticatedUser();
+  const { supabase } = await requireAuthenticatedUser();
   const parsedTitle = parseListTitle(title);
 
-  // Verify board ownership
+  // Verify board access (RLS handles permissions)
   const { data: board, error: boardError } = await supabase
     .from("boards")
     .select("id")
     .eq("id", boardId)
-    .eq("owner_id", user.id)
     .single();
 
   if (boardError || !board) {
@@ -59,15 +58,14 @@ export async function createList(boardId: string, title: string): Promise<List> 
 }
 
 export async function updateListTitle(listId: string, title: string): Promise<List> {
-  const { supabase, user } = await requireAuthenticatedUser();
+  const { supabase } = await requireAuthenticatedUser();
   const parsedTitle = parseListTitle(title);
 
-  // Verify ownership through board join
+  // Verify access (RLS handles permissions)
   const { data: existingList, error: listError } = await supabase
     .from("lists")
-    .select("id, board_id, boards!inner(owner_id)")
+    .select("id, board_id")
     .eq("id", listId)
-    .eq("boards.owner_id", user.id)
     .single();
 
   if (listError || !existingList) {
@@ -91,14 +89,13 @@ export async function updateListTitle(listId: string, title: string): Promise<Li
 }
 
 export async function deleteList(listId: string): Promise<{ boardId: string }> {
-  const { supabase, user } = await requireAuthenticatedUser();
+  const { supabase } = await requireAuthenticatedUser();
 
-  // Fetch list to get board_id and verify ownership
+  // Fetch list to get board_id (RLS handles permissions)
   const { data: existingList, error: listError } = await supabase
     .from("lists")
-    .select("id, board_id, boards!inner(owner_id)")
+    .select("id, board_id")
     .eq("id", listId)
-    .eq("boards.owner_id", user.id)
     .single();
 
   if (listError || !existingList) {
@@ -117,14 +114,13 @@ export async function deleteList(listId: string): Promise<{ boardId: string }> {
 }
 
 export async function reorderList(listId: string, newPosition: string): Promise<List> {
-  const { supabase, user } = await requireAuthenticatedUser();
+  const { supabase } = await requireAuthenticatedUser();
 
-  // Verify ownership through board join
+  // Verify access (RLS handles permissions)
   const { data: existingList, error: listError } = await supabase
     .from("lists")
-    .select("id, board_id, boards!inner(owner_id)")
+    .select("id, board_id")
     .eq("id", listId)
-    .eq("boards.owner_id", user.id)
     .single();
 
   if (listError || !existingList) {

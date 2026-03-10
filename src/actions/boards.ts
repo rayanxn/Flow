@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAuthenticatedUser } from "@/lib/auth";
 import { parseBoardFormValues } from "@/lib/boards";
-import type { Board, BoardFormValues, UpdateBoardValues } from "@/types";
+import type { Board, BoardFormValues, BoardVisibility, UpdateBoardValues } from "@/types";
 
 function revalidateBoardViews(boardId?: string) {
   revalidatePath("/boards");
@@ -98,6 +98,30 @@ export async function restoreBoard(boardId: string): Promise<Board> {
       is_archived: false,
       archived_at: null,
     })
+    .eq("id", boardId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const board = data as Board;
+
+  revalidateBoardViews(boardId);
+
+  return board;
+}
+
+export async function updateBoardVisibility(
+  boardId: string,
+  visibility: BoardVisibility
+): Promise<Board> {
+  const { supabase } = await requireAuthenticatedUser();
+
+  const { data, error } = await supabase
+    .from("boards")
+    .update({ visibility })
     .eq("id", boardId)
     .select("*")
     .single();

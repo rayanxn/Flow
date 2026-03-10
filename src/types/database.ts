@@ -9,6 +9,96 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      board_invitations: {
+        Row: {
+          board_id: string;
+          created_at: string;
+          id: string;
+          invitee_email: string;
+          inviter_id: string;
+          role: string;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          board_id: string;
+          created_at?: string;
+          id?: string;
+          invitee_email: string;
+          inviter_id: string;
+          role: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          board_id?: string;
+          created_at?: string;
+          id?: string;
+          invitee_email?: string;
+          inviter_id?: string;
+          role?: string;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "board_invitations_board_id_fkey";
+            columns: ["board_id"];
+            isOneToOne: false;
+            referencedRelation: "boards";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "board_invitations_inviter_id_fkey";
+            columns: ["inviter_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      board_memberships: {
+        Row: {
+          board_id: string;
+          created_at: string;
+          id: string;
+          role: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          board_id: string;
+          created_at?: string;
+          id?: string;
+          role: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          board_id?: string;
+          created_at?: string;
+          id?: string;
+          role?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "board_memberships_board_id_fkey";
+            columns: ["board_id"];
+            isOneToOne: false;
+            referencedRelation: "boards";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "board_memberships_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       boards: {
         Row: {
           archived_at: string | null;
@@ -19,6 +109,7 @@ export interface Database {
           owner_id: string;
           title: string;
           updated_at: string;
+          visibility: string;
         };
         Insert: {
           archived_at?: string | null;
@@ -29,6 +120,7 @@ export interface Database {
           owner_id: string;
           title: string;
           updated_at?: string;
+          visibility?: string;
         };
         Update: {
           archived_at?: string | null;
@@ -39,6 +131,7 @@ export interface Database {
           owner_id?: string;
           title?: string;
           updated_at?: string;
+          visibility?: string;
         };
         Relationships: [
           {
@@ -163,7 +256,20 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      user_can_access_board: {
+        Args: {
+          target_board_id: string;
+        };
+        Returns: boolean;
+      };
+      user_can_admin_board: {
+        Args: {
+          target_board_id: string;
+        };
+        Returns: boolean;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

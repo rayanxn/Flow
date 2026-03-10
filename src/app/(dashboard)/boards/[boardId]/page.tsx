@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import BoardDetailClient from "@/components/board/BoardDetailClient";
 import { getBoardWithLists } from "@/lib/list-queries";
+import { getBoardParticipants, getBoardInvitations } from "@/lib/member-queries";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function BoardDetailPage({
@@ -17,5 +18,25 @@ export default async function BoardDetailPage({
     notFound();
   }
 
-  return <BoardDetailClient initialBoard={board} />;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    notFound();
+  }
+
+  const [participants, invitations] = await Promise.all([
+    getBoardParticipants(supabase, boardId),
+    getBoardInvitations(supabase, boardId),
+  ]);
+
+  return (
+    <BoardDetailClient
+      initialBoard={board}
+      initialParticipants={participants}
+      initialInvitations={invitations}
+      currentUserId={user.id}
+    />
+  );
 }

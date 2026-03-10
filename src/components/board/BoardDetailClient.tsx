@@ -1,19 +1,30 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { getBoardBackground } from "@/lib/backgrounds";
 import { sortByPosition } from "@/lib/fractional-index";
-import type { BoardWithDetails, CardUpdatePatch } from "@/types";
+import type {
+  BoardInvitation,
+  BoardParticipant,
+  BoardVisibility,
+  BoardWithDetails,
+  CardUpdatePatch,
+} from "@/types";
 import AddListButton from "@/components/list/AddListButton";
 import BoardHeader from "@/components/board/BoardHeader";
 import BoardDndContext from "@/components/dnd/BoardDndContext";
+import ShareDialog from "@/components/board/ShareDialog";
 import SortableList from "@/components/dnd/SortableList";
 import { useBoardStore } from "@/store/boardStore";
+import { useMemberStore } from "@/store/memberStore";
 
 interface BoardDetailClientProps {
   initialBoard: BoardWithDetails;
+  initialParticipants: BoardParticipant[];
+  initialInvitations: BoardInvitation[];
+  currentUserId: string;
 }
 
 function getErrorMessage(error: unknown) {
@@ -24,18 +35,36 @@ function getErrorMessage(error: unknown) {
   return "Something went wrong.";
 }
 
-export default function BoardDetailClient({ initialBoard }: BoardDetailClientProps) {
+export default function BoardDetailClient({
+  initialBoard,
+  initialParticipants,
+  initialInvitations,
+  currentUserId,
+}: BoardDetailClientProps) {
   const currentBoard = useBoardStore((state) => state.currentBoard);
   const currentBoardLists = useBoardStore((state) => state.currentBoardLists);
   const setCurrentBoardDetail = useBoardStore((state) => state.setCurrentBoardDetail);
   const clearCurrentBoardDetail = useBoardStore((state) => state.clearCurrentBoardDetail);
   const updateBoard = useBoardStore((state) => state.updateBoard);
+  const updateBoardVisibility = useBoardStore((state) => state.updateBoardVisibility);
   const addList = useBoardStore((state) => state.addList);
   const updateListTitle = useBoardStore((state) => state.updateListTitle);
   const removeList = useBoardStore((state) => state.removeList);
   const addCard = useBoardStore((state) => state.addCard);
   const updateCard = useBoardStore((state) => state.updateCard);
   const removeCard = useBoardStore((state) => state.removeCard);
+
+  const participants = useMemberStore((state) => state.participants);
+  const pendingInvitations = useMemberStore((state) => state.pendingInvitations);
+  const currentUserRole = useMemberStore((state) => state.currentUserRole);
+  const setInitialData = useMemberStore((state) => state.setInitialData);
+  const inviteMember = useMemberStore((state) => state.inviteMember);
+  const removeMember = useMemberStore((state) => state.removeMember);
+  const updateMemberRole = useMemberStore((state) => state.updateMemberRole);
+  const cancelInvitation = useMemberStore((state) => state.cancelInvitation);
+  const clearMembers = useMemberStore((state) => state.clear);
+
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const initialLists = useMemo(
     () =>
@@ -48,15 +77,31 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
 
   useEffect(() => {
     setCurrentBoardDetail(initialBoard);
+    setInitialData(initialParticipants, initialInvitations, currentUserId);
 
     return () => {
       clearCurrentBoardDetail();
+      clearMembers();
     };
-  }, [setCurrentBoardDetail, clearCurrentBoardDetail, initialBoard]);
+  }, [
+    setCurrentBoardDetail,
+    clearCurrentBoardDetail,
+    setInitialData,
+    clearMembers,
+    initialBoard,
+    initialParticipants,
+    initialInvitations,
+    currentUserId,
+  ]);
 
   const board = currentBoard ?? initialBoard;
   const lists = currentBoard ? currentBoardLists : initialLists;
   const background = getBoardBackground(board.background);
+
+  const displayParticipants = participants.length > 0 ? participants : initialParticipants;
+  const displayRole = currentUserRole ?? (
+    initialParticipants.find((p) => p.userId === currentUserId)?.role ?? null
+  );
 
   const handleUpdateBoardTitle = async (title: string) => {
     try {
@@ -131,6 +176,33 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
     }
   };
 
+  const handleInvite = async (email: string, role: "admin" | "member") => {
+    await inviteMember({ boardId: board.id, email, role });
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    await removeMember(board.id, userId);
+  };
+
+  const handleUpdateRole = async (userId: string, role: "admin" | "member") => {
+    await updateMemberRole(board.id, userId, role);
+  };
+
+  const handleCancelInvitation = async (invitationId: string) => {
+    await cancelInvitation(invitationId);
+  };
+
+  const handleUpdateVisibility = async (visibility: BoardVisibility) => {
+    try {
+      await updateBoardVisibility(board.id, visibility);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      throw error;
+    }
+  };
+
+  const canEditContent = displayRole === "owner" || displayRole === "admin" || displayRole === "member";
+
   return (
     <div
       className="relative flex min-h-[calc(100vh-3rem)] flex-1 flex-col overflow-hidden"
@@ -140,7 +212,13 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0)_18%,_rgba(15,23,42,0.08)_100%)]" />
 
       <div className="relative flex flex-1 flex-col overflow-hidden">
-        <BoardHeader board={board} onUpdateTitle={handleUpdateBoardTitle} />
+        <BoardHeader
+          board={board}
+          participants={displayParticipants}
+          currentUserRole={displayRole}
+          onUpdateTitle={handleUpdateBoardTitle}
+          onOpenShare={() => setIsShareOpen(true)}
+        />
 
         <div className="relative min-h-0 flex-1">
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-8 bg-gradient-to-r from-slate-950/12 to-transparent lg:block" />
@@ -160,12 +238,26 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
                     onDeleteCard={handleDeleteCard}
                   />
                 ))}
-                <AddListButton onAdd={handleAddList} />
+                {canEditContent && <AddListButton onAdd={handleAddList} />}
               </div>
             </BoardDndContext>
           </div>
         </div>
       </div>
+
+      <ShareDialog
+        board={board}
+        participants={displayParticipants}
+        pendingInvitations={pendingInvitations}
+        currentUserRole={displayRole}
+        open={isShareOpen}
+        onOpenChange={setIsShareOpen}
+        onInvite={handleInvite}
+        onRemoveMember={handleRemoveMember}
+        onUpdateRole={handleUpdateRole}
+        onCancelInvitation={handleCancelInvitation}
+        onUpdateVisibility={handleUpdateVisibility}
+      />
     </div>
   );
 }

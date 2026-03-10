@@ -4,16 +4,16 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import {
   ArrowLeft,
+  Globe,
   Lock,
   MoreHorizontal,
   Share2,
-  UserPlus,
-  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { getBoardTitleError } from "@/lib/boards";
-import type { Board } from "@/types";
+import type { Board, BoardParticipant, BoardRole } from "@/types";
+import BoardMemberAvatars from "@/components/board/BoardMemberAvatars";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -27,7 +27,10 @@ import {
 
 interface BoardHeaderProps {
   board: Board;
+  participants: BoardParticipant[];
+  currentUserRole: BoardRole | null;
   onUpdateTitle: (title: string) => Promise<void>;
+  onOpenShare: () => void;
 }
 
 function BoardToolbarPill({
@@ -46,12 +49,21 @@ function BoardToolbarPill({
   );
 }
 
-export default function BoardHeader({ board, onUpdateTitle }: BoardHeaderProps) {
+export default function BoardHeader({
+  board,
+  participants,
+  currentUserRole,
+  onUpdateTitle,
+  onOpenShare,
+}: BoardHeaderProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(board.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const canEditTitle = currentUserRole === "owner" || currentUserRole === "admin";
+
   const startEditing = () => {
+    if (!canEditTitle) return;
     setEditValue(board.title);
     setIsEditing(true);
     setTimeout(() => inputRef.current?.select(), 0);
@@ -118,47 +130,40 @@ export default function BoardHeader({ board, onUpdateTitle }: BoardHeaderProps) 
             <button
               type="button"
               onClick={startEditing}
-              className="min-w-0 max-w-full cursor-pointer truncate rounded-lg px-2 py-1 text-left text-xl font-semibold text-white transition hover:bg-black/10 sm:text-2xl"
+              disabled={!canEditTitle}
+              className={cn(
+                "min-w-0 max-w-full truncate rounded-lg px-2 py-1 text-left text-xl font-semibold text-white transition sm:text-2xl",
+                canEditTitle ? "cursor-pointer hover:bg-black/10" : "cursor-default"
+              )}
             >
               {board.title}
             </button>
           )}
 
           <BoardToolbarPill className="h-8 px-2.5 text-[13px] text-white/84">
-            <Lock className="size-3.5" />
-            Private
+            {board.visibility === "public" ? (
+              <>
+                <Globe className="size-3.5" />
+                Public
+              </>
+            ) : (
+              <>
+                <Lock className="size-3.5" />
+                Private
+              </>
+            )}
           </BoardToolbarPill>
         </div>
 
         <div className="flex items-center gap-2">
-          <BoardToolbarPill className="hidden pr-1.5 md:flex">
-            <div className="flex items-center -space-x-2">
-              <div className="flex size-8 items-center justify-center rounded-full border border-white/45 bg-white/92 text-[11px] font-semibold text-slate-700 shadow-sm">
-                YOU
-              </div>
-              <button
-                type="button"
-                onClick={() => toast("Board members and invitations land in Phase 3.")}
-                className="inline-flex size-8 items-center justify-center rounded-full border border-white/35 bg-white/10 text-white/90 transition hover:bg-white/16"
-                aria-label="Invite board members"
-              >
-                <UserPlus className="size-4" />
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => toast("Board members and invitations land in Phase 3.")}
-              className="inline-flex items-center gap-1.5 rounded-full px-1.5 py-1 text-sm font-medium text-white/90 transition hover:bg-white/10"
-            >
-              <Users className="size-3.5" />
-              Members
-            </button>
-          </BoardToolbarPill>
+          <div className="hidden md:block">
+            <BoardMemberAvatars participants={participants} onOpenShare={onOpenShare} />
+          </div>
 
           <Button
             type="button"
             size="sm"
-            onClick={() => toast("Sharing and permissions land in Phase 3.")}
+            onClick={onOpenShare}
             className="rounded-full bg-white/94 px-3 text-slate-800 shadow-sm hover:bg-white sm:px-4"
           >
             <Share2 className="size-4" />
