@@ -133,26 +133,38 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
 
   return (
     <div
-      className="flex min-h-[calc(100vh-4rem)] flex-col rounded-xl"
+      className="relative flex min-h-[calc(100vh-3rem)] flex-1 flex-col overflow-hidden"
       style={{ background: background.cssBackground }}
     >
-      <BoardHeader board={board} onUpdateTitle={handleUpdateBoardTitle} />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.24),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.26),_transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,_rgba(255,255,255,0.08)_0%,_rgba(255,255,255,0)_18%,_rgba(15,23,42,0.08)_100%)]" />
 
-      <div className="flex flex-1 items-start gap-4 overflow-x-auto px-4 pb-4 pt-2">
-        <BoardDndContext lists={lists}>
-          {lists.map((list) => (
-            <SortableList
-              key={list.id}
-              list={list}
-              onUpdateTitle={(title) => handleUpdateListTitle(list.id, title)}
-              onDelete={() => handleDeleteList(list.id)}
-              onAddCard={(title) => handleAddCard(list.id, title)}
-              onUpdateCard={handleUpdateCard}
-              onDeleteCard={handleDeleteCard}
-            />
-          ))}
-        </BoardDndContext>
-        <AddListButton onAdd={handleAddList} />
+      <div className="relative flex flex-1 flex-col overflow-hidden">
+        <BoardHeader board={board} onUpdateTitle={handleUpdateBoardTitle} />
+
+        <div className="relative min-h-0 flex-1">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-8 bg-gradient-to-r from-slate-950/12 to-transparent lg:block" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-8 bg-gradient-to-l from-slate-950/12 to-transparent lg:block" />
+
+          <div className="board-scrollbar relative min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-4 pb-5 pt-4 sm:px-5">
+            <BoardDndContext lists={lists}>
+              <div className="flex h-full min-w-max snap-x snap-proximity items-start gap-3 pb-2">
+                {lists.map((list) => (
+                  <SortableList
+                    key={list.id}
+                    list={list}
+                    onUpdateTitle={(title) => handleUpdateListTitle(list.id, title)}
+                    onDelete={() => handleDeleteList(list.id)}
+                    onAddCard={(title) => handleAddCard(list.id, title)}
+                    onUpdateCard={handleUpdateCard}
+                    onDeleteCard={handleDeleteCard}
+                  />
+                ))}
+                <AddListButton onAdd={handleAddList} />
+              </div>
+            </BoardDndContext>
+          </div>
+        </div>
       </div>
     </div>
   );

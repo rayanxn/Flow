@@ -421,6 +421,7 @@ export default function BoardDndContext({ lists, children }: BoardDndContextProp
 
   return (
     <DndContext
+      id="board-dnd-context"
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
@@ -439,9 +440,9 @@ export default function BoardDndContext({ lists, children }: BoardDndContextProp
           </div>
         ) : null}
         {activeList ? (
-          <div className="w-72 rotate-2 rounded-xl border bg-muted/50 p-3 shadow-xl">
-            <p className="text-sm font-semibold">{activeList.title}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
+          <div className="w-[272px] rotate-2 rounded-xl bg-[#f1f2f4]/96 p-3 shadow-[0_1px_1px_rgba(15,23,42,0.12),0_12px_28px_rgba(15,23,42,0.16)]">
+            <p className="text-sm font-semibold text-slate-800">{activeList.title}</p>
+            <p className="mt-1 text-xs text-slate-500">
               {activeList.cards.length} card{activeList.cards.length !== 1 ? "s" : ""}
             </p>
           </div>

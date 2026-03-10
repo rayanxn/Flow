@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ChevronDown, LayoutGrid, LogOut } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -21,9 +21,11 @@ interface NavbarProps {
 }
 
 export default function Navbar({ userEmail }: NavbarProps) {
+  const pathname = usePathname();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const isBoardDetailPage = /^\/boards\/[^/]+$/.test(pathname ?? "");
 
   const handleSignOut = async () => {
     setErrorMessage("");
@@ -43,16 +45,34 @@ export default function Navbar({ userEmail }: NavbarProps) {
   };
 
   return (
-    <header className="border-b bg-background">
-      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/boards" className="text-base font-semibold">
-          Task Orbit
-        </Link>
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="flex h-12 w-full items-center justify-between px-4 sm:px-5 lg:px-6">
+        <div className="flex items-center gap-2">
+          <Link href="/boards" className="text-base font-semibold tracking-tight">
+            Task Orbit
+          </Link>
+          {!isBoardDetailPage ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="hidden rounded-full text-muted-foreground md:inline-flex"
+            >
+              <Link href="/boards">
+                <LayoutGrid className="size-4" />
+                Boards
+              </Link>
+            </Button>
+          ) : null}
+        </div>
 
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="max-w-[260px] gap-2">
+              <Button
+                variant="outline"
+                className="max-w-[260px] gap-2 rounded-full border-white/60 bg-background/75 shadow-xs backdrop-blur"
+              >
                 <span className="truncate">{userEmail}</span>
                 <ChevronDown className="size-4" />
               </Button>

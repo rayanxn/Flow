@@ -62,7 +62,7 @@ export default function ListHeader({ list, onUpdateTitle, onDelete }: ListHeader
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 px-3.5 pb-2 pt-3">
         {isEditing ? (
           <input
             ref={inputRef}
@@ -77,14 +77,14 @@ export default function ListHeader({ list, onUpdateTitle, onDelete }: ListHeader
                 cancelEditing();
               }
             }}
-            className="flex-1 rounded border bg-background px-2 py-1 text-sm font-semibold outline-none focus:ring-2 focus:ring-ring"
+            className="h-9 flex-1 rounded-md border border-transparent bg-white px-2.5 py-1 text-sm font-semibold text-slate-800 shadow-sm outline-none focus:border-slate-300 focus:ring-2 focus:ring-slate-300/80"
             autoFocus
           />
         ) : (
           <button
             type="button"
             onClick={startEditing}
-            className="min-w-0 flex-1 cursor-pointer truncate text-left text-sm font-semibold"
+            className="min-w-0 flex-1 cursor-pointer truncate rounded-md px-1 py-1 text-left text-sm font-semibold text-slate-800 transition hover:bg-slate-300/50"
           >
             {list.title}
           </button>
@@ -92,7 +92,12 @@ export default function ListHeader({ list, onUpdateTitle, onDelete }: ListHeader
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-7 shrink-0" aria-label={`Actions for ${list.title}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 rounded-full text-slate-500 hover:bg-slate-300/60 hover:text-slate-700"
+              aria-label={`Actions for ${list.title}`}
+            >
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>

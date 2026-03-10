@@ -6,5 +6,9 @@ export default async function BoardsPage() {
   const supabase = await createClient();
   const boards = await listBoards(supabase);
 
-  return <BoardsPageClient initialBoards={boards} />;
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <BoardsPageClient initialBoards={boards} />
+    </div>
+  );
 }
