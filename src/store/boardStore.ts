@@ -18,6 +18,7 @@ import {
 import {
   createList as createListAction,
   deleteList as deleteListAction,
+  reorderList as reorderListAction,
   updateListTitle as updateListTitleAction,
 } from "@/actions/lists";
 import { splitBoards, upsertBoard } from "@/lib/boards";
@@ -61,6 +62,8 @@ interface BoardState {
   removeCardLocal: (cardId: string) => void;
   moveCard: (input: MoveCardValues) => Promise<Card>;
   moveCardLocal: (cardId: string, listId: string, position: string) => void;
+  reorderListLocal: (listId: string, newPosition: string) => void;
+  reorderList: (listId: string, newPosition: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -397,6 +400,25 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       list_id: listId,
       position,
     });
+  },
+  reorderListLocal(listId, newPosition) {
+    set({
+      currentBoardLists: sortBoardLists(
+        get().currentBoardLists.map((list) =>
+          list.id === listId ? { ...list, position: newPosition } : list
+        )
+      ),
+    });
+  },
+  async reorderList(listId, newPosition) {
+    get().reorderListLocal(listId, newPosition);
+
+    try {
+      await reorderListAction(listId, newPosition);
+    } catch (error) {
+      set({ error: getErrorMessage(error) });
+      throw error;
+    }
   },
   clearError() {
     set({ error: null });

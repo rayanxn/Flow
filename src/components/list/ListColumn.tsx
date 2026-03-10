@@ -25,6 +25,7 @@ export default function ListColumn({
     <div className="flex w-72 shrink-0 flex-col rounded-xl border bg-muted/50">
       <ListHeader list={list} onUpdateTitle={onUpdateTitle} onDelete={onDelete} />
       <ListContainer
+        listId={list.id}
         cards={list.cards}
         onAddCard={onAddCard}
         onUpdateCard={onUpdateCard}

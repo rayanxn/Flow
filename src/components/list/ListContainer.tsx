@@ -8,6 +8,7 @@ import CardModal from "@/components/card/CardModal";
 import TaskCard from "@/components/card/Card";
 
 interface ListContainerProps {
+  listId: string;
   cards: CardRecord[];
   onAddCard: (title: string) => Promise<void>;
   onUpdateCard: (cardId: string, input: CardUpdatePatch) => Promise<void>;
@@ -15,6 +16,7 @@ interface ListContainerProps {
 }
 
 export default function ListContainer({
+  listId,
   cards,
   onAddCard,
   onUpdateCard,

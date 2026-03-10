@@ -7,8 +7,9 @@ import { getBoardBackground } from "@/lib/backgrounds";
 import { sortByPosition } from "@/lib/fractional-index";
 import type { BoardWithDetails, CardUpdatePatch } from "@/types";
 import AddListButton from "@/components/list/AddListButton";
-import ListColumn from "@/components/list/ListColumn";
 import BoardHeader from "@/components/board/BoardHeader";
+import BoardDndContext from "@/components/dnd/BoardDndContext";
+import SortableList from "@/components/dnd/SortableList";
 import { useBoardStore } from "@/store/boardStore";
 
 interface BoardDetailClientProps {
@@ -138,17 +139,19 @@ export default function BoardDetailClient({ initialBoard }: BoardDetailClientPro
       <BoardHeader board={board} onUpdateTitle={handleUpdateBoardTitle} />
 
       <div className="flex flex-1 items-start gap-4 overflow-x-auto px-4 pb-4 pt-2">
-        {lists.map((list) => (
-          <ListColumn
-            key={list.id}
-            list={list}
-            onUpdateTitle={(title) => handleUpdateListTitle(list.id, title)}
-            onDelete={() => handleDeleteList(list.id)}
-            onAddCard={(title) => handleAddCard(list.id, title)}
-            onUpdateCard={handleUpdateCard}
-            onDeleteCard={handleDeleteCard}
-          />
-        ))}
+        <BoardDndContext lists={lists}>
+          {lists.map((list) => (
+            <SortableList
+              key={list.id}
+              list={list}
+              onUpdateTitle={(title) => handleUpdateListTitle(list.id, title)}
+              onDelete={() => handleDeleteList(list.id)}
+              onAddCard={(title) => handleAddCard(list.id, title)}
+              onUpdateCard={handleUpdateCard}
+              onDeleteCard={handleDeleteCard}
+            />
+          ))}
+        </BoardDndContext>
         <AddListButton onAdd={handleAddList} />
       </div>
     </div>
