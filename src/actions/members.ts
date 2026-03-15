@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAuthenticatedUser } from "@/lib/auth";
+import { isValidEmail } from "@/lib/email";
 import { getBoardParticipants } from "@/lib/member-queries";
 import { canManageMembers, getUserBoardRole } from "@/lib/permissions";
 import type {
@@ -42,6 +43,11 @@ export async function getBoardMembers(boardId: string): Promise<BoardParticipant
 export async function inviteMember(input: InviteMemberValues): Promise<BoardInvitation> {
   const { supabase, user } = await requireAuthenticatedUser();
   const inviteeEmail = normalizeEmail(input.email);
+
+  if (!isValidEmail(inviteeEmail)) {
+    throw new Error("Please provide a valid email address.");
+  }
+
   const role = await getUserBoardRole(supabase, input.boardId, user.id);
 
   if (!canManageMembers(role)) {

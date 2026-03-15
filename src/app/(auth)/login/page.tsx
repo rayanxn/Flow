@@ -4,12 +4,11 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { isValidEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +23,7 @@ export default function LoginPage() {
     event.preventDefault();
     setErrorMessage("");
 
-    if (!EMAIL_PATTERN.test(email)) {
+    if (!isValidEmail(email)) {
       setErrorMessage("Enter a valid email address.");
       return;
     }

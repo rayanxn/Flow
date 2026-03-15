@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { Crown, Globe, Lock, Mail, Shield, Trash2, User, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { isValidEmail } from "@/lib/email";
 import { canManageMembers } from "@/lib/permissions";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import type {
   Board,
   BoardInvitation,
@@ -94,6 +96,7 @@ export default function ShareDialog({
   const [email, setEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showVisibilityConfirm, setShowVisibilityConfirm] = useState(false);
   const isAdmin = canManageMembers(currentUserRole);
   const isOwner = currentUserRole === "owner";
   const visibility = board.visibility === "public" ? "public" : "private";
@@ -113,6 +116,11 @@ export default function ShareDialog({
     const nextEmail = email.trim().toLowerCase();
 
     if (!nextEmail) {
+      return;
+    }
+
+    if (!isValidEmail(nextEmail)) {
+      toast.error("Please provide a valid email address.");
       return;
     }
 
@@ -205,7 +213,7 @@ export default function ShareDialog({
                 </p>
               </div>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={handleToggleVisibility}>
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowVisibilityConfirm(true)}>
               {visibility === "private" ? "Make public" : "Make private"}
             </Button>
           </div>
@@ -324,6 +332,19 @@ export default function ShareDialog({
           ))}
         </div>
       </DialogContent>
+
+      <ConfirmDialog
+        open={showVisibilityConfirm}
+        onOpenChange={setShowVisibilityConfirm}
+        title={visibility === "private" ? "Make board public?" : "Make board private?"}
+        description={
+          visibility === "private"
+            ? "Any authenticated user will be able to view this board read-only."
+            : "Only board members will be able to access this board."
+        }
+        confirmLabel={visibility === "private" ? "Make public" : "Make private"}
+        onConfirm={handleToggleVisibility}
+      />
     </Dialog>
   );
 }

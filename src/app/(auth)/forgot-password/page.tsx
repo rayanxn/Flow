@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import { isValidEmail } from "@/lib/email";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordPage() {
   const supabase = createClient();
@@ -23,7 +22,7 @@ export default function ForgotPasswordPage() {
     setErrorMessage("");
     setNoticeMessage("");
 
-    if (!EMAIL_PATTERN.test(email)) {
+    if (!isValidEmail(email)) {
       setErrorMessage("Enter a valid email address.");
       return;
     }

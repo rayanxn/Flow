@@ -15,7 +15,7 @@ export async function getBoardWithLists(
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") {
+    if (error.code === "PGRST116" || error.code === "22P02") {
       return null;
     }
     throw new Error(error.message);
