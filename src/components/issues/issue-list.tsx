@@ -1,0 +1,106 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { IssueRow } from "./issue-row";
+import { STATUS_CONFIG, STATUS_ORDER } from "@/lib/utils/statuses";
+import type { IssueStatus } from "@/lib/types";
+import type { IssueWithDetails } from "@/lib/queries/issues";
+
+interface IssueListProps {
+  issues: IssueWithDetails[];
+  showProject?: boolean;
+}
+
+export function IssueList({ issues, showProject = true }: IssueListProps) {
+  // Group issues by status
+  const grouped = new Map<IssueStatus, IssueWithDetails[]>();
+  for (const status of STATUS_ORDER) {
+    grouped.set(status, []);
+  }
+  for (const issue of issues) {
+    const group = grouped.get(issue.status as IssueStatus);
+    if (group) {
+      group.push(issue);
+    }
+  }
+
+  // Only show groups that have issues
+  const activeGroups = STATUS_ORDER.filter(
+    (status) => (grouped.get(status)?.length ?? 0) > 0
+  );
+
+  return (
+    <div>
+      {/* Column headers */}
+      <div className="flex items-center gap-3 px-6 py-2 border-b border-border text-xs text-text-muted uppercase tracking-wider">
+        <div className="w-4 shrink-0" />
+        <span className="w-[72px] shrink-0">ID</span>
+        <span className="flex-1">Title</span>
+        {showProject && <span className="w-[140px] shrink-0">Project</span>}
+        <span className="w-8 text-center shrink-0">Priority</span>
+        <span className="w-[72px] text-right shrink-0">Due</span>
+      </div>
+
+      {activeGroups.map((status) => (
+        <StatusGroup
+          key={status}
+          status={status}
+          issues={grouped.get(status) ?? []}
+          showProject={showProject}
+        />
+      ))}
+    </div>
+  );
+}
+
+function StatusGroup({
+  status,
+  issues,
+  showProject,
+}: {
+  status: IssueStatus;
+  issues: IssueWithDetails[];
+  showProject: boolean;
+}) {
+  const [expanded, setExpanded] = useState(status !== "done");
+  const config = STATUS_CONFIG[status];
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 px-6 py-2.5 w-full hover:bg-surface-hover transition-colors"
+      >
+        {expanded ? (
+          <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
+        ) : (
+          <ChevronRight className="w-3.5 h-3.5 text-text-muted" />
+        )}
+        <span
+          className="w-2 h-2 rounded-full"
+          style={{ backgroundColor: config.color }}
+        />
+        <span className="text-sm font-medium text-text">{config.label}</span>
+        <span className="text-xs text-text-muted">{issues.length}</span>
+      </button>
+
+      {expanded && (
+        <div>
+          {issues.map((issue) => (
+            <IssueRow
+              key={issue.id}
+              issueKey={issue.issue_key}
+              title={issue.title}
+              project={issue.project}
+              priority={issue.priority}
+              dueDate={issue.due_date}
+              status={issue.status}
+              showProject={showProject}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
