@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useShell } from "@/components/layout/workspace-shell";
 
@@ -11,7 +11,19 @@ interface HeaderProps {
 export function Header({ userInitials }: HeaderProps) {
   const shell = useShell();
   return (
-    <header className="flex items-center justify-end gap-3 px-10 pt-6">
+    <header className="flex items-center justify-between gap-3 px-4 md:px-10 pt-6">
+      {/* Hamburger menu (mobile only) */}
+      <button
+        type="button"
+        onClick={() => shell?.toggleMobileMenu()}
+        className="md:hidden p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
+        aria-label="Toggle menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      <div className="flex-1" />
+
       {/* Search trigger */}
       <button
         type="button"

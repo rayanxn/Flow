@@ -9,6 +9,9 @@ import { useHotkeys } from "@/lib/hooks/use-hotkeys";
 type ShellContextValue = {
   openPalette: () => void;
   openCreateIssue: () => void;
+  mobileMenuOpen: boolean;
+  toggleMobileMenu: () => void;
+  closeMobileMenu: () => void;
 };
 
 const ShellContext = createContext<ShellContextValue | null>(null);
@@ -37,9 +40,12 @@ export function WorkspaceShell({
   const router = useRouter();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [createIssueOpen, setCreateIssueOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const openPalette = useCallback(() => setPaletteOpen(true), []);
   const openCreateIssue = useCallback(() => setCreateIssueOpen(true), []);
+  const toggleMobileMenu = useCallback(() => setMobileMenuOpen((o) => !o), []);
+  const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
   const hotkeys = useMemo(
     () => [
@@ -56,7 +62,10 @@ export function WorkspaceShell({
 
   useHotkeys(hotkeys);
 
-  const ctx = useMemo(() => ({ openPalette, openCreateIssue }), [openPalette, openCreateIssue]);
+  const ctx = useMemo(
+    () => ({ openPalette, openCreateIssue, mobileMenuOpen, toggleMobileMenu, closeMobileMenu }),
+    [openPalette, openCreateIssue, mobileMenuOpen, toggleMobileMenu, closeMobileMenu]
+  );
 
   return (
     <ShellContext.Provider value={ctx}>

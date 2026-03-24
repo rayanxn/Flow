@@ -3,12 +3,17 @@
 import { useTransition, useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NotificationList } from "./notification-list";
+import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
+import { createClient } from "@/lib/supabase/client";
+import { enrichIssuesClient } from "@/lib/queries/issues-client";
 import type { NotificationWithActivity } from "@/lib/utils/activities";
+import type { IssueWithDetails } from "@/lib/queries/issues";
 
 interface InboxClientProps {
   notifications: NotificationWithActivity[];
   workspaceId: string;
+  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
 }
 
 const TABS = [
@@ -21,9 +26,13 @@ const TABS = [
 export function InboxClient({
   notifications: initialNotifications,
   workspaceId,
+  members = [],
 }: InboxClientProps) {
   const [notifications, setNotifications] = useState(initialNotifications);
   const [isPending, startTransition] = useTransition();
+  const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [loadingIssue, setLoadingIssue] = useState(false);
 
   const handleMarkAllRead = () => {
     startTransition(async () => {
@@ -40,6 +49,28 @@ export function InboxClient({
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
     );
+  }, []);
+
+  const handleIssueClick = useCallback(async (issueId: string) => {
+    setLoadingIssue(true);
+    try {
+      const supabase = createClient();
+      const { data: issue } = await supabase
+        .from("issues")
+        .select("*")
+        .eq("id", issueId)
+        .single();
+
+      if (issue) {
+        const enriched = await enrichIssuesClient([issue], supabase);
+        if (enriched.length > 0) {
+          setSelectedIssue(enriched[0]);
+          setDetailOpen(true);
+        }
+      }
+    } finally {
+      setLoadingIssue(false);
+    }
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -89,12 +120,21 @@ export function InboxClient({
                 <NotificationList
                   notifications={filtered}
                   onMarkedRead={handleMarkedRead}
+                  onIssueClick={handleIssueClick}
                 />
               </TabsContent>
             );
           })}
         </Tabs>
       </div>
+
+      {/* Issue detail modal */}
+      <IssueDetailModal
+        issue={selectedIssue}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        members={members}
+      />
     </div>
   );
 }

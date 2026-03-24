@@ -6,9 +6,9 @@ import {
   getProjectSprints,
 } from "@/lib/queries/projects";
 import { getWorkspaceMembers } from "@/lib/queries/members";
-import { BoardView } from "@/components/board/board-view";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { BoardPageEmpty } from "./board-empty";
+import { BoardWithDetail } from "./board-with-detail";
 
 export default async function BoardPage({
   params,
@@ -58,9 +58,10 @@ export default async function BoardPage({
         />
       )}
       <div className="flex-1">
-        <BoardView
+        <BoardWithDetail
           initialIssues={issues}
           projectId={projectId}
+          members={members}
         />
       </div>
     </div>

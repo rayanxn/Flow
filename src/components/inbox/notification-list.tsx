@@ -7,6 +7,7 @@ import { NotificationRow } from "./notification-row";
 interface NotificationListProps {
   notifications: NotificationWithActivity[];
   onMarkedRead?: (id: string) => void;
+  onIssueClick?: (issueId: string) => void;
 }
 
 type TimeBucket = "TODAY" | "YESTERDAY" | "THIS WEEK" | "EARLIER";
@@ -40,6 +41,7 @@ function groupByTimeBucket(notifications: NotificationWithActivity[]) {
 export function NotificationList({
   notifications,
   onMarkedRead,
+  onIssueClick,
 }: NotificationListProps) {
   if (notifications.length === 0) {
     return (
@@ -73,6 +75,7 @@ export function NotificationList({
                   notification={notification}
                   isRecent={bucket === "TODAY"}
                   onMarkedRead={onMarkedRead}
+                  onIssueClick={onIssueClick}
                 />
               ))}
             </div>

@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/utils/dates";
 import type { IssuePriority } from "@/lib/types";
 
 interface IssueRowProps {
+  id: string;
   issueKey: string;
   title: string;
   project?: { name: string; color: string } | null;
@@ -11,9 +12,11 @@ interface IssueRowProps {
   dueDate?: string | null;
   status: string;
   showProject?: boolean;
+  onClick?: (id: string) => void;
 }
 
 export function IssueRow({
+  id,
   issueKey,
   title,
   project,
@@ -21,6 +24,7 @@ export function IssueRow({
   dueDate,
   status,
   showProject = true,
+  onClick,
 }: IssueRowProps) {
   const priorityConfig = PRIORITY_CONFIG[priority as IssuePriority];
   const isDone = status === "done";
@@ -37,9 +41,12 @@ export function IssueRow({
     new Date(dueDate) < new Date(new Date().toDateString());
 
   return (
-    <div className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover/50 transition-colors group border-b border-[#F0EDE7] last:border-b-0">
+    <div
+      onClick={() => onClick?.(id)}
+      className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover/50 transition-colors group border-b border-[#F0EDE7] last:border-b-0 cursor-pointer"
+    >
       {/* Checkbox */}
-      <Checkbox className="shrink-0" />
+      <Checkbox className="shrink-0" onClick={(e) => e.stopPropagation()} />
 
       {/* Issue key */}
       <span className="text-xs font-mono text-text-muted w-[72px] shrink-0">

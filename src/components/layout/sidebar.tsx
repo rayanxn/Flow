@@ -14,6 +14,7 @@ import {
   Settings,
   ChevronsLeft,
   ChevronsRight,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { InboxBadge } from "./inbox-badge";
@@ -31,6 +32,8 @@ interface SidebarProps {
   workspaceId: string;
   userId: string;
   unreadCount: number;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navItems = [
@@ -52,6 +55,8 @@ export function Sidebar({
   workspaceId,
   userId,
   unreadCount,
+  mobileOpen = false,
+  onMobileClose,
 }: SidebarProps) {
   const pathname = usePathname();
   const base = `/${workspaceSlug}`;
@@ -77,50 +82,61 @@ export function Sidebar({
     return pathname.startsWith(fullPath);
   }
 
-  return (
-    <aside
-      className={cn(
-        "bg-background border-r border-[#2E2E2C]/6 flex flex-col h-screen shrink-0 transition-all duration-200",
-        collapsed ? "w-14" : "w-56",
-      )}
-    >
+  function handleNavClick() {
+    // Auto-close mobile menu when navigating
+    onMobileClose?.();
+  }
+
+  const sidebarContent = (isCollapsed: boolean, isMobile: boolean) => (
+    <>
       {/* Logo & workspace */}
-      <div className={cn("py-6 pb-7", collapsed ? "px-2.5" : "px-5")}>
+      <div className={cn("py-6 pb-7", isCollapsed ? "px-2.5" : "px-5")}>
         <div className="flex items-center gap-2.5">
           <div className="w-[30px] h-[30px] bg-primary rounded-lg flex items-center justify-center shrink-0">
             <span className="text-background text-[13px] font-semibold">F</span>
           </div>
-          {!collapsed && (
-            <div className="flex flex-col gap-px min-w-0">
+          {!isCollapsed && (
+            <div className="flex flex-col gap-px min-w-0 flex-1">
               <span className="text-[15px] font-semibold text-text leading-[18px]">Flowboard</span>
               <p className="text-[11px] font-mono text-text-muted opacity-30 leading-[14px] truncate">
                 {workspaceName}
               </p>
             </div>
           )}
+          {isMobile && (
+            <button
+              type="button"
+              onClick={onMobileClose}
+              className="ml-auto p-1 rounded-md text-text-muted hover:text-text transition-colors"
+              aria-label="Close menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className={cn("flex-1 space-y-0.5", collapsed ? "px-1.5" : "px-3")}>
+      <nav className={cn("flex-1 space-y-0.5", isCollapsed ? "px-1.5" : "px-3")}>
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
             <Link
               key={item.href}
               href={`${base}${item.href}`}
-              title={collapsed ? item.label : undefined}
+              title={isCollapsed ? item.label : undefined}
+              onClick={isMobile ? handleNavClick : undefined}
               className={cn(
                 "flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-mono transition-colors",
-                collapsed ? "justify-center px-2" : "px-3",
+                isCollapsed ? "justify-center px-2" : "px-3",
                 active
                   ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
                   : "text-text-muted opacity-55 hover:opacity-70",
               )}
             >
               <item.icon className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="flex-1">{item.label}</span>}
-              {!collapsed && item.badge && (
+              {!isCollapsed && <span className="flex-1">{item.label}</span>}
+              {!isCollapsed && item.badge && (
                 <InboxBadge
                   workspaceId={workspaceId}
                   userId={userId}
@@ -135,7 +151,7 @@ export function Sidebar({
         <div className="!my-3 h-px bg-[#2E2E2C]/6" />
 
         {/* Projects section */}
-        {!collapsed && (
+        {!isCollapsed && (
           <div className="px-3 pt-2 pb-3">
             <span className="text-[10px] font-mono font-medium text-text-muted opacity-50 tracking-widest uppercase">
               Projects
@@ -146,10 +162,11 @@ export function Sidebar({
           <Link
             key={project.id}
             href={`${base}/projects/${project.id}/board`}
-            title={collapsed ? project.name : undefined}
+            title={isCollapsed ? project.name : undefined}
+            onClick={isMobile ? handleNavClick : undefined}
             className={cn(
               "flex items-center gap-2.5 rounded-lg text-[13px] font-mono transition-colors",
-              collapsed ? "justify-center px-2 py-1.5" : "px-3 py-1.5",
+              isCollapsed ? "justify-center px-2 py-1.5" : "px-3 py-1.5",
               pathname.includes(`/projects/${project.id}`)
                 ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
                 : "text-text-muted opacity-50 hover:opacity-70",
@@ -159,47 +176,80 @@ export function Sidebar({
               className="size-1.5 rounded-full shrink-0"
               style={{ backgroundColor: project.color }}
             />
-            {!collapsed && <span className="truncate">{project.name}</span>}
+            {!isCollapsed && <span className="truncate">{project.name}</span>}
           </Link>
         ))}
       </nav>
 
       {/* Bottom: collapse toggle + settings */}
-      <div className={cn("py-3", collapsed ? "px-1.5" : "px-3")}>
+      <div className={cn("py-3", isCollapsed ? "px-1.5" : "px-3")}>
         <Link
           href={`${base}/settings`}
-          title={collapsed ? "Settings" : undefined}
+          title={isCollapsed ? "Settings" : undefined}
+          onClick={isMobile ? handleNavClick : undefined}
           className={cn(
             "flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-mono transition-colors",
-            collapsed ? "justify-center px-2" : "px-3",
+            isCollapsed ? "justify-center px-2" : "px-3",
             pathname.startsWith(`${base}/settings`)
               ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
               : "text-text-muted opacity-55 hover:opacity-70",
           )}
         >
           <Settings className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Settings</span>}
+          {!isCollapsed && <span>Settings</span>}
         </Link>
 
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          className={cn(
-            "flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-mono text-text-muted opacity-35 hover:opacity-60 transition-all w-full mt-1",
-            collapsed ? "justify-center px-2" : "px-3",
-          )}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <ChevronsRight className="w-4 h-4 shrink-0" />
-          ) : (
-            <>
-              <ChevronsLeft className="w-4 h-4 shrink-0" />
-              <span>Collapse</span>
-            </>
-          )}
-        </button>
+        {/* Collapse toggle (desktop only) */}
+        {!isMobile && (
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className={cn(
+              "flex items-center gap-2.5 py-2 rounded-lg text-[13px] font-mono text-text-muted opacity-35 hover:opacity-60 transition-all w-full mt-1",
+              isCollapsed ? "justify-center px-2" : "px-3",
+            )}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronsRight className="w-4 h-4 shrink-0" />
+            ) : (
+              <>
+                <ChevronsLeft className="w-4 h-4 shrink-0" />
+                <span>Collapse</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "hidden md:flex bg-background border-r border-[#2E2E2C]/6 flex-col h-screen shrink-0 transition-all duration-200",
+          collapsed ? "w-14" : "w-56",
+        )}
+      >
+        {sidebarContent(collapsed, false)}
+      </aside>
+
+      {/* Mobile sidebar overlay */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={onMobileClose}
+          />
+          {/* Sidebar panel */}
+          <aside className="relative w-56 h-full bg-background border-r border-[#2E2E2C]/6 flex flex-col">
+            {sidebarContent(false, true)}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

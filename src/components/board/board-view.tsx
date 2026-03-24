@@ -26,6 +26,7 @@ interface BoardViewProps {
   initialIssues: IssueWithDetails[];
   projectId: string;
   showProject?: boolean;
+  onIssueClick?: (id: string) => void;
 }
 
 function calculateSortOrder(
@@ -81,6 +82,7 @@ export function BoardView({
   initialIssues,
   projectId,
   showProject = false,
+  onIssueClick,
 }: BoardViewProps) {
   const { issues, setIssues } = useRealtimeIssues({
     projectId,
@@ -271,6 +273,7 @@ export function BoardView({
             onQuickAddOpen={() => setQuickAddStatus(status)}
             onQuickAddClose={() => setQuickAddStatus(null)}
             onQuickAddCreated={handleQuickAddCreated}
+            onIssueClick={onIssueClick}
           />
         ))}
       </div>

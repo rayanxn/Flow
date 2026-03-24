@@ -2,6 +2,7 @@ import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getNotifications } from "@/lib/queries/notifications";
+import { getWorkspaceMembers } from "@/lib/queries/members";
 import { InboxClient } from "@/components/inbox/inbox-client";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -24,15 +25,19 @@ export default async function InboxPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const notifications = await getNotifications(workspace.id, user.id);
+  const [notifications, members] = await Promise.all([
+    getNotifications(workspace.id, user.id),
+    getWorkspaceMembers(workspace.id),
+  ]);
 
   return (
-    <div className="flex flex-col flex-1 px-10">
+    <div className="flex flex-col flex-1 px-4 md:px-10">
       <Breadcrumb workspaceName={workspace.name} pageName="Inbox" />
       {notifications.length > 0 ? (
         <InboxClient
           notifications={notifications}
           workspaceId={workspace.id}
+          members={members}
         />
       ) : (
         <EmptyState
