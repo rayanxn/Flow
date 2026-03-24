@@ -1,0 +1,11 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "channel": "chromium"
+    },
+    "contextOptions": {
+      "storageState": "tests/.auth/user.json"
+    }
+  }
+}
