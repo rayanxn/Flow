@@ -105,3 +105,24 @@ export async function getProjectSprints(projectId: string) {
     .order("created_at", { ascending: false });
   return data ?? [];
 }
+
+export async function getWorkspaceLabels(workspaceId: string) {
+  const supabase = await createClient();
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("is_archived", false);
+
+  if (!projects || projects.length === 0) return [];
+
+  const { data } = await supabase
+    .from("labels")
+    .select("*")
+    .in(
+      "project_id",
+      projects.map((p) => p.id),
+    )
+    .order("name");
+  return data ?? [];
+}

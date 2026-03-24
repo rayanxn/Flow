@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
+import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
+import { getWorkspaceMembers } from "@/lib/queries/members";
 import { getViewById, getFilteredIssues } from "@/lib/queries/views";
 import type { ViewFilters } from "@/lib/types";
 import { ViewDetailClient } from "@/components/views/view-detail-client";
@@ -19,7 +20,11 @@ export default async function ViewDetailPage({
   const result = await getWorkspaceBySlug(workspaceSlug);
   if (!result?.workspace) notFound();
 
-  const view = await getViewById(viewId);
+  const [view, members, projects] = await Promise.all([
+    getViewById(viewId),
+    getWorkspaceMembers(result.workspace.id),
+    getWorkspaceProjects(result.workspace.id),
+  ]);
   if (!view) notFound();
 
   // Use view's stored filters, but allow search params to override
@@ -50,11 +55,19 @@ export default async function ViewDetailPage({
 
   const issues = await getFilteredIssues(result.workspace.id, activeFilters);
 
+  // Build lookup maps for chip display names
+  const memberMap = new Map(
+    members.map((m) => [m.user_id, m.profile.full_name ?? m.profile.email])
+  );
+  const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+
   return (
     <ViewDetailClient
       view={view}
       issues={issues}
       workspaceSlug={workspaceSlug}
+      memberMap={Object.fromEntries(memberMap)}
+      projectMap={Object.fromEntries(projectMap)}
     />
   );
 }

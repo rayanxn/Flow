@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Filter } from "lucide-react";
-import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
+import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
+import { getWorkspaceMembers } from "@/lib/queries/members";
 import { getWorkspaceViews, getFilteredIssueCount } from "@/lib/queries/views";
 import type { ViewFilters } from "@/lib/types";
 import { ViewsList } from "@/components/views/views-list";
@@ -17,7 +18,11 @@ export default async function ViewsPage({
   const result = await getWorkspaceBySlug(workspaceSlug);
   if (!result?.workspace) notFound();
 
-  const views = await getWorkspaceViews(result.workspace.id);
+  const [views, members, projects] = await Promise.all([
+    getWorkspaceViews(result.workspace.id),
+    getWorkspaceMembers(result.workspace.id),
+    getWorkspaceProjects(result.workspace.id),
+  ]);
 
   // Get issue counts for each view in parallel
   const counts = await Promise.all(
@@ -44,6 +49,8 @@ export default async function ViewsPage({
         <CreateViewModal
           workspaceId={result.workspace.id}
           workspaceSlug={workspaceSlug}
+          members={members}
+          projects={projects}
         />
       </div>
       {views.length > 0 ? (

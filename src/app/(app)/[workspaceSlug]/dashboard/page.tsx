@@ -33,14 +33,7 @@ export default async function DashboardPage({
     user.email?.split("@")[0] ??
     "there";
 
-  // Determine primary project for sprint context
-  let primaryProjectId = membership.primary_project_id;
-  if (!primaryProjectId) {
-    const projects = await getWorkspaceProjects(workspace.id);
-    primaryProjectId = projects[0]?.id ?? null;
-  }
-
-  // Fetch active sprint for the primary project
+  // Determine active sprint for sprint context
   let activeSprint = null;
   let issueCounts: Record<IssueStatus, number> = {
     todo: 0,
@@ -50,6 +43,8 @@ export default async function DashboardPage({
   };
   let totalIssues = 0;
 
+  // Try user's primary project first
+  const primaryProjectId = membership.primary_project_id;
   if (primaryProjectId) {
     const { data: sprint } = await supabase
       .from("sprints")
@@ -57,21 +52,33 @@ export default async function DashboardPage({
       .eq("project_id", primaryProjectId)
       .eq("status", "active")
       .single();
+    activeSprint = sprint;
+  }
 
-    if (sprint) {
-      activeSprint = sprint;
+  // Fallback: find any active sprint in the workspace
+  if (!activeSprint) {
+    const { data: sprint } = await supabase
+      .from("sprints")
+      .select("*")
+      .eq("workspace_id", workspace.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+    activeSprint = sprint;
+  }
 
-      const { data: sprintIssues } = await supabase
-        .from("issues")
-        .select("id, status")
-        .eq("sprint_id", sprint.id);
+  if (activeSprint) {
+    const { data: sprintIssues } = await supabase
+      .from("issues")
+      .select("id, status")
+      .eq("sprint_id", activeSprint.id);
 
-      if (sprintIssues) {
-        totalIssues = sprintIssues.length;
-        for (const issue of sprintIssues) {
-          const status = issue.status as IssueStatus;
-          issueCounts[status] = (issueCounts[status] || 0) + 1;
-        }
+    if (sprintIssues) {
+      totalIssues = sprintIssues.length;
+      for (const issue of sprintIssues) {
+        const status = issue.status as IssueStatus;
+        issueCounts[status] = (issueCounts[status] || 0) + 1;
       }
     }
   }

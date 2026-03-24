@@ -42,8 +42,15 @@ export function computeBurndownSeries(
 
   for (const activity of activities) {
     const metadata = activity.metadata as Record<string, unknown> | null;
+    // Support both flat format (field/new_value) and nested changes format
+    const field = metadata?.field as string | undefined;
+    const newValue = metadata?.new_value as string | undefined;
     const changes = metadata?.changes as Record<string, unknown> | undefined;
-    if (changes?.status === "done") {
+
+    if (
+      (field === "status" && newValue === "done") ||
+      changes?.status === "done"
+    ) {
       const dayKey = format(new Date(activity.created_at), "yyyy-MM-dd");
       completionsByDay.set(dayKey, (completionsByDay.get(dayKey) ?? 0) + 1);
     }

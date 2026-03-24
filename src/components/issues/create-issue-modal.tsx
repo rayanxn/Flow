@@ -29,8 +29,8 @@ interface CreateIssueModalProps {
   defaultStatus?: IssueStatus;
   projects?: { id: string; name: string; color: string }[];
   members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
-  sprints?: { id: string; name: string; status: string }[];
-  labels?: { id: string; name: string; color: string }[];
+  sprints?: { id: string; name: string; status: string; project_id?: string }[];
+  labels?: { id: string; name: string; color: string; project_id?: string }[];
   initialSortOrder?: number;
 }
 
@@ -50,6 +50,7 @@ export function CreateIssueModal({
   const { workspace } = useWorkspace();
   const [priority, setPriority] = useState<IssuePriority>(3);
   const [status, setStatus] = useState<IssueStatus>(defaultStatus ?? "todo");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId ?? "");
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +110,7 @@ export function CreateIssueModal({
     if (open) {
       setPriority(3);
       setStatus(defaultStatus ?? "todo");
+      setSelectedProjectId(defaultProjectId ?? "");
       setSelectedLabels([]);
       setError(null);
       setFieldErrors({});
@@ -128,9 +130,16 @@ export function CreateIssueModal({
     setSelectedLabels((prev) => prev.filter((id) => id !== labelId));
   }
 
-  const activeSprints = sprints.filter(
-    (s) => s.status === "active" || s.status === "planning",
-  );
+  const activeSprints = sprints.filter((s) => {
+    const statusOk = s.status === "active" || s.status === "planning";
+    const projectOk =
+      !selectedProjectId || !s.project_id || s.project_id === selectedProjectId;
+    return statusOk && projectOk;
+  });
+
+  const filteredLabels = labels.filter((l) => {
+    return !selectedProjectId || !l.project_id || l.project_id === selectedProjectId;
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -255,8 +264,12 @@ export function CreateIssueModal({
                   id="issue-project"
                   name="projectId"
                   className="flex h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-border-strong transition-colors"
-                  defaultValue={defaultProjectId ?? ""}
-                  onChange={() => fieldErrors.projectId && setFieldErrors((prev) => ({ ...prev, projectId: undefined }))}
+                  value={selectedProjectId}
+                  onChange={(e) => {
+                    setSelectedProjectId(e.target.value);
+                    setSelectedLabels([]);
+                    if (fieldErrors.projectId) setFieldErrors((prev) => ({ ...prev, projectId: undefined }));
+                  }}
                 >
                   <option value="" disabled>
                     Select project
@@ -319,7 +332,7 @@ export function CreateIssueModal({
               <Label>Labels</Label>
               <div className="flex flex-wrap items-center gap-1.5">
                 {selectedLabels.map((labelId) => {
-                  const label = labels.find((l) => l.id === labelId);
+                  const label = filteredLabels.find((l) => l.id === labelId);
                   if (!label) return null;
                   return (
                     <span
@@ -351,7 +364,7 @@ export function CreateIssueModal({
                   </button>
                   {showLabelPicker && (
                     <div className="absolute top-full left-0 mt-1 bg-surface border border-border rounded-lg shadow-lg py-1 z-10 min-w-[160px]">
-                      {labels
+                      {filteredLabels
                         .filter((l) => !selectedLabels.includes(l.id))
                         .map((label) => (
                           <button
@@ -370,7 +383,7 @@ export function CreateIssueModal({
                             {label.name}
                           </button>
                         ))}
-                      {labels.filter((l) => !selectedLabels.includes(l.id))
+                      {filteredLabels.filter((l) => !selectedLabels.includes(l.id))
                         .length === 0 && (
                         <p className="px-3 py-1.5 text-xs text-text-muted">
                           No more labels

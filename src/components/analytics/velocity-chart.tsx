@@ -24,7 +24,7 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
       <span className="text-sm font-semibold text-text">
         Team Velocity
       </span>
-      <div className="flex items-end grow shrink basis-0 pt-2 gap-6">
+      <div className="flex items-end pt-2 gap-6 justify-center flex-1">
         {data.map((item, i) => {
           const isLast = i === data.length - 1;
           const height =
@@ -41,10 +41,10 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
           return (
             <div
               key={item.name}
-              className="flex flex-col items-center grow shrink basis-0 gap-2"
+              className="flex flex-col items-center w-16 gap-2"
             >
               <div
-                className="w-full rounded-md shrink-0 transition-all"
+                className="w-10 rounded-md shrink-0 transition-all"
                 style={{
                   height: `${height}px`,
                   backgroundColor: barColor,

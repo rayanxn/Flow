@@ -7,10 +7,19 @@ import { STATUS_CONFIG } from "@/lib/utils/statuses";
 import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { ViewIssueTable } from "./view-issue-table";
 
+type ChipInfo = {
+  key: string;
+  label: string;
+  filterKey: keyof ViewFilters;
+  value?: string;
+};
+
 function getFilterChipDetails(
-  filters: ViewFilters
-): { key: string; label: string; filterKey: keyof ViewFilters; value?: string }[] {
-  const chips: { key: string; label: string; filterKey: keyof ViewFilters; value?: string }[] = [];
+  filters: ViewFilters,
+  memberMap?: Record<string, string>,
+  projectMap?: Record<string, string>,
+): ChipInfo[] {
+  const chips: ChipInfo[] = [];
 
   if (filters.status?.length) {
     for (const s of filters.status) {
@@ -32,6 +41,45 @@ function getFilterChipDetails(
       });
     }
   }
+  if (filters.assignee_ids?.length) {
+    for (const id of filters.assignee_ids) {
+      chips.push({
+        key: `assignee-${id}`,
+        label: memberMap?.[id] ?? "Unknown member",
+        filterKey: "assignee_ids",
+        value: id,
+      });
+    }
+  }
+  if (filters.project_ids?.length) {
+    for (const id of filters.project_ids) {
+      chips.push({
+        key: `project-${id}`,
+        label: projectMap?.[id] ?? "Unknown project",
+        filterKey: "project_ids",
+        value: id,
+      });
+    }
+  }
+  if (filters.due_date_range) {
+    const { from, to } = filters.due_date_range;
+    if (from) {
+      chips.push({
+        key: "due-from",
+        label: `From ${from}`,
+        filterKey: "due_date_range",
+        value: "from",
+      });
+    }
+    if (to) {
+      chips.push({
+        key: "due-to",
+        label: `Until ${to}`,
+        filterKey: "due_date_range",
+        value: "to",
+      });
+    }
+  }
 
   return chips;
 }
@@ -40,16 +88,20 @@ export function ViewDetailClient({
   view,
   issues,
   workspaceSlug,
+  memberMap,
+  projectMap,
 }: {
   view: Tables<"views">;
   issues: IssueWithDetails[];
   workspaceSlug: string;
+  memberMap?: Record<string, string>;
+  projectMap?: Record<string, string>;
 }) {
   const router = useRouter();
   const filters = (view.filters ?? {}) as ViewFilters;
-  const chips = getFilterChipDetails(filters);
+  const chips = getFilterChipDetails(filters, memberMap, projectMap);
 
-  function removeChip(chip: { filterKey: keyof ViewFilters; value?: string }) {
+  function removeChip(chip: ChipInfo) {
     const newFilters = { ...filters };
 
     if (chip.filterKey === "status" && chip.value) {
@@ -62,12 +114,35 @@ export function ViewDetailClient({
         (p) => String(p) !== chip.value
       );
       if (newFilters.priority.length === 0) delete newFilters.priority;
+    } else if (chip.filterKey === "assignee_ids" && chip.value) {
+      newFilters.assignee_ids = (newFilters.assignee_ids ?? []).filter(
+        (id) => id !== chip.value
+      );
+      if (newFilters.assignee_ids.length === 0) delete newFilters.assignee_ids;
+    } else if (chip.filterKey === "project_ids" && chip.value) {
+      newFilters.project_ids = (newFilters.project_ids ?? []).filter(
+        (id) => id !== chip.value
+      );
+      if (newFilters.project_ids.length === 0) delete newFilters.project_ids;
+    } else if (chip.filterKey === "due_date_range" && chip.value) {
+      const range = { ...newFilters.due_date_range };
+      if (chip.value === "from") delete range.from;
+      else delete range.to;
+      if (!range.from && !range.to) {
+        delete newFilters.due_date_range;
+      } else {
+        newFilters.due_date_range = range;
+      }
     }
 
     // Build URL params from remaining filters
     const params = new URLSearchParams();
     if (newFilters.status?.length) params.set("status", newFilters.status.join(","));
     if (newFilters.priority?.length) params.set("priority", newFilters.priority.join(","));
+    if (newFilters.assignee_ids?.length) params.set("assignee_ids", newFilters.assignee_ids.join(","));
+    if (newFilters.project_ids?.length) params.set("project_ids", newFilters.project_ids.join(","));
+    if (newFilters.due_date_range?.from) params.set("due_from", newFilters.due_date_range.from);
+    if (newFilters.due_date_range?.to) params.set("due_to", newFilters.due_date_range.to);
 
     const qs = params.toString();
     router.push(

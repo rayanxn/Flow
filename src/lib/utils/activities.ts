@@ -33,17 +33,21 @@ export function formatActivityAction(activity: ActivityWithActor): string {
         return `${actorName} deleted ${label}`;
       }
       if (activity.action === "updated") {
+        // Support both flat format (field/new_value) and nested changes format
+        const field = meta.field as string | undefined;
+        const newValue = meta.new_value as string | undefined;
         const changes = meta.changes as Record<string, unknown> | undefined;
-        if (changes?.status) {
+
+        if (field === "status" || changes?.status) {
+          const status = (newValue ?? changes?.status) as string;
           const statusLabel =
-            STATUS_CONFIG[changes.status as IssueStatus]?.label ??
-            String(changes.status);
+            STATUS_CONFIG[status as IssueStatus]?.label ?? String(status);
           return `${actorName} moved ${label} to ${statusLabel}`;
         }
-        if (changes?.assignee_id) {
+        if (field === "assignee" || changes?.assignee_id) {
           return `${actorName} assigned ${label}`;
         }
-        if (changes?.priority !== undefined) {
+        if (field === "priority" || changes?.priority !== undefined) {
           return `${actorName} changed priority of ${label}`;
         }
         return `${actorName} updated ${label}`;

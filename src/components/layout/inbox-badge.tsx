@@ -22,7 +22,10 @@ export function InboxBadge({
   if (unreadCount === 0) return null;
 
   return (
-    <span className="bg-[#8B4049] text-white text-[10px] font-mono font-medium rounded-full px-1.5 py-0.5 min-w-[18px] flex items-center justify-center leading-3">
+    <span
+      className="bg-[#8B4049] text-white text-[10px] font-mono font-medium rounded-full px-1.5 py-0.5 min-w-[18px] flex items-center justify-center leading-3"
+      title={`${unreadCount} unread`}
+    >
       {unreadCount > 99 ? "99+" : unreadCount}
     </span>
   );
