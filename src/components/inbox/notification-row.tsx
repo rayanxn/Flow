@@ -11,12 +11,14 @@ interface NotificationRowProps {
   notification: NotificationWithActivity;
   isRecent?: boolean;
   onMarkedRead?: (id: string) => void;
+  onIssueClick?: (issueId: string) => void;
 }
 
 export function NotificationRow({
   notification,
   isRecent,
   onMarkedRead,
+  onIssueClick,
 }: NotificationRowProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -28,11 +30,20 @@ export function NotificationRow({
     : "Activity unavailable";
 
   function handleClick() {
-    if (!isUnread || isPending) return;
-    startTransition(async () => {
-      await markNotificationRead(notification.id);
-      onMarkedRead?.(notification.id);
-    });
+    if (isPending) return;
+
+    // Mark as read if unread
+    if (isUnread) {
+      startTransition(async () => {
+        await markNotificationRead(notification.id);
+        onMarkedRead?.(notification.id);
+      });
+    }
+
+    // Open issue detail if this notification is about an issue
+    if (activity?.entity_type === "issue" && activity.entity_id && onIssueClick) {
+      onIssueClick(activity.entity_id);
+    }
   }
 
   return (

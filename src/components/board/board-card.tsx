@@ -23,6 +23,7 @@ export interface BoardCardProps {
   projectName?: string;
   projectColor?: string;
   isDragOverlay?: boolean;
+  onClick?: (id: string) => void;
 }
 
 function getInitials(name: string | null): string {
@@ -47,6 +48,7 @@ export function BoardCard({
   projectName,
   projectColor,
   isDragOverlay = false,
+  onClick,
 }: BoardCardProps) {
   const sortable = useSortable({ id, disabled: isDragOverlay });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -70,6 +72,7 @@ export function BoardCard({
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => { if (!isDragging && onClick) onClick(id); }}
       aria-label={`Issue ${issueKey}: ${title}`}
       aria-roledescription="sortable"
       className={cn(

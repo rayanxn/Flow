@@ -4,8 +4,8 @@ import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getMyIssues } from "@/lib/queries/issues";
 import { getWorkspaceMembers } from "@/lib/queries/members";
 import { getWorkspaceProjects } from "@/lib/queries/workspaces";
-import { IssueList } from "@/components/issues/issue-list";
 import { MyIssuesClient } from "./my-issues-client";
+import { MyIssuesContent } from "./my-issues-content";
 
 export default async function MyIssuesPage({
   params,
@@ -34,7 +34,7 @@ export default async function MyIssuesPage({
   const sprints: never[] = [];
 
   return (
-    <div className="flex flex-col py-6 px-8 gap-5">
+    <div className="flex flex-col py-6 px-4 md:px-8 gap-5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-[13px] -mb-3">
         <span className="text-text-secondary">{result.workspace.name}</span>
@@ -53,33 +53,11 @@ export default async function MyIssuesPage({
             labels={labels}
             defaultAssigneeId={user.id}
           />
-          <div className="flex items-center rounded-lg overflow-hidden bg-[#EDEAE4] p-0.5 gap-0.5">
-            <button className="px-3.5 py-1.5 text-sm font-medium bg-white text-text rounded-md">
-              List
-            </button>
-            <button className="px-3.5 py-1.5 text-sm text-text-secondary rounded-md hover:text-text transition-colors">
-              Board
-            </button>
-          </div>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors">
-            <span>Sort: Priority</span>
-          </button>
         </div>
       </div>
 
-      {/* Issue list */}
-      {issues.length > 0 ? (
-        <IssueList issues={issues} showProject={true} />
-      ) : (
-        <div className="flex flex-col items-center justify-center py-24">
-          <h3 className="text-lg font-medium text-text mb-1">
-            No issues assigned
-          </h3>
-          <p className="text-sm text-text-muted">
-            Issues assigned to you will appear here.
-          </p>
-        </div>
-      )}
+      {/* View toggle, sort dropdown, and issue list/board */}
+      <MyIssuesContent issues={issues} members={members} />
     </div>
   );
 }

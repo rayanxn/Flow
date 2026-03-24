@@ -21,6 +21,7 @@ interface BoardColumnProps {
   onQuickAddOpen: () => void;
   onQuickAddClose: () => void;
   onQuickAddCreated: () => void;
+  onIssueClick?: (id: string) => void;
 }
 
 export function BoardColumn({
@@ -32,6 +33,7 @@ export function BoardColumn({
   onQuickAddOpen,
   onQuickAddClose,
   onQuickAddCreated,
+  onIssueClick,
 }: BoardColumnProps) {
   const { setNodeRef } = useDroppable({ id: status });
   const config = STATUS_CONFIG[status];
@@ -59,14 +61,16 @@ export function BoardColumn({
         <span className="text-xs text-text-muted tabular-nums">
           {issues.length}
         </span>
-        <button
-          type="button"
-          onClick={onQuickAddOpen}
-          className="ml-auto p-0.5 text-text-muted hover:text-text-secondary transition-colors rounded hover:bg-surface-hover"
-          title={`Add issue to ${config.label}`}
-        >
-          <Plus className="w-4 h-4" />
-        </button>
+        {projectId && (
+          <button
+            type="button"
+            onClick={onQuickAddOpen}
+            className="ml-auto p-0.5 text-text-muted hover:text-text-secondary transition-colors rounded hover:bg-surface-hover"
+            title={`Add issue to ${config.label}`}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Cards area */}
@@ -92,11 +96,12 @@ export function BoardColumn({
               labels={issue.labels}
               projectName={showProject ? issue.project?.name : undefined}
               projectColor={showProject ? issue.project?.color : undefined}
+              onClick={onIssueClick}
             />
           ))}
 
           {/* Quick add form */}
-          {quickAddActive && (
+          {projectId && quickAddActive && (
             <BoardQuickAdd
               projectId={projectId}
               status={status}

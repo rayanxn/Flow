@@ -10,9 +10,10 @@ import type { IssueWithDetails } from "@/lib/queries/issues";
 interface IssueListProps {
   issues: IssueWithDetails[];
   showProject?: boolean;
+  onIssueClick?: (id: string) => void;
 }
 
-export function IssueList({ issues, showProject = true }: IssueListProps) {
+export function IssueList({ issues, showProject = true, onIssueClick }: IssueListProps) {
   // Group issues by status
   const grouped = new Map<IssueStatus, IssueWithDetails[]>();
   for (const status of STATUS_ORDER) {
@@ -48,6 +49,7 @@ export function IssueList({ issues, showProject = true }: IssueListProps) {
           status={status}
           issues={grouped.get(status) ?? []}
           showProject={showProject}
+          onIssueClick={onIssueClick}
         />
       ))}
     </div>
@@ -58,10 +60,12 @@ function StatusGroup({
   status,
   issues,
   showProject,
+  onIssueClick,
 }: {
   status: IssueStatus;
   issues: IssueWithDetails[];
   showProject: boolean;
+  onIssueClick?: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(status !== "done");
   const config = STATUS_CONFIG[status];
@@ -90,6 +94,7 @@ function StatusGroup({
           {issues.map((issue) => (
             <IssueRow
               key={issue.id}
+              id={issue.id}
               issueKey={issue.issue_key}
               title={issue.title}
               project={issue.project}
@@ -97,6 +102,7 @@ function StatusGroup({
               dueDate={issue.due_date}
               status={issue.status}
               showProject={showProject}
+              onClick={onIssueClick}
             />
           ))}
         </div>

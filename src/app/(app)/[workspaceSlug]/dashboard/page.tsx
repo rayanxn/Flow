@@ -94,13 +94,13 @@ export default async function DashboardPage({
   return (
     <div className="flex flex-col flex-1">
       {/* Greeting */}
-      <div className="px-10 pt-6">
+      <div className="px-4 md:px-10 pt-6">
         <DashboardGreeting firstName={firstName} />
       </div>
 
       {/* Sprint context */}
       {activeSprint && (
-        <div className="px-10 pt-6">
+        <div className="px-4 md:px-10 pt-6">
           <SprintStrip
             sprint={activeSprint}
             issueCounts={issueCounts}
@@ -110,7 +110,7 @@ export default async function DashboardPage({
       )}
 
       {/* Main columns */}
-      <div className="flex flex-1 gap-6 px-10 pt-6 pb-8">
+      <div className="flex flex-1 gap-6 px-4 md:px-10 pt-6 pb-8">
         <div className="flex flex-col" style={{ flexGrow: 1.6, flexBasis: 0 }}>
           <MyFocusCard issues={focusIssues} workspaceSlug={workspaceSlug} />
         </div>

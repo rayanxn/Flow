@@ -4,9 +4,8 @@ import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspac
 import { getUnreadNotificationCount } from "@/lib/queries/notifications";
 import { getWorkspaceMembers } from "@/lib/queries/members";
 import { WorkspaceProvider } from "@/providers/workspace-provider";
-import { Sidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
 import { WorkspaceShell } from "@/components/layout/workspace-shell";
+import { LayoutShell } from "@/components/layout/layout-shell";
 
 export default async function WorkspaceLayout({
   children,
@@ -60,22 +59,19 @@ export default async function WorkspaceLayout({
         projects={projects}
         members={memberList}
       >
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar
-            workspaceName={workspace.name}
-            workspaceSlug={workspace.slug}
-            projects={projects}
-            workspaceId={workspace.id}
-            userId={user?.id ?? ""}
-            unreadCount={unreadCount}
-          />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <main className="flex-1 overflow-y-auto bg-background">
-              <Header userInitials={initials} />
-              {children}
-            </main>
-          </div>
-        </div>
+        <LayoutShell
+          sidebarProps={{
+            workspaceName: workspace.name,
+            workspaceSlug: workspace.slug,
+            projects,
+            workspaceId: workspace.id,
+            userId: user?.id ?? "",
+            unreadCount,
+          }}
+          userInitials={initials}
+        >
+          {children}
+        </LayoutShell>
       </WorkspaceShell>
     </WorkspaceProvider>
   );
