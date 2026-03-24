@@ -501,7 +501,7 @@ export function SprintPlanningView({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex flex-1 overflow-hidden pb-6 gap-4 px-10">
+        <div className="flex flex-1 min-h-0 overflow-hidden pb-6 gap-4 px-10">
           {/* LEFT PANE — Backlog */}
           <DroppablePane id="backlog" className="flex-1 rounded-xl border border-[#E8E4DE] bg-white overflow-hidden">
             <div className="px-5 pt-4 pb-3 border-b border-[#E8E4DE]">

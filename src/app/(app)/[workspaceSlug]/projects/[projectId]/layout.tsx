@@ -22,8 +22,8 @@ export default function ProjectLayout({
   const base = `/${params.workspaceSlug}/projects/${params.projectId}`;
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="border-b border-border px-6">
+    <div className="flex flex-col h-[calc(100vh-64px)]">
+      <div className="border-b border-border px-6 shrink-0">
         <nav className="flex items-center gap-4">
           {projectTabs.map((tab) => {
             const href = `${base}/${tab.href}`;
@@ -45,7 +45,7 @@ export default function ProjectLayout({
           })}
         </nav>
       </div>
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
     </div>
   );
 }

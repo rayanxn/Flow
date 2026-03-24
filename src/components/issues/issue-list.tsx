@@ -33,12 +33,12 @@ export function IssueList({ issues, showProject = true }: IssueListProps) {
   return (
     <div>
       {/* Column headers */}
-      <div className="flex items-center gap-3 px-6 py-2 border-b border-border text-xs text-text-muted uppercase tracking-wider">
+      <div className="flex items-center gap-3 px-6 py-2 border-b border-[#E8E4DE] text-[10px] text-text-muted uppercase tracking-wider font-medium">
         <div className="w-4 shrink-0" />
         <span className="w-[72px] shrink-0">ID</span>
         <span className="flex-1">Title</span>
         {showProject && <span className="w-[140px] shrink-0">Project</span>}
-        <span className="w-8 text-center shrink-0">Priority</span>
+        <span className="w-[72px] text-center shrink-0">Priority</span>
         <span className="w-[72px] text-right shrink-0">Due</span>
       </div>
 

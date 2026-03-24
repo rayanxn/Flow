@@ -37,7 +37,7 @@ export function IssueRow({
     new Date(dueDate) < new Date(new Date().toDateString());
 
   return (
-    <div className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover transition-colors group border-b border-border last:border-b-0">
+    <div className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover/50 transition-colors group border-b border-[#F0EDE7] last:border-b-0">
       {/* Checkbox */}
       <Checkbox className="shrink-0" />
 
@@ -64,7 +64,7 @@ export function IssueRow({
 
       {/* Priority */}
       <span
-        className="text-xs font-semibold w-8 text-center shrink-0"
+        className="text-sm font-semibold w-[72px] text-center shrink-0"
         style={{ color: priorityConfig.color }}
       >
         {priorityConfig.label}

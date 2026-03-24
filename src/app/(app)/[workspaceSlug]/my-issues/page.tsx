@@ -33,15 +33,21 @@ export default async function MyIssuesPage({
     .filter((p): p is { id: string; name: string; color: string } => p !== null)
     .filter((p, i, arr) => arr.findIndex((a) => a.id === p.id) === i);
 
-  // Get labels and sprints from the workspace context (empty for now, will be fetched in Phase 4)
   const labels: never[] = [];
   const sprints: never[] = [];
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col py-6 px-8 gap-5">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 text-[13px] -mb-3">
+        <span className="text-text-secondary">{result.workspace.name}</span>
+        <span className="text-text-muted/40">/</span>
+        <span className="text-text font-medium">My Issues</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-serif text-text">My Issues</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-text">My Issues</h1>
         <div className="flex items-center gap-3">
           <MyIssuesClient
             projects={projects}
@@ -49,11 +55,11 @@ export default async function MyIssuesPage({
             sprints={sprints}
             labels={labels}
           />
-          <div className="flex items-center rounded-lg border border-border overflow-hidden">
-            <button className="px-3 py-1.5 text-sm font-medium bg-surface text-text border-r border-border">
+          <div className="flex items-center rounded-lg overflow-hidden bg-[#EDEAE4] p-0.5 gap-0.5">
+            <button className="px-3.5 py-1.5 text-sm font-medium bg-white text-text rounded-md">
               List
             </button>
-            <button className="px-3 py-1.5 text-sm text-text-secondary hover:text-text bg-surface-hover">
+            <button className="px-3.5 py-1.5 text-sm text-text-secondary rounded-md hover:text-text transition-colors">
               Board
             </button>
           </div>
@@ -65,9 +71,7 @@ export default async function MyIssuesPage({
 
       {/* Issue list */}
       {issues.length > 0 ? (
-        <div className="bg-surface rounded-lg border border-border overflow-hidden">
-          <IssueList issues={issues} showProject={true} />
-        </div>
+        <IssueList issues={issues} showProject={true} />
       ) : (
         <div className="flex flex-col items-center justify-center py-24">
           <h3 className="text-lg font-medium text-text mb-1">
