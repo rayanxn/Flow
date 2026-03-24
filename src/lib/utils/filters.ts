@@ -38,6 +38,20 @@ export function parseFiltersFromParams(
       : searchParams.label.split(",");
   }
 
+  if (searchParams.due_from || searchParams.due_to) {
+    filters.due_date_range = {};
+    if (searchParams.due_from) {
+      filters.due_date_range.from = Array.isArray(searchParams.due_from)
+        ? searchParams.due_from[0]
+        : searchParams.due_from;
+    }
+    if (searchParams.due_to) {
+      filters.due_date_range.to = Array.isArray(searchParams.due_to)
+        ? searchParams.due_to[0]
+        : searchParams.due_to;
+    }
+  }
+
   return filters;
 }
 
@@ -53,6 +67,10 @@ export function filtersToParams(filters: ViewFilters): URLSearchParams {
     params.set("project", filters.project_ids.join(","));
   if (filters.label_ids?.length)
     params.set("label", filters.label_ids.join(","));
+  if (filters.due_date_range?.from)
+    params.set("due_from", filters.due_date_range.from);
+  if (filters.due_date_range?.to)
+    params.set("due_to", filters.due_date_range.to);
 
   return params;
 }

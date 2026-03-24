@@ -3,11 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables, IssueStatus } from "@/lib/types";
+import {
+  createActivity,
+  createNotificationsForActivity,
+} from "@/lib/actions/activities";
 
 export async function createIssue(
   formData: FormData
 ): Promise<ActionResponse<Tables<"issues">>> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   const workspaceId = formData.get("workspaceId") as string;
   const projectId = formData.get("projectId") as string;
@@ -48,8 +57,42 @@ export async function createIssue(
     return { error: error.message };
   }
 
+  const issue = data as Tables<"issues">;
+
+  try {
+    const activity = await createActivity({
+      supabase,
+      workspaceId,
+      actorId: user.id,
+      action: "created",
+      entityType: "issue",
+      entityId: issue.id,
+      metadata: {
+        title,
+        issue_key: issue.issue_key,
+        project_id: projectId,
+        status,
+        priority,
+        assignee_id: assigneeId,
+      },
+    });
+
+    if (assigneeId) {
+      await createNotificationsForActivity({
+        supabase,
+        workspaceId,
+        actorId: user.id,
+        activityId: activity.id,
+        recipientIds: [assigneeId],
+        type: "assigned",
+      });
+    }
+  } catch {
+    // Activity logging should not block the primary operation
+  }
+
   revalidatePath("/", "layout");
-  return { data: data as Tables<"issues"> };
+  return { data: issue };
 }
 
 export async function updateIssue(
@@ -67,6 +110,11 @@ export async function updateIssue(
   }
 ): Promise<ActionResponse<Tables<"issues">>> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   // Set completed_at when moving to done
   const updateData: Record<string, unknown> = { ...updates };
@@ -87,6 +135,49 @@ export async function updateIssue(
     return { error: error.message };
   }
 
+  try {
+    const activity = await createActivity({
+      supabase,
+      workspaceId: data.workspace_id,
+      actorId: user.id,
+      action: "updated",
+      entityType: "issue",
+      entityId: issueId,
+      metadata: {
+        title: data.title,
+        issue_key: data.issue_key,
+        project_id: data.project_id,
+        changes: updates,
+      },
+    });
+
+    const recipients: string[] = [];
+    let notifType: "status_change" | "assigned" = "status_change";
+
+    if (updates.status && data.assignee_id) {
+      recipients.push(data.assignee_id);
+      notifType = "status_change";
+    }
+
+    if (updates.assignee_id) {
+      recipients.push(updates.assignee_id);
+      notifType = "assigned";
+    }
+
+    if (recipients.length > 0) {
+      await createNotificationsForActivity({
+        supabase,
+        workspaceId: data.workspace_id,
+        actorId: user.id,
+        activityId: activity.id,
+        recipientIds: recipients,
+        type: notifType,
+      });
+    }
+  } catch {
+    // Activity logging should not block the primary operation
+  }
+
   revalidatePath("/", "layout");
   return { data };
 }
@@ -96,6 +187,18 @@ export async function deleteIssue(
 ): Promise<ActionResponse<void>> {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Fetch issue metadata before deleting
+  const { data: issue } = await supabase
+    .from("issues")
+    .select("workspace_id, project_id, title, issue_key, assignee_id")
+    .eq("id", issueId)
+    .single();
+
   // Delete labels first
   await supabase.from("issue_labels").delete().eq("issue_id", issueId);
 
@@ -103,6 +206,37 @@ export async function deleteIssue(
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (issue) {
+    try {
+      const activity = await createActivity({
+        supabase,
+        workspaceId: issue.workspace_id,
+        actorId: user.id,
+        action: "deleted",
+        entityType: "issue",
+        entityId: issueId,
+        metadata: {
+          title: issue.title,
+          issue_key: issue.issue_key,
+          project_id: issue.project_id,
+        },
+      });
+
+      if (issue.assignee_id) {
+        await createNotificationsForActivity({
+          supabase,
+          workspaceId: issue.workspace_id,
+          actorId: user.id,
+          activityId: activity.id,
+          recipientIds: [issue.assignee_id],
+          type: "general",
+        });
+      }
+    } catch {
+      // Activity logging should not block the primary operation
+    }
   }
 
   revalidatePath("/", "layout");

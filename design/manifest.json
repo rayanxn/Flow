@@ -1,0 +1,185 @@
+{
+  "source": {
+    "tool": "Paper",
+    "fileName": "Flow",
+    "pageName": "Page 1",
+    "pageId": "01KKVDWEAD4T6K3D8MCDRC75AP"
+  },
+  "artboardCount": 29,
+  "exports": [
+    {
+      "id": "8II-0",
+      "name": "v4 Dashboard Redesign",
+      "file": "v4-dashboard-redesign.tsx",
+      "screenshot": "screenshots/v4-dashboard-redesign.jpg"
+    },
+    {
+      "id": "862-0",
+      "name": "v4 Sprint Planning",
+      "file": "v4-sprint-planning.tsx",
+      "screenshot": "screenshots/v4-sprint-planning.jpg"
+    },
+    {
+      "id": "4UH-0",
+      "name": "v3 My Issues",
+      "file": "v3-my-issues.tsx",
+      "screenshot": "screenshots/v3-my-issues.jpg"
+    },
+    {
+      "id": "4CN-0",
+      "name": "v3 Hero",
+      "file": "v3-hero.tsx",
+      "screenshot": "screenshots/v3-hero.jpg"
+    },
+    {
+      "id": "4EJ-0",
+      "name": "v3 Features",
+      "file": "v3-features.tsx",
+      "screenshot": "screenshots/v3-features.jpg"
+    },
+    {
+      "id": "4GN-0",
+      "name": "v3 Philosophy",
+      "file": "v3-philosophy.tsx",
+      "screenshot": "screenshots/v3-philosophy.jpg"
+    },
+    {
+      "id": "4GU-0",
+      "name": "v3 Workflow",
+      "file": "v3-workflow.tsx",
+      "screenshot": "screenshots/v3-workflow.jpg"
+    },
+    {
+      "id": "4IX-0",
+      "name": "v3 Pricing",
+      "file": "v3-pricing.tsx",
+      "screenshot": "screenshots/v3-pricing.jpg"
+    },
+    {
+      "id": "4KK-0",
+      "name": "v3 Footer",
+      "file": "v3-footer.tsx",
+      "screenshot": "screenshots/v3-footer.jpg"
+    },
+    {
+      "id": "4QS-0",
+      "name": "v3 Inbox",
+      "file": "v3-inbox.tsx",
+      "screenshot": "screenshots/v3-inbox.jpg"
+    },
+    {
+      "id": "4YL-0",
+      "name": "v3 Views",
+      "file": "v3-views.tsx",
+      "screenshot": "screenshots/v3-views.jpg"
+    },
+    {
+      "id": "51T-0",
+      "name": "v3 Teams",
+      "file": "v3-teams.tsx",
+      "screenshot": "screenshots/v3-teams.jpg"
+    },
+    {
+      "id": "5IV-0",
+      "name": "v3 Create Issue Modal",
+      "file": "v3-create-issue-modal.tsx",
+      "screenshot": "screenshots/v3-create-issue-modal.jpg"
+    },
+    {
+      "id": "5KV-0",
+      "name": "v3 Command Palette",
+      "file": "v3-command-palette.tsx",
+      "screenshot": "screenshots/v3-command-palette.jpg"
+    },
+    {
+      "id": "5NB-0",
+      "name": "v3 Delete Confirmation",
+      "file": "v3-delete-confirmation.tsx",
+      "screenshot": "screenshots/v3-delete-confirmation.jpg"
+    },
+    {
+      "id": "5NR-0",
+      "name": "v3 Create Project Modal",
+      "file": "v3-create-project-modal.tsx",
+      "screenshot": "screenshots/v3-create-project-modal.jpg"
+    },
+    {
+      "id": "5NS-0",
+      "name": "v3 Create Sprint Modal",
+      "file": "v3-create-sprint-modal.tsx",
+      "screenshot": "screenshots/v3-create-sprint-modal.jpg"
+    },
+    {
+      "id": "5Q0-0",
+      "name": "v3 Login",
+      "file": "v3-login.tsx",
+      "screenshot": "screenshots/v3-login.jpg"
+    },
+    {
+      "id": "5RA-0",
+      "name": "v3 Sign Up",
+      "file": "v3-sign-up.tsx",
+      "screenshot": "screenshots/v3-sign-up.jpg"
+    },
+    {
+      "id": "5RB-0",
+      "name": "v3 Onboarding",
+      "file": "v3-onboarding.tsx",
+      "screenshot": "screenshots/v3-onboarding.jpg"
+    },
+    {
+      "id": "5TO-0",
+      "name": "v3 Workspace Settings",
+      "file": "v3-workspace-settings.tsx",
+      "screenshot": "screenshots/v3-workspace-settings.jpg"
+    },
+    {
+      "id": "5TP-0",
+      "name": "v3 Profile Settings",
+      "file": "v3-profile-settings.tsx",
+      "screenshot": "screenshots/v3-profile-settings.jpg"
+    },
+    {
+      "id": "600-0",
+      "name": "v3 Timeline",
+      "file": "v3-timeline.tsx",
+      "screenshot": "screenshots/v3-timeline.jpg"
+    },
+    {
+      "id": "601-0",
+      "name": "v3 Filtered View",
+      "file": "v3-filtered-view.tsx",
+      "screenshot": "screenshots/v3-filtered-view.jpg"
+    },
+    {
+      "id": "6BF-0",
+      "name": "v3 Empty State",
+      "file": "v3-empty-state.tsx",
+      "screenshot": "screenshots/v3-empty-state.jpg"
+    },
+    {
+      "id": "6BG-0",
+      "name": "v3 Project Settings",
+      "file": "v3-project-settings.tsx",
+      "screenshot": "screenshots/v3-project-settings.jpg"
+    },
+    {
+      "id": "6QW-0",
+      "name": "v3 Board Redesign",
+      "file": "v3-board-redesign.tsx",
+      "screenshot": "screenshots/v3-board-redesign.jpg"
+    },
+    {
+      "id": "7AP-0",
+      "name": "v3 Projects Overview",
+      "file": "v3-projects-overview.tsx",
+      "screenshot": "screenshots/v3-projects-overview.jpg"
+    },
+    {
+      "id": "7EV-0",
+      "name": "v3 Analytics",
+      "file": "v3-analytics.tsx",
+      "screenshot": "screenshots/v3-analytics.jpg"
+    }
+  ]
+}

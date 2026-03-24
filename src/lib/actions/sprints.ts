@@ -3,11 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables } from "@/lib/types";
+import {
+  createActivity,
+  createNotificationsForActivity,
+} from "@/lib/actions/activities";
 
 export async function createSprint(
   formData: FormData
 ): Promise<ActionResponse<Tables<"sprints">>> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   const workspaceId = formData.get("workspaceId") as string;
   const projectId = formData.get("projectId") as string;
@@ -39,6 +48,20 @@ export async function createSprint(
 
   if (error) {
     return { error: error.message };
+  }
+
+  try {
+    await createActivity({
+      supabase,
+      workspaceId,
+      actorId: user.id,
+      action: "created",
+      entityType: "sprint",
+      entityId: data.id,
+      metadata: { name, project_id: projectId },
+    });
+  } catch {
+    // Activity logging should not block the primary operation
   }
 
   revalidatePath("/", "layout");
@@ -114,6 +137,43 @@ export async function startSprint(
     return { error: error.message };
   }
 
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const activity = await createActivity({
+        supabase,
+        workspaceId: data.workspace_id,
+        actorId: user.id,
+        action: "started",
+        entityType: "sprint",
+        entityId: sprintId,
+        metadata: { name: data.name, project_id: data.project_id },
+      });
+
+      // Notify all workspace members
+      const { data: members } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", data.workspace_id);
+
+      if (members) {
+        await createNotificationsForActivity({
+          supabase,
+          workspaceId: data.workspace_id,
+          actorId: user.id,
+          activityId: activity.id,
+          recipientIds: members.map((m) => m.user_id),
+          type: "general",
+        });
+      }
+    }
+  } catch {
+    // Activity logging should not block the primary operation
+  }
+
   revalidatePath("/", "layout");
   return { data };
 }
@@ -169,6 +229,47 @@ export async function completeSprint(
 
   if (error) {
     return { error: error.message };
+  }
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const activity = await createActivity({
+        supabase,
+        workspaceId: data.workspace_id,
+        actorId: user.id,
+        action: "completed",
+        entityType: "sprint",
+        entityId: sprintId,
+        metadata: {
+          name: data.name,
+          project_id: data.project_id,
+          moved_count: movedCount,
+        },
+      });
+
+      // Notify all workspace members
+      const { data: members } = await supabase
+        .from("workspace_members")
+        .select("user_id")
+        .eq("workspace_id", data.workspace_id);
+
+      if (members) {
+        await createNotificationsForActivity({
+          supabase,
+          workspaceId: data.workspace_id,
+          actorId: user.id,
+          activityId: activity.id,
+          recipientIds: members.map((m) => m.user_id),
+          type: "general",
+        });
+      }
+    }
+  } catch {
+    // Activity logging should not block the primary operation
   }
 
   revalidatePath("/", "layout");

@@ -1,10 +1,19 @@
-export default function TimelinePage() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-2xl font-serif text-text">Timeline</h1>
-      <p className="mt-2 text-sm text-text-muted">
-        Project timeline will appear here.
-      </p>
-    </div>
-  );
+import { notFound } from "next/navigation";
+import { getProjectById } from "@/lib/queries/projects";
+import { getTimelineIssues } from "@/lib/queries/timeline";
+import { TimelineView } from "@/components/timeline/timeline-view";
+
+export default async function TimelinePage({
+  params,
+}: {
+  params: Promise<{ workspaceSlug: string; projectId: string }>;
+}) {
+  const { projectId } = await params;
+
+  const project = await getProjectById(projectId);
+  if (!project) notFound();
+
+  const issues = await getTimelineIssues(projectId);
+
+  return <TimelineView issues={issues} />;
 }

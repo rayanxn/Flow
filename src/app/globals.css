@@ -10,16 +10,16 @@
 }
 
 @theme inline {
-  --color-background: #F5F0EB;
+  --color-background: #F6F5F1;
   --color-surface: #FFFFFF;
   --color-surface-hover: #FAF8F5;
-  --color-border: #E8E2DB;
+  --color-border: #E8E4DE;
   --color-border-strong: #D6CFC7;
-  --color-text: #1C1917;
-  --color-text-secondary: #78716C;
-  --color-text-muted: #A8A29E;
-  --color-primary: #292524;
-  --color-primary-hover: #1C1917;
+  --color-text: #2D2A26;
+  --color-text-secondary: #9C9689;
+  --color-text-muted: #B8B3AB;
+  --color-primary: #2E2E2C;
+  --color-primary-hover: #2D2A26;
   --color-accent: #C2410C;
   --color-accent-light: #FFF7ED;
   --color-success: #16A34A;
@@ -43,8 +43,8 @@ body {
 }
 
 ::selection {
-  background-color: #292524;
-  color: #F5F0EB;
+  background-color: #2D2A26;
+  color: #F6F5F1;
 }
 
 input::placeholder,

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
+import { getUnreadNotificationCount } from "@/lib/queries/notifications";
 import { WorkspaceProvider } from "@/providers/workspace-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -38,6 +39,10 @@ export default async function WorkspaceLayout({
     user?.email?.slice(0, 2).toUpperCase() ??
     "U";
 
+  const unreadCount = user
+    ? await getUnreadNotificationCount(workspace.id, user.id)
+    : 0;
+
   return (
     <WorkspaceProvider workspace={workspace} membership={membership}>
       <div className="flex h-screen overflow-hidden">
@@ -45,10 +50,13 @@ export default async function WorkspaceLayout({
           workspaceName={workspace.name}
           workspaceSlug={workspace.slug}
           projects={projects}
+          workspaceId={workspace.id}
+          userId={user?.id ?? ""}
+          unreadCount={unreadCount}
         />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header userInitials={initials} />
           <main className="flex-1 overflow-y-auto bg-background">
+            <Header userInitials={initials} />
             {children}
           </main>
         </div>

@@ -1,10 +1,52 @@
-export default function ViewsPage() {
+import { notFound } from "next/navigation";
+import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
+import { getWorkspaceViews, getFilteredIssueCount } from "@/lib/queries/views";
+import type { ViewFilters } from "@/lib/types";
+import { ViewsList } from "@/components/views/views-list";
+import { CreateViewModal } from "@/components/views/create-view-modal";
+
+export default async function ViewsPage({
+  params,
+}: {
+  params: Promise<{ workspaceSlug: string }>;
+}) {
+  const { workspaceSlug } = await params;
+  const result = await getWorkspaceBySlug(workspaceSlug);
+  if (!result?.workspace) notFound();
+
+  const views = await getWorkspaceViews(result.workspace.id);
+
+  // Get issue counts for each view in parallel
+  const counts = await Promise.all(
+    views.map((view) =>
+      getFilteredIssueCount(
+        result.workspace.id,
+        (view.filters ?? {}) as ViewFilters
+      )
+    )
+  );
+
+  const issueCounts = new Map<string, number>();
+  views.forEach((view, i) => {
+    issueCounts.set(view.id, counts[i]);
+  });
+
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-2xl font-serif text-text">Views</h1>
-      <p className="mt-2 text-sm text-text-muted">
-        Saved views and custom filters will appear here.
-      </p>
+    <div className="flex flex-col py-6 px-8 gap-5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight text-text">
+          Saved Views
+        </h1>
+        <CreateViewModal
+          workspaceId={result.workspace.id}
+          workspaceSlug={workspaceSlug}
+        />
+      </div>
+      <ViewsList
+        views={views}
+        issueCounts={issueCounts}
+        workspaceSlug={workspaceSlug}
+      />
     </div>
   );
 }

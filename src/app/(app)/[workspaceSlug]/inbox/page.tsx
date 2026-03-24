@@ -1,10 +1,39 @@
-export default function InboxPage() {
+import { createClient } from "@/lib/supabase/server";
+import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
+import { getNotifications } from "@/lib/queries/notifications";
+import { InboxClient } from "@/components/inbox/inbox-client";
+
+export default async function InboxPage({
+  params,
+}: {
+  params: Promise<{ workspaceSlug: string }>;
+}) {
+  const { workspaceSlug } = await params;
+  const supabase = await createClient();
+
+  const result = await getWorkspaceBySlug(workspaceSlug);
+  if (!result?.workspace) return null;
+
+  const workspace = result.workspace;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const notifications = await getNotifications(workspace.id, user.id);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-2xl font-serif text-text">Inbox</h1>
-      <p className="mt-2 text-sm text-text-muted">
-        Your notifications and updates will appear here.
-      </p>
+    <div className="flex flex-col flex-1 px-10">
+      <div className="text-[13px] py-3 flex items-center gap-2">
+        <span className="text-text-secondary">{workspace.name}</span>
+        <span className="text-text-muted">/</span>
+        <span className="text-text font-medium">Inbox</span>
+      </div>
+      <InboxClient
+        notifications={notifications}
+        workspaceId={workspace.id}
+      />
     </div>
   );
 }

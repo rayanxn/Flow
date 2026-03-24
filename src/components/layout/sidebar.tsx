@@ -13,6 +13,7 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { InboxBadge } from "./inbox-badge";
 
 interface SidebarProject {
   id: string;
@@ -24,6 +25,9 @@ interface SidebarProps {
   workspaceName: string;
   workspaceSlug: string;
   projects: SidebarProject[];
+  workspaceId: string;
+  userId: string;
+  unreadCount: number;
 }
 
 const navItems = [
@@ -40,6 +44,9 @@ export function Sidebar({
   workspaceName,
   workspaceSlug,
   projects,
+  workspaceId,
+  userId,
+  unreadCount,
 }: SidebarProps) {
   const pathname = usePathname();
   const base = `/${workspaceSlug}`;
@@ -53,16 +60,16 @@ export function Sidebar({
   }
 
   return (
-    <aside className="w-56 bg-surface border-r border-border flex flex-col h-screen shrink-0">
+    <aside className="w-56 bg-background border-r border-[#2E2E2C]/6 flex flex-col h-screen shrink-0">
       {/* Logo & workspace */}
-      <div className="px-4 py-5">
+      <div className="px-5 py-6 pb-7">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-surface text-sm font-bold">F</span>
+          <div className="w-[30px] h-[30px] bg-primary rounded-lg flex items-center justify-center shrink-0">
+            <span className="text-background text-[13px] font-semibold">F</span>
           </div>
-          <div>
-            <span className="text-sm font-semibold text-text">Flowboard</span>
-            <p className="text-xs text-text-muted">{workspaceName}</p>
+          <div className="flex flex-col gap-px">
+            <span className="text-[15px] font-semibold text-text leading-[18px]">Flowboard</span>
+            <p className="text-[11px] font-mono text-text-muted opacity-30 leading-[14px]">{workspaceName}</p>
           </div>
         </div>
       </div>
@@ -76,29 +83,31 @@ export function Sidebar({
               key={item.href}
               href={`${base}${item.href}`}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-mono transition-colors",
                 active
-                  ? "bg-background font-medium text-text"
-                  : "text-text-secondary hover:text-text hover:bg-background/50",
+                  ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
+                  : "text-text-muted opacity-45 hover:opacity-70",
               )}
             >
               <item.icon className="w-4 h-4 shrink-0" />
               <span className="flex-1">{item.label}</span>
               {item.badge && (
-                <span className="bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  3
-                </span>
+                <InboxBadge
+                  workspaceId={workspaceId}
+                  userId={userId}
+                  initialCount={unreadCount}
+                />
               )}
             </Link>
           );
         })}
 
         {/* Divider */}
-        <div className="!my-3 border-t border-border" />
+        <div className="!my-3 h-px bg-[#2E2E2C]/6" />
 
         {/* Projects section */}
-        <div className="px-3 py-2">
-          <span className="text-xs text-text-muted tracking-wider uppercase font-medium">
+        <div className="px-3 pt-2 pb-3">
+          <span className="text-[10px] font-mono font-medium text-text-muted opacity-50 tracking-widest uppercase">
             Projects
           </span>
         </div>
@@ -107,14 +116,14 @@ export function Sidebar({
             key={project.id}
             href={`${base}/projects/${project.id}/board`}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+              "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[13px] font-mono transition-colors",
               pathname.includes(`/projects/${project.id}`)
-                ? "bg-background font-medium text-text"
-                : "text-text-secondary hover:text-text hover:bg-background/50",
+                ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
+                : "text-text-muted opacity-50 hover:opacity-70",
             )}
           >
             <span
-              className="w-2 h-2 rounded-full shrink-0"
+              className="size-1.5 rounded-full shrink-0"
               style={{ backgroundColor: project.color }}
             />
             <span className="truncate">{project.name}</span>
@@ -123,14 +132,14 @@ export function Sidebar({
       </nav>
 
       {/* Bottom settings */}
-      <div className="px-3 py-3 border-t border-border">
+      <div className="px-3 py-3">
         <Link
           href={`${base}/settings`}
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-mono transition-colors",
             pathname.startsWith(`${base}/settings`)
-              ? "bg-background font-medium text-text"
-              : "text-text-secondary hover:text-text hover:bg-background/50",
+              ? "border-l-2 border-l-primary rounded-l-none font-medium text-text"
+              : "text-text-muted opacity-45 hover:opacity-70",
           )}
         >
           <Settings className="w-4 h-4 shrink-0" />

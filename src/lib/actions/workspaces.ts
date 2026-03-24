@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables } from "@/lib/types";
+import { createActivity } from "@/lib/actions/activities";
 
 export async function createWorkspace(
   formData: FormData
@@ -92,6 +93,26 @@ export async function createProject(
       ...label,
     }))
   );
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      await createActivity({
+        supabase,
+        workspaceId,
+        actorId: user.id,
+        action: "created",
+        entityType: "project",
+        entityId: data.id,
+        metadata: { name, project_id: data.id },
+      });
+    }
+  } catch {
+    // Activity logging should not block the primary operation
+  }
 
   return { data };
 }

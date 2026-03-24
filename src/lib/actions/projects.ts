@@ -3,12 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables } from "@/lib/types";
+import { createActivity } from "@/lib/actions/activities";
 
 export async function updateProject(
   projectId: string,
   formData: FormData
 ): Promise<ActionResponse<Tables<"projects">>> {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
 
   const updates: Record<string, unknown> = {};
 
@@ -37,6 +43,20 @@ export async function updateProject(
     return { error: error.message };
   }
 
+  try {
+    await createActivity({
+      supabase,
+      workspaceId: data.workspace_id,
+      actorId: user.id,
+      action: "updated",
+      entityType: "project",
+      entityId: projectId,
+      metadata: { name: data.name, project_id: projectId, changes: updates },
+    });
+  } catch {
+    // Activity logging should not block the primary operation
+  }
+
   revalidatePath("/", "layout");
   return { data };
 }
@@ -46,6 +66,18 @@ export async function archiveProject(
 ): Promise<ActionResponse<void>> {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Fetch project before archiving for activity metadata
+  const { data: project } = await supabase
+    .from("projects")
+    .select("workspace_id, name")
+    .eq("id", projectId)
+    .single();
+
   const { error } = await supabase
     .from("projects")
     .update({ is_archived: true })
@@ -53,6 +85,22 @@ export async function archiveProject(
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (project) {
+    try {
+      await createActivity({
+        supabase,
+        workspaceId: project.workspace_id,
+        actorId: user.id,
+        action: "archived",
+        entityType: "project",
+        entityId: projectId,
+        metadata: { name: project.name, project_id: projectId },
+      });
+    } catch {
+      // Activity logging should not block the primary operation
+    }
   }
 
   revalidatePath("/", "layout");
@@ -64,6 +112,18 @@ export async function deleteProject(
 ): Promise<ActionResponse<void>> {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Fetch project before deleting for activity metadata
+  const { data: project } = await supabase
+    .from("projects")
+    .select("workspace_id, name")
+    .eq("id", projectId)
+    .single();
+
   const { error } = await supabase
     .from("projects")
     .delete()
@@ -71,6 +131,22 @@ export async function deleteProject(
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (project) {
+    try {
+      await createActivity({
+        supabase,
+        workspaceId: project.workspace_id,
+        actorId: user.id,
+        action: "deleted",
+        entityType: "project",
+        entityId: projectId,
+        metadata: { name: project.name, project_id: projectId },
+      });
+    } catch {
+      // Activity logging should not block the primary operation
+    }
   }
 
   revalidatePath("/", "layout");
