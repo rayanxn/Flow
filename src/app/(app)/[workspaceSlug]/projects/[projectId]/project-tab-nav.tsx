@@ -55,7 +55,7 @@ export function ProjectTabNav({ workspaceSlug, projectId }: ProjectTabNavProps) 
           >
             {tab.label}
             {tab.key && (
-              <span className="ml-1.5 text-[10px] text-text-muted opacity-0 group-hover:opacity-50">
+              <span aria-hidden="true" className="ml-1.5 text-[10px] text-text-muted opacity-0 group-hover:opacity-50">
                 {tab.key}
               </span>
             )}
