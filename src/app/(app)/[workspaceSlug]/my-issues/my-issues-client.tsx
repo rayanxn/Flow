@@ -8,8 +8,8 @@ import { CreateIssueModal } from "@/components/issues/create-issue-modal";
 interface MyIssuesClientProps {
   projects: { id: string; name: string; color: string }[];
   members: { user_id: string; profile: { full_name: string | null; email: string } }[];
-  sprints: { id: string; name: string; status: string }[];
-  labels: { id: string; name: string; color: string }[];
+  sprints: { id: string; name: string; status: string; project_id: string }[];
+  labels: { id: string; name: string; color: string; project_id: string }[];
   defaultAssigneeId?: string;
 }
 

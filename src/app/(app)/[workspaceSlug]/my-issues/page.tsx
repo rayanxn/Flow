@@ -4,6 +4,8 @@ import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getMyIssues } from "@/lib/queries/issues";
 import { getWorkspaceMembers } from "@/lib/queries/members";
 import { getWorkspaceProjects } from "@/lib/queries/workspaces";
+import { getWorkspaceSprints } from "@/lib/queries/analytics";
+import { getWorkspaceLabels } from "@/lib/queries/projects";
 import { IssueList } from "@/components/issues/issue-list";
 import { MyIssuesClient } from "./my-issues-client";
 
@@ -24,14 +26,27 @@ export default async function MyIssuesPage({
 
   if (!user) notFound();
 
-  const [issues, members, projects] = await Promise.all([
+  const [issues, members, projects, sprintRows, labelRows] = await Promise.all([
     getMyIssues(result.workspace.id, user.id),
     getWorkspaceMembers(result.workspace.id),
     getWorkspaceProjects(result.workspace.id),
+    getWorkspaceSprints(result.workspace.id),
+    getWorkspaceLabels(result.workspace.id),
   ]);
 
-  const labels: never[] = [];
-  const sprints: never[] = [];
+  const sprints = sprintRows.map((s) => ({
+    id: s.id,
+    name: s.name,
+    status: s.status,
+    project_id: s.project_id,
+  }));
+
+  const labels = labelRows.map((l) => ({
+    id: l.id,
+    name: l.name,
+    color: l.color,
+    project_id: l.project_id,
+  }));
 
   return (
     <div className="flex flex-col py-6 px-8 gap-5">

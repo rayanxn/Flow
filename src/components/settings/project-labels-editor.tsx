@@ -169,14 +169,14 @@ export function ProjectLabelsEditor({
                 <button
                   type="button"
                   onClick={() => handleStartEdit(label)}
-                  className="text-[12px] text-text-muted hover:text-text transition-colors opacity-0 group-hover:opacity-100"
+                  className="text-[12px] text-text-muted hover:text-text transition-colors opacity-40 group-hover:opacity-100"
                 >
                   Edit
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeletingLabel(label)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-[#C45A3C]"
+                  className="opacity-40 group-hover:opacity-100 transition-opacity text-text-muted hover:text-[#C45A3C]"
                 >
                   <X className="size-3.5" />
                 </button>

@@ -13,7 +13,7 @@ export function MyFocusCard({ issues, workspaceSlug }: MyFocusCardProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-text">My Focus</h2>
+        <h2 className="text-base font-semibold text-text">My Top Issues</h2>
         <Link
           href={`/${workspaceSlug}/my-issues`}
           className="text-[13px] font-medium text-text-secondary hover:text-text transition-colors"
