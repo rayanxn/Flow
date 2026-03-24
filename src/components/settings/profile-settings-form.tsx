@@ -76,7 +76,7 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
               {profile.full_name ?? "No name"}
             </p>
             <p className="text-[12px] text-text-muted mt-0.5">
-              Photo uploads coming soon
+              {profile.email}
             </p>
           </div>
         </div>
