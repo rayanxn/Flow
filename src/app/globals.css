@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: "Instrument Serif";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("https://fonts.gstatic.com/s/instrumentserif/v4/jizBRFtNs2ka5fCjKk1_OhOk16KD0ow.woff2")
-    format("woff2");
-}
-
 @theme inline {
   --color-background: #F6F5F1;
   --color-surface: #FFFFFF;

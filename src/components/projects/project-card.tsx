@@ -22,6 +22,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { IssueStatus } from "@/lib/types";
 
 interface ProjectCardProps {
@@ -99,11 +100,11 @@ export function ProjectCard({
           <div className="flex items-center gap-2 shrink-0">
             {lead && (
               <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-border-strong flex items-center justify-center">
-                  <span className="text-[10px] font-medium text-text-secondary">
+                <Avatar className="w-5 h-5">
+                  <AvatarFallback className="text-[10px]">
                     {leadInitial}
-                  </span>
-                </div>
+                  </AvatarFallback>
+                </Avatar>
                 <span className="text-xs text-text-secondary">{leadName}</span>
               </div>
             )}

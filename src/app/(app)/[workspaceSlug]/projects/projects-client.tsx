@@ -6,9 +6,10 @@ import { CreateProjectModal } from "@/components/projects/create-project-modal";
 
 interface ProjectsPageClientProps {
   teams: { id: string; name: string }[];
+  members: { user_id: string; profile: { full_name: string | null; email: string } }[];
 }
 
-export function ProjectsPageClient({ teams }: ProjectsPageClientProps) {
+export function ProjectsPageClient({ teams, members }: ProjectsPageClientProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   return (
@@ -18,6 +19,7 @@ export function ProjectsPageClient({ teams }: ProjectsPageClientProps) {
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         teams={teams}
+        members={members}
       />
     </>
   );

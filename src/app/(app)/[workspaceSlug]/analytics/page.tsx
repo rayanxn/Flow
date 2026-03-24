@@ -13,6 +13,7 @@ import { BurndownChart } from "@/components/analytics/burndown-chart";
 import { LabelChart } from "@/components/analytics/label-chart";
 import { VelocityChart } from "@/components/analytics/velocity-chart";
 import { SprintSelector } from "@/components/analytics/analytics-client";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function AnalyticsPage({
   params,
@@ -47,6 +48,7 @@ export default async function AnalyticsPage({
   if (!selectedSprint) {
     return (
       <div className="flex flex-col py-6 px-10 gap-6">
+        <Breadcrumb workspaceName={result.workspace.name} pageName="Analytics" />
         <h1 className="text-[26px] font-bold text-text">Analytics</h1>
         <div className="flex flex-col items-center justify-center py-20">
           <h2 className="text-lg font-medium text-text">No sprints yet</h2>
@@ -69,6 +71,7 @@ export default async function AnalyticsPage({
 
   return (
     <div className="flex flex-col py-6 px-10 gap-6">
+      <Breadcrumb workspaceName={result.workspace.name} pageName="Analytics" />
       <div className="flex items-center justify-between">
         <h1 className="text-[26px] font-bold text-text">Analytics</h1>
         <SprintSelector

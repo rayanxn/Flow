@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateProject, deleteProject, archiveProject } from "@/lib/actions/projects";
 import { DeleteConfirmationModal } from "@/components/ui/delete-confirmation-modal";
 import type { Tables } from "@/lib/types";
-
-const PROJECT_COLORS = [
-  "#6B7280", "#EF4444", "#F59E0B", "#10B981", "#3B82F6",
-  "#8B5CF6", "#EC4899", "#6366F1", "#14B8A6", "#F97316",
-];
+import { PROJECT_COLORS } from "@/lib/constants/colors";
 
 type Member = {
   id: string;

@@ -1,4 +1,5 @@
 import type { TeamWithMembers } from "@/lib/queries/teams";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TeamMemberRow } from "./team-member-row";
 
 export function TeamCard({ team }: { team: TeamWithMembers }) {
@@ -8,11 +9,11 @@ export function TeamCard({ team }: { team: TeamWithMembers }) {
     <div className="flex flex-col rounded-2xl overflow-clip bg-white border border-[#2E2E2C]/8">
       <div className="flex items-center justify-between py-4.5 px-6 bg-muted/30">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center rounded-full bg-[#9C9B90]/15 shrink-0 size-8">
-            <span className="text-[13px] font-semibold text-text">
+          <Avatar size="sm" className="shrink-0 size-8">
+            <AvatarFallback className="text-[13px] font-semibold">
               {initial}
-            </span>
-          </div>
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col gap-px">
             <span className="text-base font-semibold text-text">
               {team.name}

@@ -12,23 +12,13 @@ import {
   finishOnboarding,
 } from "@/lib/actions/workspaces";
 import type { ActionResponse, Tables } from "@/lib/types";
+import { PROJECT_COLORS } from "@/lib/constants/colors";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 const TEAM_SIZES = ["1 – 5", "6 – 20", "20+"] as const;
-
-const PROJECT_COLORS = [
-  "#DC2626",
-  "#D97706",
-  "#16A34A",
-  "#2563EB",
-  "#7C3AED",
-  "#DB2777",
-  "#0891B2",
-  "#6B7280",
-] as const;
 
 // ---------------------------------------------------------------------------
 // Helpers

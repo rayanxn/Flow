@@ -6,6 +6,7 @@ import { getWorkspaceViews, getFilteredIssueCount } from "@/lib/queries/views";
 import type { ViewFilters } from "@/lib/types";
 import { ViewsList } from "@/components/views/views-list";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { CreateViewModal } from "@/components/views/create-view-modal";
 
 export default async function ViewsPage({
@@ -40,6 +41,7 @@ export default async function ViewsPage({
 
   return (
     <div className="flex flex-col py-6 px-8 gap-5">
+      <Breadcrumb workspaceName={result.workspace.name} pageName="Saved Views" />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight text-text">
           Saved Views

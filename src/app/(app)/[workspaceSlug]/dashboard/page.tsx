@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
 import { enrichIssues } from "@/lib/queries/issues";
 import { getRecentActivities } from "@/lib/queries/activities";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import { SprintStrip } from "@/components/dashboard/sprint-strip";
 import { MyFocusCard } from "@/components/dashboard/my-focus-card";
@@ -100,8 +101,13 @@ export default async function DashboardPage({
 
   return (
     <div className="flex flex-col flex-1">
+      {/* Breadcrumb */}
+      <div className="px-10 pt-2">
+        <Breadcrumb workspaceName={workspace.name} pageName="Dashboard" />
+      </div>
+
       {/* Greeting */}
-      <div className="px-10 pt-6">
+      <div className="px-10 pt-2">
         <DashboardGreeting firstName={firstName} />
       </div>
 

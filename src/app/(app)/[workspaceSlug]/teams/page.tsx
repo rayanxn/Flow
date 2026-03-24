@@ -4,6 +4,7 @@ import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getTeamsWithMembers } from "@/lib/queries/teams";
 import { TeamsList } from "@/components/teams/teams-list";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { InviteMemberButton } from "@/components/teams/invite-member-button";
 
 export default async function TeamsPage({
@@ -19,6 +20,7 @@ export default async function TeamsPage({
 
   return (
     <div className="flex flex-col py-6 px-8 gap-5">
+      <Breadcrumb workspaceName={result.workspace.name} pageName="Teams" />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text">
           Teams

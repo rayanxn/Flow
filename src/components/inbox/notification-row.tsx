@@ -7,6 +7,8 @@ import { formatRelative } from "@/lib/utils/dates";
 import { markNotificationRead } from "@/lib/actions/notifications";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils/format";
 
 interface NotificationRowProps {
   notification: NotificationWithActivity;
@@ -49,7 +51,11 @@ export function NotificationRow({
     >
       {/* Avatar + unread dot */}
       <div className="relative shrink-0">
-        <div className="rounded-full bg-[#C4C0B8] size-8" />
+        <Avatar size="sm" className="size-8">
+          <AvatarFallback>
+            {getInitials(activity?.actor?.full_name, activity?.actor?.email)}
+          </AvatarFallback>
+        </Avatar>
         {isUnread && (
           <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[#8B4049] ring-2 ring-white" />
         )}

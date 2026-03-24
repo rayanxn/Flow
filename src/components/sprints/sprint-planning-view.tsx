@@ -22,6 +22,7 @@ import { startSprint } from "@/lib/actions/sprints";
 import { formatDateFull } from "@/lib/utils/dates";
 import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { cn } from "@/lib/utils/cn";
+import { getInitials } from "@/lib/utils/format";
 import { useWorkspace } from "@/providers/workspace-provider";
 
 import { Button } from "@/components/ui/button";
@@ -73,16 +74,6 @@ const QUICK_FILTER_CONFIG: {
 ];
 
 // --- Helpers ---
-
-function getInitials(name: string | null): string {
-  if (!name) return "?";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
 
 function findContainer(
   issueId: string,

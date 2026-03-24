@@ -4,6 +4,7 @@ import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getNotifications } from "@/lib/queries/notifications";
 import { InboxClient } from "@/components/inbox/inbox-client";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function InboxPage({
   params,
@@ -27,11 +28,7 @@ export default async function InboxPage({
 
   return (
     <div className="flex flex-col flex-1 px-10">
-      <div className="text-[13px] py-3 flex items-center gap-2">
-        <span className="text-text-secondary">{workspace.name}</span>
-        <span className="text-text-muted">/</span>
-        <span className="text-text font-medium">Inbox</span>
-      </div>
+      <Breadcrumb workspaceName={workspace.name} pageName="Inbox" />
       {notifications.length > 0 ? (
         <InboxClient
           notifications={notifications}

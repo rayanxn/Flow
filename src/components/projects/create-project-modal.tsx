@@ -16,30 +16,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils/cn";
-
-const PROJECT_COLORS = [
-  "#DC2626",
-  "#2563EB",
-  "#0D9488",
-  "#16A34A",
-  "#78716C",
-  "#292524",
-];
+import { PROJECT_COLORS } from "@/lib/constants/colors";
 
 interface CreateProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   teams?: { id: string; name: string }[];
+  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
 }
 
 export function CreateProjectModal({
   open,
   onOpenChange,
   teams = [],
+  members = [],
 }: CreateProjectModalProps) {
   const router = useRouter();
   const { workspace } = useWorkspace();
-  const [color, setColor] = useState(PROJECT_COLORS[0]);
+  const [color, setColor] = useState<string>(PROJECT_COLORS[0]);
   const [isPrivate, setIsPrivate] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,26 +95,44 @@ export function CreateProjectModal({
               />
             </div>
 
-            {/* Color & Team row */}
+            {/* Color */}
+            <div className="space-y-1.5">
+              <Label>Color</Label>
+              <div className="flex items-center gap-2">
+                {PROJECT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={cn(
+                      "w-5 h-5 rounded-full transition-all",
+                      color === c
+                        ? "ring-2 ring-offset-2 ring-offset-surface ring-primary"
+                        : "hover:scale-110",
+                    )}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Lead & Team row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Color</Label>
-                <div className="flex items-center gap-2">
-                  {PROJECT_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      className={cn(
-                        "w-5 h-5 rounded-full transition-all",
-                        color === c
-                          ? "ring-2 ring-offset-2 ring-offset-surface ring-primary"
-                          : "hover:scale-110",
-                      )}
-                      style={{ backgroundColor: c }}
-                    />
+                <Label htmlFor="leadId">Project Lead</Label>
+                <select
+                  id="leadId"
+                  name="leadId"
+                  className="flex h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-border-strong transition-colors"
+                  defaultValue=""
+                >
+                  <option value="">No lead</option>
+                  {members.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.profile.full_name ?? m.profile.email}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
 
               <div className="space-y-1.5">

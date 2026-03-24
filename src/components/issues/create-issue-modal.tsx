@@ -54,16 +54,30 @@ export function CreateIssueModal({
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; projectId?: string }>({});
   const [showLabelPicker, setShowLabelPicker] = useState(false);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      setLoading(true);
-      setError(null);
 
       const form = e.currentTarget;
       const formData = new FormData(form);
+
+      // Custom validation
+      const title = (formData.get("title") as string)?.trim();
+      const projectId = formData.get("projectId") as string;
+      const errors: { title?: string; projectId?: string } = {};
+      if (!title) errors.title = "Title is required";
+      if (!projectId) errors.projectId = "Please select a project";
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
+        return;
+      }
+      setFieldErrors({});
+
+      setLoading(true);
+      setError(null);
       formData.set("workspaceId", workspace.id);
       formData.set("priority", String(priority));
       formData.set("status", status);
@@ -99,6 +113,7 @@ export function CreateIssueModal({
       setSelectedProjectId(defaultProjectId ?? "");
       setSelectedLabels([]);
       setError(null);
+      setFieldErrors({});
       setShowLabelPicker(false);
     }
   }, [open]);
@@ -142,9 +157,12 @@ export function CreateIssueModal({
                 id="issue-title"
                 name="title"
                 placeholder="Enter issue title..."
-                required
                 autoFocus
+                onChange={() => fieldErrors.title && setFieldErrors((prev) => ({ ...prev, title: undefined }))}
               />
+              {fieldErrors.title && (
+                <p className="text-sm text-danger">{fieldErrors.title}</p>
+              )}
             </div>
 
             {/* Description */}
@@ -250,8 +268,8 @@ export function CreateIssueModal({
                   onChange={(e) => {
                     setSelectedProjectId(e.target.value);
                     setSelectedLabels([]);
+                    if (fieldErrors.projectId) setFieldErrors((prev) => ({ ...prev, projectId: undefined }));
                   }}
-                  required
                 >
                   <option value="" disabled>
                     Select project
@@ -262,6 +280,9 @@ export function CreateIssueModal({
                     </option>
                   ))}
                 </select>
+                {fieldErrors.projectId && (
+                  <p className="text-sm text-danger">{fieldErrors.projectId}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">

@@ -2,9 +2,10 @@ import { notFound } from "next/navigation";
 import { FolderKanban } from "lucide-react";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getProjectsWithStats } from "@/lib/queries/projects";
-import { getWorkspaceTeams } from "@/lib/queries/members";
+import { getWorkspaceTeams, getWorkspaceMembers } from "@/lib/queries/members";
 import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { ProjectsPageClient } from "./projects-client";
 
 export default async function ProjectsPage({
@@ -18,17 +19,19 @@ export default async function ProjectsPage({
   if (!result?.workspace) notFound();
 
   const workspaceId = result.workspace.id;
-  const [projects, teams] = await Promise.all([
+  const [projects, teams, members] = await Promise.all([
     getProjectsWithStats(workspaceId),
     getWorkspaceTeams(workspaceId),
+    getWorkspaceMembers(workspaceId),
   ]);
 
   return (
     <div className="p-6">
+      <Breadcrumb workspaceName={result.workspace.name} pageName="Projects" />
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-serif text-text">Projects</h1>
-        <ProjectsPageClient teams={teams} />
+        <ProjectsPageClient teams={teams} members={members} />
       </div>
 
       {/* Grid */}
