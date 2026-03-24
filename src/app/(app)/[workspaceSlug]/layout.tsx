@@ -2,9 +2,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
 import { getUnreadNotificationCount } from "@/lib/queries/notifications";
+import { getWorkspaceMembers } from "@/lib/queries/members";
 import { WorkspaceProvider } from "@/providers/workspace-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { WorkspaceShell } from "@/components/layout/workspace-shell";
 
 export default async function WorkspaceLayout({
   children,
@@ -39,28 +41,42 @@ export default async function WorkspaceLayout({
     user?.email?.slice(0, 2).toUpperCase() ??
     "U";
 
-  const unreadCount = user
-    ? await getUnreadNotificationCount(workspace.id, user.id)
-    : 0;
+  const [unreadCount, members] = await Promise.all([
+    user ? getUnreadNotificationCount(workspace.id, user.id) : 0,
+    getWorkspaceMembers(workspace.id),
+  ]);
+
+  const memberList = members.map((m) => ({
+    user_id: m.user_id,
+    profile: { full_name: m.profile.full_name, email: m.profile.email },
+  }));
 
   return (
     <WorkspaceProvider workspace={workspace} membership={membership}>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar
-          workspaceName={workspace.name}
-          workspaceSlug={workspace.slug}
-          projects={projects}
-          workspaceId={workspace.id}
-          userId={user?.id ?? ""}
-          unreadCount={unreadCount}
-        />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto bg-background">
-            <Header userInitials={initials} />
-            {children}
-          </main>
+      <WorkspaceShell
+        workspaceSlug={workspace.slug}
+        workspaceId={workspace.id}
+        userId={user?.id ?? ""}
+        projects={projects}
+        members={memberList}
+      >
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar
+            workspaceName={workspace.name}
+            workspaceSlug={workspace.slug}
+            projects={projects}
+            workspaceId={workspace.id}
+            userId={user?.id ?? ""}
+            unreadCount={unreadCount}
+          />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 overflow-y-auto bg-background">
+              <Header userInitials={initials} />
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
+      </WorkspaceShell>
     </WorkspaceProvider>
   );
 }

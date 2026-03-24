@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { Filter } from "lucide-react";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getWorkspaceViews, getFilteredIssueCount } from "@/lib/queries/views";
 import type { ViewFilters } from "@/lib/types";
 import { ViewsList } from "@/components/views/views-list";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CreateViewModal } from "@/components/views/create-view-modal";
 
 export default async function ViewsPage({
@@ -42,11 +44,19 @@ export default async function ViewsPage({
           workspaceSlug={workspaceSlug}
         />
       </div>
-      <ViewsList
-        views={views}
-        issueCounts={issueCounts}
-        workspaceSlug={workspaceSlug}
-      />
+      {views.length > 0 ? (
+        <ViewsList
+          views={views}
+          issueCounts={issueCounts}
+          workspaceSlug={workspaceSlug}
+        />
+      ) : (
+        <EmptyState
+          icon={Filter}
+          title="No saved views"
+          description="Create a view to save filter combinations for quick access."
+        />
+      )}
     </div>
   );
 }

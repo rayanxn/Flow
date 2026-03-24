@@ -1,10 +1,10 @@
-export default function WorkspaceSettingsPage() {
-  return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h1 className="text-2xl font-serif text-text">Workspace Settings</h1>
-      <p className="mt-2 text-sm text-text-muted">
-        Workspace configuration will appear here.
-      </p>
-    </div>
-  );
+import { redirect } from "next/navigation";
+
+export default async function WorkspaceSettingsPage({
+  params,
+}: {
+  params: Promise<{ workspaceSlug: string }>;
+}) {
+  const { workspaceSlug } = await params;
+  redirect(`/${workspaceSlug}/settings/general`);
 }

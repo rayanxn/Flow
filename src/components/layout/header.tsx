@@ -2,17 +2,20 @@
 
 import { Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useShell } from "@/components/layout/workspace-shell";
 
 interface HeaderProps {
   userInitials: string;
 }
 
 export function Header({ userInitials }: HeaderProps) {
+  const shell = useShell();
   return (
     <header className="flex items-center justify-end gap-3 px-10 pt-6">
       {/* Search trigger */}
       <button
         type="button"
+        onClick={() => shell?.openPalette()}
         className="flex items-center gap-2 bg-[#EDEAE4] rounded-lg px-4 py-2 text-sm text-text-secondary hover:opacity-80 transition-opacity"
       >
         <Search className="w-3.5 h-3.5" />

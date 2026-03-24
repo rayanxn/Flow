@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { Users } from "lucide-react";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getTeamsWithMembers } from "@/lib/queries/teams";
 import { TeamsList } from "@/components/teams/teams-list";
+import { EmptyState } from "@/components/ui/empty-state";
 import { InviteMemberButton } from "@/components/teams/invite-member-button";
 
 export default async function TeamsPage({
@@ -23,7 +25,15 @@ export default async function TeamsPage({
         </h1>
         <InviteMemberButton workspaceId={result.workspace.id} />
       </div>
-      <TeamsList teams={teams} />
+      {teams.length > 0 ? (
+        <TeamsList teams={teams} />
+      ) : (
+        <EmptyState
+          icon={Users}
+          title="No teams yet"
+          description="Create teams to organize your workspace members."
+        />
+      )}
     </div>
   );
 }

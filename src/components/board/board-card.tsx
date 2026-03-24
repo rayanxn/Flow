@@ -70,6 +70,8 @@ export function BoardCard({
       style={style}
       {...attributes}
       {...listeners}
+      aria-label={`Issue ${issueKey}: ${title}`}
+      aria-roledescription="sortable"
       className={cn(
         "rounded-lg border border-border bg-surface p-3 shadow-sm cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md",
         isDragging && "opacity-30",

@@ -42,7 +42,11 @@ export function BoardColumn({
     issues.length > 0 ? issues[issues.length - 1].sort_order + 1 : 1;
 
   return (
-    <div className="flex flex-col min-w-[280px] w-[280px] shrink-0">
+    <div
+      className="flex flex-col min-w-[280px] w-[280px] shrink-0"
+      role="region"
+      aria-label={`${config.label} column, ${issues.length} ${issues.length === 1 ? "issue" : "issues"}`}
+    >
       {/* Column header */}
       <div className="flex items-center gap-2 px-3 py-2.5 mb-1">
         <span

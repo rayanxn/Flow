@@ -1,7 +1,9 @@
+import { Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getNotifications } from "@/lib/queries/notifications";
 import { InboxClient } from "@/components/inbox/inbox-client";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function InboxPage({
   params,
@@ -30,10 +32,18 @@ export default async function InboxPage({
         <span className="text-text-muted">/</span>
         <span className="text-text font-medium">Inbox</span>
       </div>
-      <InboxClient
-        notifications={notifications}
-        workspaceId={workspace.id}
-      />
+      {notifications.length > 0 ? (
+        <InboxClient
+          notifications={notifications}
+          workspaceId={workspace.id}
+        />
+      ) : (
+        <EmptyState
+          icon={Mail}
+          title="All caught up"
+          description="No notifications yet. You'll see updates here when you're assigned issues or mentioned."
+        />
+      )}
     </div>
   );
 }

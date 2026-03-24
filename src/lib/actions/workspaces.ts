@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables } from "@/lib/types";
 import { createActivity } from "@/lib/actions/activities";
@@ -149,6 +150,192 @@ export async function createWorkspaceInvite(
   }
 
   return { data };
+}
+
+export async function updateWorkspace(
+  workspaceId: string,
+  formData: FormData
+): Promise<ActionResponse<Tables<"workspaces">>> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const updates: Record<string, unknown> = {};
+
+  const name = formData.get("name") as string | null;
+  const timezone = formData.get("timezone") as string | null;
+  const defaultSprintLength = formData.get("defaultSprintLength") as string | null;
+  const issuePrefix = formData.get("issuePrefix") as string | null;
+
+  if (name) updates.name = name;
+  if (timezone) updates.timezone = timezone;
+  if (defaultSprintLength) updates.default_sprint_length = Number(defaultSprintLength);
+  if (issuePrefix) updates.issue_prefix = issuePrefix.toUpperCase();
+
+  const { data, error } = await supabase
+    .from("workspaces")
+    .update(updates)
+    .eq("id", workspaceId)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  try {
+    await createActivity({
+      supabase,
+      workspaceId,
+      actorId: user.id,
+      action: "updated",
+      entityType: "workspace",
+      entityId: workspaceId,
+      metadata: { name: data.name, changes: updates },
+    });
+  } catch {
+    // Activity logging should not block the primary operation
+  }
+
+  revalidatePath("/", "layout");
+  return { data };
+}
+
+export async function deleteWorkspace(
+  workspaceId: string
+): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Verify caller is owner
+  const { data: membership } = await supabase
+    .from("workspace_members")
+    .select("role")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!membership || membership.role !== "owner") {
+    return { error: "Only the workspace owner can delete the workspace" };
+  }
+
+  const { error } = await supabase
+    .from("workspaces")
+    .delete()
+    .eq("id", workspaceId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  redirect("/login");
+}
+
+export async function updateMemberRole(
+  memberId: string,
+  role: "admin" | "member"
+): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Fetch the target member to get workspace_id
+  const { data: targetMember } = await supabase
+    .from("workspace_members")
+    .select("workspace_id, user_id, role")
+    .eq("id", memberId)
+    .single();
+
+  if (!targetMember) return { error: "Member not found" };
+
+  if (targetMember.role === "owner") {
+    return { error: "Cannot change the owner's role" };
+  }
+
+  // Verify caller is owner or admin
+  const { data: callerMembership } = await supabase
+    .from("workspace_members")
+    .select("role")
+    .eq("workspace_id", targetMember.workspace_id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!callerMembership || callerMembership.role === "member") {
+    return { error: "Only owners and admins can change roles" };
+  }
+
+  const { error } = await supabase
+    .from("workspace_members")
+    .update({ role })
+    .eq("id", memberId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  return { data: undefined };
+}
+
+export async function removeMember(
+  memberId: string
+): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated" };
+
+  // Fetch the target member
+  const { data: targetMember } = await supabase
+    .from("workspace_members")
+    .select("workspace_id, user_id, role")
+    .eq("id", memberId)
+    .single();
+
+  if (!targetMember) return { error: "Member not found" };
+
+  if (targetMember.role === "owner") {
+    return { error: "Cannot remove the workspace owner" };
+  }
+
+  // Verify caller is owner/admin or self-removing
+  const isSelf = targetMember.user_id === user.id;
+  if (!isSelf) {
+    const { data: callerMembership } = await supabase
+      .from("workspace_members")
+      .select("role")
+      .eq("workspace_id", targetMember.workspace_id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!callerMembership || callerMembership.role === "member") {
+      return { error: "Only owners and admins can remove members" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("workspace_members")
+    .delete()
+    .eq("id", memberId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/", "layout");
+  return { data: undefined };
 }
 
 export async function finishOnboarding(workspaceSlug: string): Promise<void> {

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
+import { FolderKanban } from "lucide-react";
 import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getProjectsWithStats } from "@/lib/queries/projects";
 import { getWorkspaceTeams } from "@/lib/queries/members";
 import { ProjectCard } from "@/components/projects/project-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ProjectsPageClient } from "./projects-client";
 
 export default async function ProjectsPage({
@@ -48,14 +50,11 @@ export default async function ProjectsPage({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-24">
-          <h3 className="text-lg font-medium text-text mb-1">
-            No projects yet
-          </h3>
-          <p className="text-sm text-text-muted">
-            Create your first project to get started.
-          </p>
-        </div>
+        <EmptyState
+          icon={FolderKanban}
+          title="No projects yet"
+          description="Create your first project to start tracking work."
+        />
       )}
     </div>
   );
