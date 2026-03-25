@@ -1,22 +1,17 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { BoardView } from "@/components/board/board-view";
+import { IssueList } from "@/components/issues/issue-list";
 import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
 import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 
-interface BoardWithDetailProps {
-  initialIssues: IssueWithDetails[];
-  projectId: string;
+interface ListWithDetailProps {
+  issues: IssueWithDetails[];
   members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
 }
 
-export function BoardWithDetail({
-  initialIssues,
-  projectId,
-  members = [],
-}: BoardWithDetailProps) {
+export function ListWithDetail({ issues, members = [] }: ListWithDetailProps) {
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -30,19 +25,19 @@ export function BoardWithDetail({
 
   const handleIssueClick = useCallback(
     (id: string) => {
-      const issue = initialIssues.find((i) => i.id === id);
+      const issue = issues.find((i) => i.id === id);
       if (issue) openIssue(issue);
     },
-    [initialIssues, openIssue]
+    [issues, openIssue]
   );
 
-  useIssueFromUrl(initialIssues, openIssue);
+  useIssueFromUrl(issues, openIssue);
 
   return (
     <>
-      <BoardView
-        initialIssues={initialIssues}
-        projectId={projectId}
+      <IssueList
+        issues={issues}
+        showProject={false}
         onIssueClick={handleIssueClick}
       />
       <IssueDetailPanel

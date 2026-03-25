@@ -103,7 +103,7 @@ export default async function DashboardPage({
     getWorkspaceMembers(workspace.id),
   ]);
 
-  // Fetch full issue details for issue-type activities (needed by IssueDetailModal)
+  // Fetch full issue details for issue-type activities (needed by IssueDetailPanel)
   const issueActivityIds = [
     ...new Set(
       recentActivities

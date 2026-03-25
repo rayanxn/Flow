@@ -2,9 +2,9 @@ import { notFound } from "next/navigation";
 import { getProjectIssues } from "@/lib/queries/issues";
 import { getProjectById, getProjectLabels, getProjectSprints } from "@/lib/queries/projects";
 import { getWorkspaceMembers } from "@/lib/queries/members";
-import { IssueList } from "@/components/issues/issue-list";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { ListPageClient } from "./list-client";
+import { ListWithDetail } from "./list-with-detail";
 
 export default async function ListPage({
   params,
@@ -56,7 +56,7 @@ export default async function ListPage({
       />
 
       {hasIssues && (
-        <IssueList issues={issues} showProject={false} />
+        <ListWithDetail issues={issues} members={members} />
       )}
     </div>
   );

@@ -3,7 +3,8 @@
 import { useState, useCallback } from "react";
 import { MyFocusCard } from "./my-focus-card";
 import { RecentActivityCard } from "./recent-activity-card";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
+import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 import type { ActivityWithActor } from "@/lib/utils/activities";
 
@@ -25,15 +26,24 @@ export function DashboardContent({
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const openIssue = useCallback(
+    (issue: IssueWithDetails) => {
+      setSelectedIssue(issue);
+      setDetailOpen(true);
+    },
+    []
+  );
+
+  // Combine issues + activity issues for URL auto-open
+  const allIssues = [...issues, ...Object.values(activityIssueMap)];
+  useIssueFromUrl(allIssues, openIssue);
+
   const handleIssueClick = useCallback(
     (id: string) => {
       const issue = issues.find((i) => i.id === id) ?? activityIssueMap[id] ?? null;
-      if (issue) {
-        setSelectedIssue(issue);
-        setDetailOpen(true);
-      }
+      if (issue) openIssue(issue);
     },
-    [issues, activityIssueMap]
+    [issues, activityIssueMap, openIssue]
   );
 
   return (
@@ -54,7 +64,7 @@ export function DashboardContent({
           />
         </div>
       </div>
-      <IssueDetailModal
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

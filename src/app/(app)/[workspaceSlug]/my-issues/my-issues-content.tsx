@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
+import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -43,6 +44,16 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const openIssue = useCallback(
+    (issue: IssueWithDetails) => {
+      setSelectedIssue(issue);
+      setDetailOpen(true);
+    },
+    []
+  );
+
+  useIssueFromUrl(issues, openIssue);
+
   // Load persisted state from localStorage
   useEffect(() => {
     const storedView = localStorage.getItem(VIEW_STORAGE_KEY);
@@ -66,12 +77,9 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
   const handleIssueClick = useCallback(
     (id: string) => {
       const issue = issues.find((i) => i.id === id);
-      if (issue) {
-        setSelectedIssue(issue);
-        setDetailOpen(true);
-      }
+      if (issue) openIssue(issue);
     },
-    [issues]
+    [issues, openIssue]
   );
 
   const sortedIssues = useMemo(() => {
@@ -192,8 +200,8 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
         </div>
       )}
 
-      {/* Issue detail modal */}
-      <IssueDetailModal
+      {/* Issue detail panel */}
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}
