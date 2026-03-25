@@ -386,6 +386,7 @@ export type Database = {
           sort_order: number;
           created_by: string;
           completed_at: string | null;
+          checklist: { id: string; text: string; completed: boolean }[];
           created_at: string;
           updated_at: string;
         };
@@ -406,6 +407,7 @@ export type Database = {
           sort_order?: number;
           created_by: string;
           completed_at?: string | null;
+          checklist?: { id: string; text: string; completed: boolean }[];
           created_at?: string;
           updated_at?: string;
         };
@@ -426,6 +428,7 @@ export type Database = {
           sort_order?: number;
           created_by?: string;
           completed_at?: string | null;
+          checklist?: { id: string; text: string; completed: boolean }[];
           created_at?: string;
           updated_at?: string;
         };

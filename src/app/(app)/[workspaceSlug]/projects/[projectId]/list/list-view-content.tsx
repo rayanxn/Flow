@@ -2,7 +2,8 @@
 
 import { useState, useCallback, Suspense } from "react";
 import { IssueList } from "@/components/issues/issue-list";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
+import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import type { IssueWithDetails } from "@/lib/queries/issues";
@@ -32,16 +33,23 @@ function ListViewContentInner({ issues, members, labels }: ListViewContentProps)
     enabledFilters: ["status", "priority", "assignee", "label"],
   });
 
+  const openIssue = useCallback(
+    (issue: IssueWithDetails) => {
+      setSelectedIssue(issue);
+      setDetailOpen(true);
+    },
+    []
+  );
+
   const handleIssueClick = useCallback(
     (id: string) => {
       const issue = issues.find((i) => i.id === id);
-      if (issue) {
-        setSelectedIssue(issue);
-        setDetailOpen(true);
-      }
+      if (issue) openIssue(issue);
     },
-    [issues]
+    [issues, openIssue]
   );
+
+  useIssueFromUrl(issues, openIssue);
 
   return (
     <>
@@ -65,7 +73,7 @@ function ListViewContentInner({ issues, members, labels }: ListViewContentProps)
         showProject={false}
         onIssueClick={handleIssueClick}
       />
-      <IssueDetailModal
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

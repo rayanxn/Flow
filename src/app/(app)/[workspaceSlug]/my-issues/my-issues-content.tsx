@@ -4,7 +4,8 @@ import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
+import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import {
@@ -52,6 +53,16 @@ function MyIssuesContentInner({
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const openIssue = useCallback(
+    (issue: IssueWithDetails) => {
+      setSelectedIssue(issue);
+      setDetailOpen(true);
+    },
+    []
+  );
+
+  useIssueFromUrl(issues, openIssue);
+
   const {
     filters,
     searchQuery,
@@ -91,12 +102,9 @@ function MyIssuesContentInner({
   const handleIssueClick = useCallback(
     (id: string) => {
       const issue = issues.find((i) => i.id === id);
-      if (issue) {
-        setSelectedIssue(issue);
-        setDetailOpen(true);
-      }
+      if (issue) openIssue(issue);
     },
-    [issues]
+    [issues, openIssue]
   );
 
   const sortedIssues = useMemo(() => {
@@ -243,8 +251,8 @@ function MyIssuesContentInner({
         </div>
       )}
 
-      {/* Issue detail modal */}
-      <IssueDetailModal
+      {/* Issue detail panel */}
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

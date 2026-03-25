@@ -107,6 +107,7 @@ export async function updateIssue(
     due_date?: string | null;
     story_points?: number | null;
     sort_order?: number;
+    checklist?: { id: string; text: string; completed: boolean }[];
   }
 ): Promise<ActionResponse<Tables<"issues">>> {
   const supabase = await createClient();

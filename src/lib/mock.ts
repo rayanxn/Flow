@@ -213,6 +213,7 @@ function mockIssue(
       ? { id: projectRef.id, name: projectRef.name, color: projectRef.color }
       : null,
     labels: overrides.labels ?? [],
+    checklist: [],
   };
 }
 

@@ -2,7 +2,8 @@
 
 import { useState, useCallback, Suspense } from "react";
 import { BoardView } from "@/components/board/board-view";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
+import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import type { IssueWithDetails } from "@/lib/queries/issues";
@@ -23,6 +24,14 @@ function BoardWithDetailInner({
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  const openIssue = useCallback(
+    (issue: IssueWithDetails) => {
+      setSelectedIssue(issue);
+      setDetailOpen(true);
+    },
+    []
+  );
+
   const {
     filters,
     searchQuery,
@@ -41,13 +50,12 @@ function BoardWithDetailInner({
   const handleIssueClick = useCallback(
     (id: string) => {
       const issue = initialIssues.find((i) => i.id === id);
-      if (issue) {
-        setSelectedIssue(issue);
-        setDetailOpen(true);
-      }
+      if (issue) openIssue(issue);
     },
-    [initialIssues]
+    [initialIssues, openIssue]
   );
+
+  useIssueFromUrl(initialIssues, openIssue);
 
   return (
     <>
@@ -72,7 +80,7 @@ function BoardWithDetailInner({
         onIssueClick={handleIssueClick}
         issueFilter={issueFilterFn}
       />
-      <IssueDetailModal
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

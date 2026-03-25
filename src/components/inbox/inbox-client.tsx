@@ -3,7 +3,7 @@
 import { useTransition, useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NotificationList } from "./notification-list";
-import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
+import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
 import { markAllNotificationsRead } from "@/lib/actions/notifications";
 import { createClient } from "@/lib/supabase/client";
 import { enrichIssuesClient } from "@/lib/queries/issues-client";
@@ -127,8 +127,8 @@ export function InboxClient({
         </Tabs>
       </div>
 
-      {/* Issue detail modal */}
-      <IssueDetailModal
+      {/* Issue detail panel */}
+      <IssueDetailPanel
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}
