@@ -1,25 +1,19 @@
 "use client";
 
 import { useState, useCallback, Suspense } from "react";
-import { BoardView } from "@/components/board/board-view";
+import { IssueList } from "@/components/issues/issue-list";
 import { IssueDetailModal } from "@/components/issues/issue-detail-modal";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 
-interface BoardWithDetailProps {
-  initialIssues: IssueWithDetails[];
-  projectId: string;
-  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
-  labels?: { id: string; name: string; color: string }[];
+interface ListViewContentProps {
+  issues: IssueWithDetails[];
+  members: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  labels: { id: string; name: string; color: string }[];
 }
 
-function BoardWithDetailInner({
-  initialIssues,
-  projectId,
-  members = [],
-  labels = [],
-}: BoardWithDetailProps) {
+function ListViewContentInner({ issues, members, labels }: ListViewContentProps) {
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -30,28 +24,28 @@ function BoardWithDetailInner({
     toggleFilter,
     clearFilter,
     clearAll,
+    filteredIssues,
     hasActiveFilters,
-    issueFilterFn,
     searchInputRef,
   } = useIssueFilters({
-    issues: initialIssues,
+    issues,
     enabledFilters: ["status", "priority", "assignee", "label"],
   });
 
   const handleIssueClick = useCallback(
     (id: string) => {
-      const issue = initialIssues.find((i) => i.id === id);
+      const issue = issues.find((i) => i.id === id);
       if (issue) {
         setSelectedIssue(issue);
         setDetailOpen(true);
       }
     },
-    [initialIssues]
+    [issues]
   );
 
   return (
     <>
-      <div className="px-6 pt-4">
+      <div className="px-6 pb-2">
         <FilterBar
           filters={filters}
           searchQuery={searchQuery}
@@ -66,11 +60,10 @@ function BoardWithDetailInner({
           labels={labels}
         />
       </div>
-      <BoardView
-        initialIssues={initialIssues}
-        projectId={projectId}
+      <IssueList
+        issues={filteredIssues}
+        showProject={false}
         onIssueClick={handleIssueClick}
-        issueFilter={issueFilterFn}
       />
       <IssueDetailModal
         issue={selectedIssue}
@@ -82,10 +75,10 @@ function BoardWithDetailInner({
   );
 }
 
-export function BoardWithDetail(props: BoardWithDetailProps) {
+export function ListViewContent(props: ListViewContentProps) {
   return (
     <Suspense>
-      <BoardWithDetailInner {...props} />
+      <ListViewContentInner {...props} />
     </Suspense>
   );
 }

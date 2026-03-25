@@ -62,6 +62,7 @@ export default async function BoardPage({
           initialIssues={issues}
           projectId={projectId}
           members={members}
+          labels={labels}
         />
       </div>
     </div>
