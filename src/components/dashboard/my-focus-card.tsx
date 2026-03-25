@@ -7,9 +7,10 @@ import { formatDate } from "@/lib/utils/dates";
 interface MyFocusCardProps {
   issues: IssueWithDetails[];
   workspaceSlug: string;
+  onIssueClick?: (id: string) => void;
 }
 
-export function MyFocusCard({ issues, workspaceSlug }: MyFocusCardProps) {
+export function MyFocusCard({ issues, workspaceSlug, onIssueClick }: MyFocusCardProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -35,7 +36,16 @@ export function MyFocusCard({ issues, workspaceSlug }: MyFocusCardProps) {
             return (
               <div
                 key={issue.id}
-                className="flex items-center gap-3 py-3.5 px-4 bg-surface"
+                role={onIssueClick ? "button" : undefined}
+                tabIndex={onIssueClick ? 0 : undefined}
+                onClick={() => onIssueClick?.(issue.id)}
+                onKeyDown={(e) => {
+                  if (onIssueClick && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onIssueClick(issue.id);
+                  }
+                }}
+                className={`flex items-center gap-3 py-3.5 px-4 bg-surface${onIssueClick ? " cursor-pointer hover:bg-surface-hover transition-colors" : ""}`}
               >
                 {/* Priority dot */}
                 <span

@@ -35,11 +35,13 @@ function getActivityIcon(activity: ActivityWithActor) {
 interface RecentActivityCardProps {
   activities: ActivityWithActor[];
   workspaceSlug: string;
+  onIssueClick?: (id: string) => void;
 }
 
 export function RecentActivityCard({
   activities,
   workspaceSlug,
+  onIssueClick,
 }: RecentActivityCardProps) {
   return (
     <div>
@@ -59,10 +61,24 @@ export function RecentActivityCard({
         </div>
       ) : (
         <div className="rounded-[10px] overflow-clip flex flex-col gap-px bg-border">
-          {activities.map((activity) => (
+          {activities.map((activity) => {
+            const isClickable =
+              onIssueClick &&
+              activity.entity_type === "issue" &&
+              activity.action !== "deleted";
+            return (
             <div
               key={activity.id}
-              className="flex items-start gap-2.5 py-3.5 px-4 bg-surface"
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onClick={isClickable ? () => onIssueClick(activity.entity_id) : undefined}
+              onKeyDown={isClickable ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onIssueClick(activity.entity_id);
+                }
+              } : undefined}
+              className={`flex items-start gap-2.5 py-3.5 px-4 bg-surface${isClickable ? " cursor-pointer hover:bg-surface-hover transition-colors" : ""}`}
             >
               {/* Avatar */}
               <div className="shrink-0 size-7 rounded-[14px] bg-[#E8E4DE] flex items-center justify-center text-[10px] font-medium text-text-secondary">
@@ -89,7 +105,8 @@ export function RecentActivityCard({
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
