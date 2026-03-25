@@ -8,6 +8,7 @@ interface NotificationListProps {
   notifications: NotificationWithActivity[];
   onMarkedRead?: (id: string) => void;
   onIssueClick?: (issueId: string) => void;
+  loadingIssueId?: string | null;
 }
 
 type TimeBucket = "TODAY" | "YESTERDAY" | "THIS WEEK" | "EARLIER";
@@ -42,6 +43,7 @@ export function NotificationList({
   notifications,
   onMarkedRead,
   onIssueClick,
+  loadingIssueId,
 }: NotificationListProps) {
   if (notifications.length === 0) {
     return (
@@ -73,9 +75,9 @@ export function NotificationList({
                 <NotificationRow
                   key={notification.id}
                   notification={notification}
-                  isRecent={bucket === "TODAY"}
                   onMarkedRead={onMarkedRead}
                   onIssueClick={onIssueClick}
+                  isLoading={notification.activity?.entity_id === loadingIssueId}
                 />
               ))}
             </div>
