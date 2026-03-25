@@ -154,6 +154,10 @@ async function main() {
   await createActivities(workspace.id, userIds, ownerId, issues, projects);
   console.log("  activities + notifications");
 
+  // 12 — Comments
+  await createComments(workspace.id, userIds, ownerId, issues);
+  console.log("  comments");
+
   console.log("\nDone — workspace seeded with test data.\n");
 }
 
@@ -164,6 +168,7 @@ async function main() {
 async function clearWorkspaceData(workspaceId: string) {
   // Cascade handles join tables (issue_labels, team_members, etc.)
   await admin.from("notifications").delete().eq("workspace_id", workspaceId);
+  await admin.from("comments").delete().eq("workspace_id", workspaceId);
   await admin.from("activities").delete().eq("workspace_id", workspaceId);
   await admin.from("issues").delete().eq("workspace_id", workspaceId);
   await admin.from("sprints").delete().eq("workspace_id", workspaceId);
@@ -837,6 +842,114 @@ async function createActivities(
       created_at: activities![4].created_at,
     },
   ]);
+}
+
+// ---------------------------------------------------------------------------
+// Comments
+// ---------------------------------------------------------------------------
+
+async function createComments(
+  workspaceId: string,
+  userIds: Record<string, string>,
+  ownerId: string,
+  issues: any[]
+) {
+  // Comments on "Dashboard redesign" (issues[0])
+  // and "Fix auth token refresh on expired sessions" (issues[7])
+  const { data: comments, error } = await admin
+    .from("comments")
+    .insert([
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[0].id,
+        author_id: userIds.elena,
+        body: "The new layout is looking great. Can we add a sprint progress widget to the top section?",
+        mentions: [],
+        created_at: daysAgo(4),
+      },
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[0].id,
+        author_id: userIds.alex,
+        body: `Good idea. @[Elena Vasquez](${userIds.elena}) I'll add that in the next iteration — need to finalize the KPI card design first.`,
+        mentions: [userIds.elena],
+        created_at: daysAgo(3),
+      },
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[0].id,
+        author_id: userIds.sarah,
+        body: "Design mockups for the sprint widget are in Paper. Let me know if the spacing feels off once it's implemented.",
+        mentions: [],
+        created_at: daysAgo(2),
+      },
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[7].id,
+        author_id: userIds.marcus,
+        body: "This is happening because the middleware doesn't check token expiry before forwarding. The refresh logic only triggers on 401 responses, but by then the session cookie is already cleared.",
+        mentions: [],
+        created_at: daysAgo(2),
+      },
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[7].id,
+        author_id: ownerId,
+        body: `@[Marcus Chen](${userIds.marcus}) Thanks for the context. I'm going to add a pre-emptive refresh check — if the token expires within 5 minutes, refresh it before the request goes out.`,
+        mentions: [userIds.marcus],
+        created_at: daysAgo(1),
+      },
+      {
+        workspace_id: workspaceId,
+        issue_id: issues[7].id,
+        author_id: userIds.marcus,
+        body: "That approach should work. Make sure to handle the race condition where two tabs try to refresh simultaneously — use a lock or deduplicate.",
+        mentions: [],
+        created_at: hoursAgo(6),
+      },
+    ])
+    .select();
+  if (error) throw error;
+
+  // Create activity records for the comments
+  const commentActivities = comments!.map((c: any) => ({
+    workspace_id: workspaceId,
+    actor_id: c.author_id,
+    action: "commented",
+    entity_type: "issue",
+    entity_id: c.issue_id,
+    metadata: {
+      issue_key: issues.find((i: any) => i.id === c.issue_id)?.issue_key,
+      title: issues.find((i: any) => i.id === c.issue_id)?.title,
+      comment_id: c.id,
+      comment_preview: c.body.slice(0, 100),
+    },
+    created_at: c.created_at,
+  }));
+
+  const { data: activities } = await admin
+    .from("activities")
+    .insert(commentActivities)
+    .select();
+
+  // Notify the owner about comments on their assigned issues
+  if (activities && activities.length > 0) {
+    const ownerNotifications = activities
+      .filter((a: any) => a.actor_id !== ownerId)
+      .slice(0, 2)
+      .map((a: any) => ({
+        workspace_id: workspaceId,
+        user_id: ownerId,
+        activity_id: a.id,
+        type: "comment",
+        is_read: false,
+        created_at: a.created_at,
+      }));
+
+    if (ownerNotifications.length > 0) {
+      await admin.from("notifications").insert(ownerNotifications);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

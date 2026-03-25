@@ -16,6 +16,7 @@ import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { STATUS_CONFIG, STATUS_ORDER } from "@/lib/utils/statuses";
 import { formatDate } from "@/lib/utils/dates";
 import { updateIssue } from "@/lib/actions/issues";
+import { CommentThread } from "@/components/issues/comment-thread";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 import type { IssuePriority, IssueStatus } from "@/lib/types";
 
@@ -23,7 +24,7 @@ interface IssueDetailModalProps {
   issue: IssueWithDetails | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
 }
 
 export function IssueDetailModal({
@@ -74,7 +75,7 @@ export function IssueDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono text-text-muted bg-surface-hover px-2 py-0.5 rounded">
@@ -263,6 +264,19 @@ export function IssueDetailModal({
               </div>
             </div>
           )}
+
+          {/* Activity & Comments */}
+          <div className="space-y-1.5">
+            <Label className="text-text-secondary">Activity</Label>
+            <CommentThread
+              issueId={issue.id}
+              workspaceId={issue.workspace_id}
+              members={members.map((m) => ({
+                user_id: m.user_id,
+                profile: m.profile,
+              }))}
+            />
+          </div>
 
           {/* Footer metadata */}
           <div className="flex items-center gap-4 pt-2 border-t border-border text-xs text-text-muted">

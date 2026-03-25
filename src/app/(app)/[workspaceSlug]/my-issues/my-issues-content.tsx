@@ -36,7 +36,7 @@ const SORT_STORAGE_KEY = "flowboard-my-issues-sort";
 
 interface MyIssuesContentProps {
   issues: IssueWithDetails[];
-  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
   labels?: { id: string; name: string; color: string }[];
   projects?: { id: string; name: string; color: string }[];
 }

@@ -11,7 +11,7 @@ interface DashboardContentProps {
   issues: IssueWithDetails[];
   activities: ActivityWithActor[];
   activityIssueMap: Record<string, IssueWithDetails>;
-  members: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  members: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
   workspaceSlug: string;
 }
 
