@@ -18,9 +18,7 @@ interface InboxClientProps {
 
 const TABS = [
   { value: "all", label: "All" },
-  { value: "mentions", label: "Mentions", type: "mention" as const },
   { value: "assigned", label: "Assigned", type: "assigned" as const },
-  { value: "comments", label: "Comments", type: "comment" as const },
 ] as const;
 
 export function InboxClient({
@@ -32,7 +30,7 @@ export function InboxClient({
   const [isPending, startTransition] = useTransition();
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [loadingIssue, setLoadingIssue] = useState(false);
+  const [loadingIssueId, setLoadingIssueId] = useState<string | null>(null);
 
   const handleMarkAllRead = () => {
     startTransition(async () => {
@@ -52,7 +50,7 @@ export function InboxClient({
   }, []);
 
   const handleIssueClick = useCallback(async (issueId: string) => {
-    setLoadingIssue(true);
+    setLoadingIssueId(issueId);
     try {
       const supabase = createClient();
       const { data: issue } = await supabase
@@ -69,7 +67,7 @@ export function InboxClient({
         }
       }
     } finally {
-      setLoadingIssue(false);
+      setLoadingIssueId(null);
     }
   }, []);
 
@@ -121,6 +119,7 @@ export function InboxClient({
                   notifications={filtered}
                   onMarkedRead={handleMarkedRead}
                   onIssueClick={handleIssueClick}
+                  loadingIssueId={loadingIssueId}
                 />
               </TabsContent>
             );

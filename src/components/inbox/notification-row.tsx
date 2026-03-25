@@ -5,23 +5,23 @@ import type { NotificationWithActivity } from "@/lib/utils/activities";
 import { formatActivityAction } from "@/lib/utils/activities";
 import { formatRelative } from "@/lib/utils/dates";
 import { markNotificationRead } from "@/lib/actions/notifications";
-import { Check } from "lucide-react";
+import { Check, LoaderCircle } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils/format";
 
 interface NotificationRowProps {
   notification: NotificationWithActivity;
-  isRecent?: boolean;
   onMarkedRead?: (id: string) => void;
   onIssueClick?: (issueId: string) => void;
+  isLoading?: boolean;
 }
 
 export function NotificationRow({
   notification,
-  isRecent,
   onMarkedRead,
   onIssueClick,
+  isLoading,
 }: NotificationRowProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -52,10 +52,10 @@ export function NotificationRow({
   return (
     <button
       onClick={handleClick}
-      disabled={isPending}
+      disabled={isPending || isLoading}
       className={cn(
         "group w-full flex items-start gap-3 py-3.5 px-4 text-left transition-colors",
-        isRecent && isUnread
+        isUnread
           ? "bg-[#2E2E2C0A] border-l-[3px] border-l-primary rounded-r-lg"
           : "rounded-lg hover:bg-background/50"
       )}
@@ -91,18 +91,33 @@ export function NotificationRow({
         )}
       </div>
 
-      {/* Timestamp + mark-as-read */}
+      {/* Timestamp + mark-as-read / loading spinner */}
       <div className="shrink-0 flex items-center gap-2">
-        <span className="text-xs text-text-muted whitespace-nowrap">
-          {formatRelative(notification.created_at)}
-        </span>
-        {isUnread && (
-          <span
-            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-surface-hover"
-            title="Mark as read"
-          >
-            <Check className="size-3.5 text-text-muted" />
-          </span>
+        {isLoading ? (
+          <LoaderCircle className="size-4 animate-spin text-text-muted" />
+        ) : (
+          <>
+            <span className="text-xs text-text-muted whitespace-nowrap">
+              {formatRelative(notification.created_at)}
+            </span>
+            {isUnread && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (isPending) return;
+                  startTransition(async () => {
+                    await markNotificationRead(notification.id);
+                    onMarkedRead?.(notification.id);
+                  });
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-surface-hover"
+                title="Mark as read"
+              >
+                <Check className="size-3.5 text-text-muted" />
+              </button>
+            )}
+          </>
         )}
       </div>
     </button>
