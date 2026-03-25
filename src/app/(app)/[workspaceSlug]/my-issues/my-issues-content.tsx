@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
 import { IssueDetailPanel } from "@/components/issues/issue-detail-panel";
 import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
+import { FilterBar } from "@/components/filters/filter-bar";
+import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -35,10 +37,17 @@ const SORT_STORAGE_KEY = "flowboard-my-issues-sort";
 
 interface MyIssuesContentProps {
   issues: IssueWithDetails[];
-  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
+  labels?: { id: string; name: string; color: string }[];
+  projects?: { id: string; name: string; color: string }[];
 }
 
-export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) {
+function MyIssuesContentInner({
+  issues,
+  members = [],
+  labels = [],
+  projects = [],
+}: MyIssuesContentProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [sortKey, setSortKey] = useState<SortKey>("priority");
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
@@ -53,6 +62,22 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
   );
 
   useIssueFromUrl(issues, openIssue);
+
+  const {
+    filters,
+    searchQuery,
+    setSearchQuery,
+    toggleFilter,
+    clearFilter,
+    clearAll,
+    filteredIssues,
+    hasActiveFilters,
+    issueFilterFn,
+    searchInputRef,
+  } = useIssueFilters({
+    issues,
+    enabledFilters: ["status", "priority", "assignee", "label", "project"],
+  });
 
   // Load persisted state from localStorage
   useEffect(() => {
@@ -83,7 +108,7 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
   );
 
   const sortedIssues = useMemo(() => {
-    const sorted = [...issues];
+    const sorted = [...filteredIssues];
     switch (sortKey) {
       case "priority":
         sorted.sort((a, b) => a.priority - b.priority);
@@ -114,13 +139,29 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
         break;
     }
     return sorted;
-  }, [issues, sortKey]);
+  }, [filteredIssues, sortKey]);
 
   const activeSortLabel =
     SORT_OPTIONS.find((o) => o.key === sortKey)?.label ?? "Priority";
 
   return (
     <>
+      {/* Filter bar */}
+      <FilterBar
+        filters={filters}
+        searchQuery={searchQuery}
+        searchInputRef={searchInputRef}
+        onSearchChange={setSearchQuery}
+        onToggleFilter={toggleFilter}
+        onClearFilter={clearFilter}
+        onClearAll={clearAll}
+        hasActiveFilters={hasActiveFilters}
+        enabledFilters={["status", "priority", "assignee", "label", "project"]}
+        members={members}
+        labels={labels}
+        projects={projects}
+      />
+
       {/* Controls row */}
       <div className="flex items-center gap-3">
         {/* View toggle */}
@@ -183,12 +224,22 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
           />
         ) : (
           <BoardView
-            initialIssues={sortedIssues}
+            initialIssues={issues}
             projectId=""
             showProject={true}
             onIssueClick={handleIssueClick}
+            issueFilter={issueFilterFn}
           />
         )
+      ) : hasActiveFilters ? (
+        <div className="flex flex-col items-center justify-center py-24">
+          <h3 className="text-lg font-medium text-text mb-1">
+            No matching issues
+          </h3>
+          <p className="text-sm text-text-muted">
+            Try adjusting your filters to find what you&apos;re looking for.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-24">
           <h3 className="text-lg font-medium text-text mb-1">
@@ -208,5 +259,13 @@ export function MyIssuesContent({ issues, members = [] }: MyIssuesContentProps) 
         members={members}
       />
     </>
+  );
+}
+
+export function MyIssuesContent(props: MyIssuesContentProps) {
+  return (
+    <Suspense>
+      <MyIssuesContentInner {...props} />
+    </Suspense>
   );
 }

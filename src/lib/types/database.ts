@@ -561,6 +561,64 @@ export type Database = {
           },
         ];
       };
+      comments: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          issue_id: string;
+          author_id: string;
+          body: string;
+          mentions: string[];
+          is_edited: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          issue_id: string;
+          author_id: string;
+          body: string;
+          mentions?: string[];
+          is_edited?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          issue_id?: string;
+          author_id?: string;
+          body?: string;
+          mentions?: string[];
+          is_edited?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "comments_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "comments_issue_id_fkey";
+            columns: ["issue_id"];
+            isOneToOne: false;
+            referencedRelation: "issues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "comments_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notifications: {
         Row: {
           id: string;

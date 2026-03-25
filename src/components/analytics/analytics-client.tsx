@@ -16,9 +16,9 @@ export function SprintSelector({
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const sprintId = e.target.value;
     if (sprintId) {
-      router.push(`${pathname}?sprint=${sprintId}`);
+      router.push(`${pathname}?tab=sprints&sprint=${sprintId}`);
     } else {
-      router.push(pathname);
+      router.push(`${pathname}?tab=sprints`);
     }
   }
 

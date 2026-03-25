@@ -1,5 +1,5 @@
 import type { Tables } from "@/lib/types";
-import { differenceInDays, startOfDay, addDays, format } from "date-fns";
+import { differenceInDays, startOfDay, addDays, subDays, format } from "date-fns";
 
 export function computeCycleTime(
   issues: Pick<Tables<"issues">, "created_at" | "completed_at" | "status">[]
@@ -101,3 +101,43 @@ export function formatDelta(
 
   return { text, isPositive };
 }
+
+// --- Overview helpers ---
+
+export type TimeRange = "7d" | "14d" | "30d" | "90d";
+
+const VALID_RANGES: TimeRange[] = ["7d", "14d", "30d", "90d"];
+
+export function parseRange(raw: string | undefined): TimeRange {
+  if (raw && VALID_RANGES.includes(raw as TimeRange)) return raw as TimeRange;
+  return "30d";
+}
+
+export function computeDateRange(range: TimeRange): {
+  rangeStart: Date;
+  rangeEnd: Date;
+  prevRangeStart: Date;
+  prevRangeEnd: Date;
+  days: number;
+} {
+  const days = parseInt(range);
+  const rangeEnd = startOfDay(new Date());
+  const rangeStart = subDays(rangeEnd, days);
+  const prevRangeEnd = subDays(rangeStart, 1);
+  const prevRangeStart = subDays(prevRangeEnd, days - 1);
+
+  return { rangeStart, rangeEnd, prevRangeStart, prevRangeEnd, days };
+}
+
+const CYCLE_TIME_BUCKETS = ["< 1d", "1-3d", "3-7d", "7-14d", "14d+"] as const;
+export type CycleTimeBucketLabel = (typeof CYCLE_TIME_BUCKETS)[number];
+
+export function bucketCycleTime(days: number): CycleTimeBucketLabel {
+  if (days < 1) return "< 1d";
+  if (days < 3) return "1-3d";
+  if (days < 7) return "3-7d";
+  if (days < 14) return "7-14d";
+  return "14d+";
+}
+
+export { CYCLE_TIME_BUCKETS };

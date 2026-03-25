@@ -1,13 +1,13 @@
-import type { SprintKPIs } from "@/lib/queries/analytics";
+import type { OverviewKPIs } from "@/lib/queries/analytics";
 import { formatDelta } from "@/lib/utils/analytics";
 import { KPICard } from "./kpi-card";
 
-export function KPICards({
+export function OverviewKPICards({
   current,
   previous,
 }: {
-  current: SprintKPIs;
-  previous: SprintKPIs | null;
+  current: OverviewKPIs;
+  previous: OverviewKPIs | null;
 }) {
   return (
     <div className="flex gap-4">
@@ -30,27 +30,20 @@ export function KPICards({
         }
       />
       <KPICard
-        label="Velocity"
-        value={String(current.velocity)}
+        label="Throughput"
+        value={`${current.throughput}`}
         delta={
           previous
-            ? (() => {
-                const d = formatDelta(current.velocity, previous.velocity);
-                return d ? { ...d, text: `${current.velocity} pts/sprint` } : null;
-              })()
-            : { text: "pts/sprint", isPositive: true }
+            ? formatDelta(current.throughput, previous.throughput, "/wk")
+            : { text: "/wk", isPositive: true }
         }
       />
       <KPICard
-        label="Completion Rate"
-        value={`${current.completionRate}%`}
+        label="Points Delivered"
+        value={String(current.pointsDelivered)}
         delta={
           previous
-            ? formatDelta(
-                current.completionRate,
-                previous.completionRate,
-                "%"
-              )
+            ? formatDelta(current.pointsDelivered, previous.pointsDelivered, " pts")
             : null
         }
       />

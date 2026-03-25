@@ -13,7 +13,7 @@ import type { IssueWithDetails } from "@/lib/queries/issues";
 interface InboxClientProps {
   notifications: NotificationWithActivity[];
   workspaceId: string;
-  members?: { user_id: string; profile: { full_name: string | null; email: string } }[];
+  members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
 }
 
 const TABS = [

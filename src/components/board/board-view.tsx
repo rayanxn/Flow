@@ -27,6 +27,7 @@ interface BoardViewProps {
   projectId: string;
   showProject?: boolean;
   onIssueClick?: (id: string) => void;
+  issueFilter?: (issue: IssueWithDetails) => boolean;
 }
 
 function calculateSortOrder(
@@ -83,6 +84,7 @@ export function BoardView({
   projectId,
   showProject = false,
   onIssueClick,
+  issueFilter,
 }: BoardViewProps) {
   const { issues, setIssues } = useRealtimeIssues({
     projectId,
@@ -101,13 +103,14 @@ export function BoardView({
     }),
   );
 
-  // Group and sort issues into columns
+  // Group and sort issues into columns, applying optional filter for display
   const columns = useMemo(() => {
     const map = new Map<IssueStatus, IssueWithDetails[]>();
     for (const s of STATUS_ORDER) {
       map.set(s, []);
     }
     for (const issue of issues) {
+      if (issueFilter && !issueFilter(issue)) continue;
       const col = map.get(issue.status as IssueStatus);
       if (col) col.push(issue);
     }
@@ -115,7 +118,7 @@ export function BoardView({
       col.sort((a, b) => a.sort_order - b.sort_order);
     }
     return map;
-  }, [issues]);
+  }, [issues, issueFilter]);
 
   const activeIssue = activeId
     ? issues.find((i) => i.id === activeId) ?? null

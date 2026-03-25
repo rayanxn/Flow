@@ -4,7 +4,7 @@ import { getProjectById, getProjectLabels, getProjectSprints } from "@/lib/queri
 import { getWorkspaceMembers } from "@/lib/queries/members";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { ListPageClient } from "./list-client";
-import { ListWithDetail } from "./list-with-detail";
+import { ListViewContent } from "./list-view-content";
 
 export default async function ListPage({
   params,
@@ -56,7 +56,7 @@ export default async function ListPage({
       />
 
       {hasIssues && (
-        <ListWithDetail issues={issues} members={members} />
+        <ListViewContent issues={issues} members={members} labels={labels} />
       )}
     </div>
   );

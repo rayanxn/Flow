@@ -26,6 +26,9 @@ export function formatActivityAction(activity: ActivityWithActor): string {
       const title = (meta.title as string) ?? "";
       const label = issueKey ? `${issueKey}` : title;
 
+      if (activity.action === "commented") {
+        return `${actorName} commented on ${label}`;
+      }
       if (activity.action === "created") {
         return `${actorName} created ${label}`;
       }

@@ -7,12 +7,23 @@ import {
   getSprintBurndown,
   getIssuesByLabel,
   getTeamVelocity,
+  getOverviewKPIs,
+  getThroughputSeries,
+  getCycleTimeDistribution,
+  getAssigneeBreakdown,
 } from "@/lib/queries/analytics";
+import { parseRange, computeDateRange } from "@/lib/utils/analytics";
 import { KPICards } from "@/components/analytics/kpi-cards";
 import { BurndownChart } from "@/components/analytics/burndown-chart";
 import { LabelChart } from "@/components/analytics/label-chart";
 import { VelocityChart } from "@/components/analytics/velocity-chart";
 import { SprintSelector } from "@/components/analytics/analytics-client";
+import { AnalyticsTabs } from "@/components/analytics/analytics-tabs";
+import { TimeRangeSelector } from "@/components/analytics/time-range-selector";
+import { OverviewKPICards } from "@/components/analytics/overview-kpi-cards";
+import { ThroughputChart } from "@/components/analytics/throughput-chart";
+import { CycleTimeChart } from "@/components/analytics/cycle-time-chart";
+import { AssigneeChart } from "@/components/analytics/assignee-chart";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function AnalyticsPage({
@@ -20,7 +31,7 @@ export default async function AnalyticsPage({
   searchParams,
 }: {
   params: Promise<{ workspaceSlug: string }>;
-  searchParams: Promise<{ sprint?: string }>;
+  searchParams: Promise<{ tab?: string; range?: string; sprint?: string }>;
 }) {
   const [{ workspaceSlug }, resolvedSearchParams] = await Promise.all([
     params,
@@ -31,8 +42,63 @@ export default async function AnalyticsPage({
   if (!result?.workspace) notFound();
 
   const sprints = await getWorkspaceSprints(result.workspace.id);
+  const hasSprints = sprints.length > 0;
 
-  // Determine selected sprint: URL param > most recent active > most recent completed
+  // Determine active tab — fall back to overview if no sprints
+  let activeTab: "overview" | "sprints" =
+    resolvedSearchParams.tab === "sprints" && hasSprints ? "sprints" : "overview";
+
+  const range = parseRange(resolvedSearchParams.range);
+
+  // --- Overview tab data ---
+  if (activeTab === "overview") {
+    const { rangeStart, rangeEnd, prevRangeStart, prevRangeEnd, days } =
+      computeDateRange(range);
+
+    const [kpiData, throughputData, cycleTimeData, assigneeData] =
+      await Promise.all([
+        getOverviewKPIs(
+          result.workspace.id,
+          rangeStart,
+          rangeEnd,
+          prevRangeStart,
+          prevRangeEnd,
+          days
+        ),
+        getThroughputSeries(result.workspace.id, rangeStart, rangeEnd),
+        getCycleTimeDistribution(result.workspace.id, rangeStart, rangeEnd),
+        getAssigneeBreakdown(result.workspace.id, rangeStart, rangeEnd),
+      ]);
+
+    return (
+      <div className="flex flex-col py-6 px-10 gap-6">
+        <Breadcrumb
+          workspaceName={result.workspace.name}
+          pageName="Analytics"
+        />
+        <div className="flex items-center justify-between">
+          <h1 className="text-[26px] font-bold text-text">Analytics</h1>
+          <TimeRangeSelector activeRange={range} />
+        </div>
+
+        <AnalyticsTabs activeTab={activeTab} hasSprints={hasSprints} />
+
+        <OverviewKPICards
+          current={kpiData.current}
+          previous={kpiData.previous}
+        />
+
+        <ThroughputChart data={throughputData} />
+
+        <div className="flex gap-4">
+          <CycleTimeChart data={cycleTimeData} />
+          <AssigneeChart data={assigneeData} />
+        </div>
+      </div>
+    );
+  }
+
+  // --- Sprints tab data ---
   let selectedSprint = resolvedSearchParams.sprint
     ? sprints.find((s) => s.id === resolvedSearchParams.sprint) ?? null
     : null;
@@ -46,16 +112,15 @@ export default async function AnalyticsPage({
   }
 
   if (!selectedSprint) {
+    // Shouldn't happen since hasSprints is true, but handle gracefully
     return (
       <div className="flex flex-col py-6 px-10 gap-6">
-        <Breadcrumb workspaceName={result.workspace.name} pageName="Analytics" />
+        <Breadcrumb
+          workspaceName={result.workspace.name}
+          pageName="Analytics"
+        />
         <h1 className="text-[26px] font-bold text-text">Analytics</h1>
-        <div className="flex flex-col items-center justify-center py-20">
-          <h2 className="text-lg font-medium text-text">No sprints yet</h2>
-          <p className="mt-1 text-sm text-text-muted">
-            Create a sprint to see analytics data.
-          </p>
-        </div>
+        <AnalyticsTabs activeTab="overview" hasSprints={false} />
       </div>
     );
   }
@@ -79,6 +144,8 @@ export default async function AnalyticsPage({
           selectedSprintId={selectedSprint.id}
         />
       </div>
+
+      <AnalyticsTabs activeTab={activeTab} hasSprints={hasSprints} />
 
       <KPICards current={currentKPIs} previous={previousKPIs} />
 

@@ -1,6 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/types";
-import { computeCycleTime, computeBurndownSeries, type BurndownPoint } from "@/lib/utils/analytics";
+import {
+  computeCycleTime,
+  computeBurndownSeries,
+  type BurndownPoint,
+  bucketCycleTime,
+  CYCLE_TIME_BUCKETS,
+  type CycleTimeBucketLabel,
+} from "@/lib/utils/analytics";
+import { differenceInDays, startOfWeek, format, addWeeks } from "date-fns";
 
 export async function getWorkspaceSprints(
   workspaceId: string
@@ -217,4 +225,218 @@ export async function getTeamVelocity(
   }
 
   return results;
+}
+
+// --- Overview (time-range-scoped, sprint-independent) ---
+
+export type OverviewKPIs = {
+  issuesCompleted: number;
+  avgCycleTime: number;
+  throughput: number;
+  pointsDelivered: number;
+};
+
+async function computeOverviewKPIsForRange(
+  workspaceId: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+  days: number
+): Promise<OverviewKPIs> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("id, status, story_points, created_at, completed_at")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "done")
+    .gte("completed_at", rangeStart.toISOString())
+    .lte("completed_at", rangeEnd.toISOString());
+
+  const list = issues ?? [];
+  const issuesCompleted = list.length;
+  const avgCycleTime = computeCycleTime(list);
+  const weeks = Math.max(days / 7, 1);
+  const throughput = Number((issuesCompleted / weeks).toFixed(1));
+  const pointsDelivered = list.reduce(
+    (sum, i) => sum + (i.story_points ?? 0),
+    0
+  );
+
+  return { issuesCompleted, avgCycleTime, throughput, pointsDelivered };
+}
+
+export async function getOverviewKPIs(
+  workspaceId: string,
+  rangeStart: Date,
+  rangeEnd: Date,
+  prevRangeStart: Date,
+  prevRangeEnd: Date,
+  days: number
+): Promise<{ current: OverviewKPIs; previous: OverviewKPIs | null }> {
+  const [current, previous] = await Promise.all([
+    computeOverviewKPIsForRange(workspaceId, rangeStart, rangeEnd, days),
+    computeOverviewKPIsForRange(workspaceId, prevRangeStart, prevRangeEnd, days),
+  ]);
+
+  // Return null for previous if there was no data at all
+  const hasPrev =
+    previous.issuesCompleted > 0 || previous.pointsDelivered > 0;
+
+  return { current, previous: hasPrev ? previous : null };
+}
+
+export type ThroughputPoint = {
+  week: string;
+  count: number;
+};
+
+export async function getThroughputSeries(
+  workspaceId: string,
+  rangeStart: Date,
+  rangeEnd: Date
+): Promise<ThroughputPoint[]> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("completed_at")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "done")
+    .gte("completed_at", rangeStart.toISOString())
+    .lte("completed_at", rangeEnd.toISOString());
+
+  const list = issues ?? [];
+
+  // Bucket by week start (Monday)
+  const weekCounts = new Map<string, number>();
+  for (const issue of list) {
+    const weekStart = startOfWeek(new Date(issue.completed_at!), {
+      weekStartsOn: 1,
+    });
+    const key = format(weekStart, "yyyy-MM-dd");
+    weekCounts.set(key, (weekCounts.get(key) ?? 0) + 1);
+  }
+
+  // Generate all weeks in range, zero-fill gaps
+  const points: ThroughputPoint[] = [];
+  let cursor = startOfWeek(rangeStart, { weekStartsOn: 1 });
+  const end = rangeEnd;
+
+  while (cursor <= end) {
+    const key = format(cursor, "yyyy-MM-dd");
+    points.push({
+      week: format(cursor, "MMM d"),
+      count: weekCounts.get(key) ?? 0,
+    });
+    cursor = addWeeks(cursor, 1);
+  }
+
+  return points;
+}
+
+export type CycleTimeBucket = {
+  bucket: CycleTimeBucketLabel;
+  count: number;
+};
+
+export async function getCycleTimeDistribution(
+  workspaceId: string,
+  rangeStart: Date,
+  rangeEnd: Date
+): Promise<CycleTimeBucket[]> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("created_at, completed_at")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "done")
+    .not("completed_at", "is", null)
+    .gte("completed_at", rangeStart.toISOString())
+    .lte("completed_at", rangeEnd.toISOString());
+
+  const counts = new Map<CycleTimeBucketLabel, number>();
+  for (const b of CYCLE_TIME_BUCKETS) counts.set(b, 0);
+
+  for (const issue of issues ?? []) {
+    const days = Math.max(
+      0,
+      differenceInDays(new Date(issue.completed_at!), new Date(issue.created_at))
+    );
+    const label = bucketCycleTime(days);
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+
+  return CYCLE_TIME_BUCKETS.map((bucket) => ({
+    bucket,
+    count: counts.get(bucket) ?? 0,
+  }));
+}
+
+export type AssigneeCount = {
+  name: string;
+  avatarUrl: string | null;
+  count: number;
+};
+
+export async function getAssigneeBreakdown(
+  workspaceId: string,
+  rangeStart: Date,
+  rangeEnd: Date
+): Promise<AssigneeCount[]> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("assignee_id")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "done")
+    .gte("completed_at", rangeStart.toISOString())
+    .lte("completed_at", rangeEnd.toISOString());
+
+  const list = issues ?? [];
+  if (list.length === 0) return [];
+
+  // Group by assignee
+  const assigneeCounts = new Map<string | null, number>();
+  for (const issue of list) {
+    const key = issue.assignee_id;
+    assigneeCounts.set(key, (assigneeCounts.get(key) ?? 0) + 1);
+  }
+
+  // Fetch profile details for non-null assignees
+  const assigneeIds = [...assigneeCounts.keys()].filter(
+    (id): id is string => id !== null
+  );
+
+  const profileMap = new Map<string, { name: string; avatarUrl: string | null }>();
+  if (assigneeIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url")
+      .in("id", assigneeIds);
+
+    for (const p of profiles ?? []) {
+      profileMap.set(p.id, {
+        name: p.full_name || p.email,
+        avatarUrl: p.avatar_url,
+      });
+    }
+  }
+
+  const results: AssigneeCount[] = [];
+  for (const [assigneeId, count] of assigneeCounts) {
+    if (assigneeId === null) {
+      results.push({ name: "Unassigned", avatarUrl: null, count });
+    } else {
+      const profile = profileMap.get(assigneeId);
+      results.push({
+        name: profile?.name ?? "Unknown",
+        avatarUrl: profile?.avatarUrl ?? null,
+        count,
+      });
+    }
+  }
+
+  return results.sort((a, b) => b.count - a.count);
 }

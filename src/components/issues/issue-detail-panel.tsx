@@ -17,7 +17,7 @@ import { formatDate } from "@/lib/utils/dates";
 import { updateIssue } from "@/lib/actions/issues";
 import { TiptapEditor } from "./tiptap-editor";
 import { IssueChecklist } from "./issue-checklist";
-import { IssueActivityFeed } from "./issue-activity-feed";
+import { CommentThread } from "./comment-thread";
 import type { ChecklistItem } from "./issue-checklist";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 import type { IssuePriority, IssueStatus } from "@/lib/types";
@@ -265,12 +265,24 @@ export function IssueDetailPanel({
                 />
               </div>
 
-              {/* Activity feed */}
+              {/* Comments & Activity */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-text-secondary">
                   Activity
                 </label>
-                <IssueActivityFeed issueId={issue.id} />
+                <CommentThread
+                  issueId={issue.id}
+                  workspaceId={issue.workspace_id}
+                  members={members.map((m) => ({
+                    user_id: m.user_id,
+                    profile: {
+                      id: m.user_id,
+                      full_name: m.profile.full_name,
+                      email: m.profile.email,
+                      avatar_url: null,
+                    },
+                  }))}
+                />
               </div>
             </div>
 
