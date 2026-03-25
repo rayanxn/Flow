@@ -1,12 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { getWorkspaceBySlug, getWorkspaceProjects } from "@/lib/queries/workspaces";
 import { enrichIssues } from "@/lib/queries/issues";
+import type { IssueWithDetails } from "@/lib/queries/issues";
 import { getRecentActivities } from "@/lib/queries/activities";
+import { getWorkspaceMembers } from "@/lib/queries/members";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { DashboardGreeting } from "@/components/dashboard/dashboard-greeting";
 import { SprintStrip } from "@/components/dashboard/sprint-strip";
-import { MyFocusCard } from "@/components/dashboard/my-focus-card";
-import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
+import { DashboardContent } from "@/components/dashboard/dashboard-content";
 import type { IssueStatus } from "@/lib/types";
 
 export default async function DashboardPage({
@@ -96,8 +97,33 @@ export default async function DashboardPage({
 
   const focusIssues = await enrichIssues(focusIssuesRaw ?? [], supabase);
 
-  // Fetch recent activities
-  const recentActivities = await getRecentActivities(workspace.id, 6);
+  // Fetch recent activities and workspace members
+  const [recentActivities, members] = await Promise.all([
+    getRecentActivities(workspace.id, 6),
+    getWorkspaceMembers(workspace.id),
+  ]);
+
+  // Fetch full issue details for issue-type activities (needed by IssueDetailModal)
+  const issueActivityIds = [
+    ...new Set(
+      recentActivities
+        .filter((a) => a.entity_type === "issue" && a.action !== "deleted")
+        .map((a) => a.entity_id)
+    ),
+  ];
+  const activityIssueMap: Record<string, IssueWithDetails> = {};
+  if (issueActivityIds.length > 0) {
+    const { data: rawIssues } = await supabase
+      .from("issues")
+      .select("*")
+      .in("id", issueActivityIds);
+    if (rawIssues && rawIssues.length > 0) {
+      const enriched = await enrichIssues(rawIssues, supabase);
+      for (const issue of enriched) {
+        activityIssueMap[issue.id] = issue;
+      }
+    }
+  }
 
   return (
     <div className="flex flex-col flex-1">
@@ -123,17 +149,13 @@ export default async function DashboardPage({
       )}
 
       {/* Main columns */}
-      <div className="flex flex-1 gap-6 px-4 md:px-10 pt-6 pb-8">
-        <div className="flex flex-col" style={{ flexGrow: 1.6, flexBasis: 0 }}>
-          <MyFocusCard issues={focusIssues} workspaceSlug={workspaceSlug} />
-        </div>
-        <div className="flex flex-col flex-1" style={{ flexBasis: 0 }}>
-          <RecentActivityCard
-            activities={recentActivities}
-            workspaceSlug={workspaceSlug}
-          />
-        </div>
-      </div>
+      <DashboardContent
+        issues={focusIssues}
+        activities={recentActivities}
+        activityIssueMap={activityIssueMap}
+        members={members}
+        workspaceSlug={workspaceSlug}
+      />
     </div>
   );
 }
