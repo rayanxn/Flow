@@ -58,3 +58,4 @@ tests/.auth/
 *.png
 .playwright-cli/
 .claude/worktrees/
+CRITIQUE.md
