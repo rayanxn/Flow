@@ -5,7 +5,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Stable test user — reused across runs so storageState stays valid
-const TEST_EMAIL = "playwright@test.flowboard.dev";
+const TEST_EMAIL = "playwright@test.flow.dev";
 const TEST_PASSWORD = "playwrightTest!2026";
 const TEST_FULL_NAME = "Playwright Bot";
 const AUTH_FILE = "tests/.auth/user.json";

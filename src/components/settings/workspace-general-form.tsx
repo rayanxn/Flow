@@ -94,7 +94,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
             Workspace URL
           </label>
           <div className="flex items-center h-11 rounded-[10px] px-3.5 bg-[#F6F5F1] border border-[#2E2E2C14] text-sm text-text-muted">
-            flowboard.app/{workspace.slug}
+            flow.app/{workspace.slug}
           </div>
           <p className="text-[11px] text-text-muted opacity-60">
             Workspace URL cannot be changed after creation.

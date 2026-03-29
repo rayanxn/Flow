@@ -11,7 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const TEST_EMAIL = `e2e-${Date.now()}@test.flowboard.dev`;
+const TEST_EMAIL = `e2e-${Date.now()}@test.flow.dev`;
 const TEST_PASSWORD = "testpassword123";
 const TEST_FULL_NAME = "E2E Tester";
 const TEST_WORKSPACE_NAME = `Test Workspace ${Date.now()}`;
@@ -167,7 +167,7 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
 
     // Sidebar elements
     const sidebar = page.locator("aside");
-    await expect(sidebar.getByText("Flowboard")).toBeVisible();
+    await expect(sidebar.getByText("Flow")).toBeVisible();
     await expect(sidebar.getByText(TEST_WORKSPACE_NAME)).toBeVisible();
     await expect(sidebar.getByText("Dashboard")).toBeVisible();
     await expect(sidebar.getByText("Inbox")).toBeVisible();

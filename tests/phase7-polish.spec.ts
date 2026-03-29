@@ -160,7 +160,7 @@ test.describe("Phase 7: Settings Pages", () => {
     await expect(page.getByLabel("Display name")).toBeVisible();
 
     // Email read-only field
-    await expect(page.getByText("playwright@test.flowboard.dev")).toBeVisible();
+    await expect(page.getByText("playwright@test.flow.dev")).toBeVisible();
 
     // Notification toggles
     await expect(page.getByText("Email notifications")).toBeVisible();
@@ -285,23 +285,23 @@ test.describe("Phase 7: Collapsible Sidebar", () => {
     // Ensure clean state
     await page.goto(`${WS}/dashboard`);
     await page.evaluate(() =>
-      localStorage.removeItem("flowboard-sidebar-collapsed")
+      localStorage.removeItem("flow-sidebar-collapsed")
     );
     await page.reload();
     await expect(page.locator("aside")).toBeVisible({ timeout: 10000 });
 
-    // Sidebar should start expanded — "Flowboard" text visible
-    await expect(page.getByText("Flowboard")).toBeVisible();
+    // Sidebar should start expanded — "Flow" text visible
+    await expect(page.getByText("Flow", { exact: true })).toBeVisible();
 
     // Collapse via localStorage + reload (avoids dev overlay blocking clicks)
     await page.evaluate(() =>
-      localStorage.setItem("flowboard-sidebar-collapsed", "true")
+      localStorage.setItem("flow-sidebar-collapsed", "true")
     );
     await page.reload();
     await expect(page.locator("aside")).toBeVisible({ timeout: 10000 });
 
-    // After collapse, "Flowboard" text should be hidden
-    await expect(page.getByText("Flowboard")).not.toBeVisible({
+    // After collapse, "Flow" text should be hidden
+    await expect(page.getByText("Flow", { exact: true })).not.toBeVisible({
       timeout: 3000,
     });
 
@@ -313,10 +313,10 @@ test.describe("Phase 7: Collapsible Sidebar", () => {
 
     // Expand via localStorage + reload
     await page.evaluate(() =>
-      localStorage.setItem("flowboard-sidebar-collapsed", "false")
+      localStorage.setItem("flow-sidebar-collapsed", "false")
     );
     await page.reload();
-    await expect(page.getByText("Flowboard")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Flow", { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
   test("sidebar collapse state persists across navigation", async ({
@@ -324,22 +324,22 @@ test.describe("Phase 7: Collapsible Sidebar", () => {
   }) => {
     await page.goto(`${WS}/dashboard`);
     await page.evaluate(() =>
-      localStorage.setItem("flowboard-sidebar-collapsed", "true")
+      localStorage.setItem("flow-sidebar-collapsed", "true")
     );
     await page.reload();
     await expect(page.locator("aside")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Flowboard")).not.toBeVisible({
+    await expect(page.getByText("Flow", { exact: true })).not.toBeVisible({
       timeout: 3000,
     });
 
     // Navigate to another page — sidebar should still be collapsed
     await page.goto(`${WS}/inbox`);
     await expect(page.locator("aside")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText("Flowboard")).not.toBeVisible();
+    await expect(page.getByText("Flow", { exact: true })).not.toBeVisible();
 
     // Clean up
     await page.evaluate(() =>
-      localStorage.removeItem("flowboard-sidebar-collapsed")
+      localStorage.removeItem("flow-sidebar-collapsed")
     );
   });
 });

@@ -22,7 +22,7 @@ export default function ForgotPasswordPage() {
         <div className="bg-primary rounded-lg w-10 h-10 flex items-center justify-center text-white font-bold">
           F
         </div>
-        <span className="font-medium text-text text-lg">Flowboard</span>
+        <span className="font-medium text-text text-lg">Flow</span>
       </div>
 
       {/* Heading */}

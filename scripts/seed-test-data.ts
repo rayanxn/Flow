@@ -48,15 +48,15 @@ function dateOnly(daysOffset: number): string {
 // ---------------------------------------------------------------------------
 
 const MEMBERS: Record<string, { email: string; full_name: string }> = {
-  elena:  { email: "elena@test.flowboard.dev",  full_name: "Elena Vasquez" },
-  marcus: { email: "marcus@test.flowboard.dev", full_name: "Marcus Chen" },
-  james:  { email: "james@test.flowboard.dev",  full_name: "James Park" },
-  alex:   { email: "alex@test.flowboard.dev",   full_name: "Alex Rivera" },
-  sarah:  { email: "sarah@test.flowboard.dev",  full_name: "Sarah Kim" },
-  tom:    { email: "tom@test.flowboard.dev",     full_name: "Tom Andersen" },
-  mia:    { email: "mia@test.flowboard.dev",     full_name: "Mia Torres" },
-  lina:   { email: "lina@test.flowboard.dev",    full_name: "Lina Moreau" },
-  david:  { email: "david@test.flowboard.dev",   full_name: "David Okonkwo" },
+  elena:  { email: "elena@test.flow.dev",  full_name: "Elena Vasquez" },
+  marcus: { email: "marcus@test.flow.dev", full_name: "Marcus Chen" },
+  james:  { email: "james@test.flow.dev",  full_name: "James Park" },
+  alex:   { email: "alex@test.flow.dev",   full_name: "Alex Rivera" },
+  sarah:  { email: "sarah@test.flow.dev",  full_name: "Sarah Kim" },
+  tom:    { email: "tom@test.flow.dev",     full_name: "Tom Andersen" },
+  mia:    { email: "mia@test.flow.dev",     full_name: "Mia Torres" },
+  lina:   { email: "lina@test.flow.dev",    full_name: "Lina Moreau" },
+  david:  { email: "david@test.flow.dev",   full_name: "David Okonkwo" },
 };
 
 // ---------------------------------------------------------------------------

@@ -24,7 +24,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Flowboard",
+  title: "Flow",
   description: "Project management for engineering and product teams",
 };
 

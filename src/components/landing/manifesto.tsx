@@ -86,7 +86,7 @@ export function Manifesto() {
         <div data-manifesto="label" className="mt-12 opacity-0">
           <div className="mx-auto h-px w-12 bg-white/20" />
           <p className="mt-4 font-mono text-[11px] tracking-[0.25em] text-white/30 uppercase">
-            The Flowboard Manifesto
+            The Flow Manifesto
           </p>
         </div>
       </div>

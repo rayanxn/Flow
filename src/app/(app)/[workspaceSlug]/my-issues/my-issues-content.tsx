@@ -32,8 +32,8 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "status", label: "Status" },
 ];
 
-const VIEW_STORAGE_KEY = "flowboard-my-issues-view";
-const SORT_STORAGE_KEY = "flowboard-my-issues-sort";
+const VIEW_STORAGE_KEY = "flow-my-issues-view";
+const SORT_STORAGE_KEY = "flow-my-issues-sort";
 
 interface MyIssuesContentProps {
   issues: IssueWithDetails[];

@@ -31,7 +31,7 @@ export function Navbar() {
         )}
       >
         <a href="/" className="font-serif text-xl text-text">
-          Flowboard
+          Flow
         </a>
 
         <div className="hidden items-center gap-8 md:flex">

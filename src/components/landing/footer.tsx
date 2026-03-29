@@ -9,7 +9,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           {/* Brand */}
           <div>
-            <span className="font-serif text-xl text-white">Flowboard</span>
+            <span className="font-serif text-xl text-white">Flow</span>
             <p className="mt-3 max-w-[240px] text-sm leading-relaxed">
               Project management that moves at the speed of your team.
             </p>
@@ -66,7 +66,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-16 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
-          <p className="text-xs">&copy; 2026 Flowboard. All rights reserved.</p>
+          <p className="text-xs">&copy; 2026 Flow. All rights reserved.</p>
           <div className="flex items-center gap-2 text-xs">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />

@@ -46,7 +46,7 @@ const navItems = [
   { label: "Analytics", icon: BarChart3, href: "/analytics" },
 ];
 
-const STORAGE_KEY = "flowboard-sidebar-collapsed";
+const STORAGE_KEY = "flow-sidebar-collapsed";
 
 export function Sidebar({
   workspaceName,
@@ -97,7 +97,7 @@ export function Sidebar({
           </div>
           {!isCollapsed && (
             <div className="flex flex-col gap-px min-w-0 flex-1">
-              <span className="text-[15px] font-semibold text-text leading-[18px]">Flowboard</span>
+              <span className="text-[15px] font-semibold text-text leading-[18px]">Flow</span>
               <p className="text-[11px] font-mono text-text-muted opacity-30 leading-[14px] truncate">
                 {workspaceName}
               </p>

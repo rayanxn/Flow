@@ -60,7 +60,7 @@ function ProgressBar({ step }: { step: number }) {
 function TopBar({ step }: { step: number }) {
   return (
     <header className="flex items-center justify-between px-8 py-5">
-      <span className="font-serif text-xl text-text">Flowboard</span>
+      <span className="font-serif text-xl text-text">Flow</span>
       <ProgressBar step={step} />
       <span className="uppercase tracking-wider text-xs font-medium text-text-secondary">
         Step {step} of 3
@@ -132,7 +132,7 @@ function StepWorkspace({
         <Label htmlFor="slug">Workspace URL</Label>
         <div className="flex h-12 w-full rounded-lg border border-border bg-surface overflow-hidden focus-within:ring-2 focus-within:ring-primary/10 focus-within:border-border-strong transition-colors">
           <span className="flex items-center pl-3 pr-1 text-sm text-text-muted select-none whitespace-nowrap">
-            flowboard.app/
+            flow.app/
           </span>
           <input
             id="slug"
