@@ -1,0 +1,179 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]: F
+        - generic [ref=e8]:
+          - generic [ref=e9]: Flowboard
+          - paragraph [ref=e10]: Playwright Workspace
+      - navigation [ref=e11]:
+        - link "Dashboard" [ref=e12] [cursor=pointer]:
+          - /url: /pw-workspace/dashboard
+          - img [ref=e13]
+          - generic [ref=e18]: Dashboard
+        - link "Inbox 5" [ref=e19] [cursor=pointer]:
+          - /url: /pw-workspace/inbox
+          - img [ref=e20]
+          - generic [ref=e23]: Inbox
+          - generic "5 unread" [ref=e24]: "5"
+        - link "My Issues" [ref=e25] [cursor=pointer]:
+          - /url: /pw-workspace/my-issues
+          - img [ref=e26]
+          - generic [ref=e30]: My Issues
+        - link "Projects" [ref=e31] [cursor=pointer]:
+          - /url: /pw-workspace/projects
+          - img [ref=e32]
+          - generic [ref=e34]: Projects
+        - link "Views" [ref=e35] [cursor=pointer]:
+          - /url: /pw-workspace/views
+          - img [ref=e36]
+          - generic [ref=e38]: Views
+        - link "Teams" [ref=e39] [cursor=pointer]:
+          - /url: /pw-workspace/teams
+          - img [ref=e40]
+          - generic [ref=e45]: Teams
+        - link "Analytics" [ref=e46] [cursor=pointer]:
+          - /url: /pw-workspace/analytics
+          - img [ref=e47]
+          - generic [ref=e49]: Analytics
+        - generic [ref=e51]: Projects
+        - link "Analytics Dashboard" [ref=e52] [cursor=pointer]:
+          - /url: /pw-workspace/projects/61a44c2c-354a-4be0-97a6-d4447c8fd425/board
+          - generic [ref=e54]: Analytics Dashboard
+        - link "API Platform" [ref=e55] [cursor=pointer]:
+          - /url: /pw-workspace/projects/07aa5a33-2ef2-41b7-ae90-4b663b77dddb/board
+          - generic [ref=e57]: API Platform
+        - link "Design System" [ref=e58] [cursor=pointer]:
+          - /url: /pw-workspace/projects/efb09dc8-3d65-4654-9de5-005efcc72b99/board
+          - generic [ref=e60]: Design System
+        - link "Frontend v2.4" [ref=e61] [cursor=pointer]:
+          - /url: /pw-workspace/projects/c2882ee1-3b0a-48b8-8938-179163718ba3/board
+          - generic [ref=e63]: Frontend v2.4
+        - link "Mobile App" [ref=e64] [cursor=pointer]:
+          - /url: /pw-workspace/projects/1b82a9a3-e00f-48d4-bc60-13832f8563be/board
+          - generic [ref=e66]: Mobile App
+      - generic [ref=e67]:
+        - link "Settings" [ref=e68] [cursor=pointer]:
+          - /url: /pw-workspace/settings
+          - img [ref=e69]
+          - generic [ref=e72]: Settings
+        - button "Collapse" [ref=e73]:
+          - img [ref=e74]
+          - generic [ref=e77]: Collapse
+    - main [ref=e79]:
+      - generic [ref=e80]:
+        - button "Search... ⌘ K" [ref=e81]:
+          - img [ref=e82]
+          - generic [ref=e85]: Search...
+          - generic [ref=e86]:
+            - generic [ref=e87]: ⌘
+            - text: K
+        - generic [ref=e89]: PB
+      - generic [ref=e90]:
+        - navigation [ref=e91]:
+          - text: Settings
+          - generic [ref=e92]:
+            - link "General" [ref=e93] [cursor=pointer]:
+              - /url: /pw-workspace/settings/general
+            - link "Members" [ref=e94] [cursor=pointer]:
+              - /url: /pw-workspace/settings/members
+            - link "Profile" [ref=e95] [cursor=pointer]:
+              - /url: /pw-workspace/settings/profile
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - generic [ref=e99]:
+              - heading "Members" [level=1] [ref=e100]
+              - paragraph [ref=e101]: Manage who has access to this workspace.
+            - button "Generate invite link" [ref=e102]
+          - generic [ref=e103]:
+            - generic [ref=e104]:
+              - generic [ref=e106]: JP
+              - generic [ref=e107]:
+                - paragraph [ref=e108]: James Park
+                - paragraph [ref=e109]: james@test.flowboard.dev
+              - combobox [ref=e110]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e111]
+            - generic [ref=e112]:
+              - generic [ref=e114]: MT
+              - generic [ref=e115]:
+                - paragraph [ref=e116]: Mia Torres
+                - paragraph [ref=e117]: mia@test.flowboard.dev
+              - combobox [ref=e118]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e122]: DO
+              - generic [ref=e123]:
+                - paragraph [ref=e124]: David Okonkwo
+                - paragraph [ref=e125]: david@test.flowboard.dev
+              - combobox [ref=e126]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e127]
+            - generic [ref=e128]:
+              - generic [ref=e130]: PB
+              - generic [ref=e131]:
+                - paragraph [ref=e132]: Playwright Bot(you)
+                - paragraph [ref=e133]: playwright@test.flowboard.dev
+              - generic [ref=e134]: Owner
+            - generic [ref=e135]:
+              - generic [ref=e137]: EV
+              - generic [ref=e138]:
+                - paragraph [ref=e139]: Elena Vasquez
+                - paragraph [ref=e140]: elena@test.flowboard.dev
+              - combobox [ref=e141]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e142]
+            - generic [ref=e143]:
+              - generic [ref=e145]: AR
+              - generic [ref=e146]:
+                - paragraph [ref=e147]: Alex Rivera
+                - paragraph [ref=e148]: alex@test.flowboard.dev
+              - combobox [ref=e149]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e150]
+            - generic [ref=e151]:
+              - generic [ref=e153]: MC
+              - generic [ref=e154]:
+                - paragraph [ref=e155]: Marcus Chen
+                - paragraph [ref=e156]: marcus@test.flowboard.dev
+              - combobox [ref=e157]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e158]
+            - generic [ref=e159]:
+              - generic [ref=e161]: TA
+              - generic [ref=e162]:
+                - paragraph [ref=e163]: Tom Andersen
+                - paragraph [ref=e164]: tom@test.flowboard.dev
+              - combobox [ref=e165]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e166]
+            - generic [ref=e167]:
+              - generic [ref=e169]: SK
+              - generic [ref=e170]:
+                - paragraph [ref=e171]: Sarah Kim
+                - paragraph [ref=e172]: sarah@test.flowboard.dev
+              - combobox [ref=e173]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e174]
+            - generic [ref=e175]:
+              - generic [ref=e177]: LM
+              - generic [ref=e178]:
+                - paragraph [ref=e179]: Lina Moreau
+                - paragraph [ref=e180]: lina@test.flowboard.dev
+              - combobox [ref=e181]:
+                - option "Admin"
+                - option "Member" [selected]
+              - button "Remove" [ref=e182]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e188] [cursor=pointer]:
+    - img [ref=e189]
+  - alert [ref=e192]
