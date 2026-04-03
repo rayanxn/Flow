@@ -1,15 +1,35 @@
 "use client";
 
-import { Search, Menu } from "lucide-react";
+import Link from "next/link";
+import { CircleUser, LogOut, Menu, Search, Settings } from "lucide-react";
+import { signOut } from "@/lib/actions/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useShell } from "@/components/layout/workspace-shell";
 
 interface HeaderProps {
+  workspaceSlug: string;
   userInitials: string;
+  userName: string | null;
+  userEmail: string | null;
 }
 
-export function Header({ userInitials }: HeaderProps) {
+export function Header({
+  workspaceSlug,
+  userInitials,
+  userName,
+  userEmail,
+}: HeaderProps) {
   const shell = useShell();
+  const accountLabel = userName ?? userEmail ?? "Account";
+
   return (
     <header className="flex items-center justify-between gap-3 px-4 md:px-10 pt-6">
       {/* Hamburger menu (mobile only) */}
@@ -37,10 +57,54 @@ export function Header({ userInitials }: HeaderProps) {
         </kbd>
       </button>
 
-      {/* User avatar */}
-      <Avatar size="sm">
-        <AvatarFallback>{userInitials}</AvatarFallback>
-      </Avatar>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Open account menu"
+            className="rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-2"
+          >
+            <Avatar size="sm">
+              <AvatarFallback>{userInitials}</AvatarFallback>
+            </Avatar>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="normal-case tracking-normal">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-text">{accountLabel}</span>
+              {userEmail && (
+                <span className="text-xs font-normal text-text-muted">
+                  {userEmail}
+                </span>
+              )}
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={`/${workspaceSlug}/settings/profile`}>
+              <CircleUser className="w-4 h-4 mr-2 text-text-muted" />
+              Profile settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/${workspaceSlug}/settings/general`}>
+              <Settings className="w-4 h-4 mr-2 text-text-muted" />
+              Workspace settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="flex w-full items-center rounded-md px-2 py-1.5 text-sm text-danger outline-none transition-colors hover:bg-surface-hover focus:bg-surface-hover"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Log out
+            </button>
+          </form>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

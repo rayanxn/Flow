@@ -30,14 +30,20 @@ export default async function WorkspaceLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const userName =
+    typeof user?.user_metadata?.full_name === "string" &&
+    user.user_metadata.full_name.trim().length > 0
+      ? user.user_metadata.full_name.trim()
+      : null;
+  const userEmail = user?.email ?? null;
   const initials =
-    user?.user_metadata?.full_name
+    userName
       ?.split(" ")
       .map((n: string) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2) ??
-    user?.email?.slice(0, 2).toUpperCase() ??
+    userEmail?.slice(0, 2).toUpperCase() ??
     "U";
 
   const [unreadCount, members] = await Promise.all([
@@ -60,6 +66,7 @@ export default async function WorkspaceLayout({
         members={memberList}
       >
         <LayoutShell
+          workspaceSlug={workspace.slug}
           sidebarProps={{
             workspaceName: workspace.name,
             workspaceSlug: workspace.slug,
@@ -69,6 +76,8 @@ export default async function WorkspaceLayout({
             unreadCount,
           }}
           userInitials={initials}
+          userName={userName}
+          userEmail={userEmail}
         >
           {children}
         </LayoutShell>

@@ -1,4 +1,6 @@
 import { test as setup, expect } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,9 +11,12 @@ const TEST_EMAIL = "playwright@test.flow.dev";
 const TEST_PASSWORD = "playwrightTest!2026";
 const TEST_FULL_NAME = "Playwright Bot";
 const AUTH_FILE = "tests/.auth/user.json";
+const WORKSPACE_NAME = "Playwright Workspace";
+const WORKSPACE_SLUG = "pw-workspace";
 
 setup("authenticate", async ({ page }) => {
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  let testUserId: string | null = null;
 
   // Ensure the test user exists (idempotent)
   const { data: existing } = await admin.auth.admin.listUsers();
@@ -20,13 +25,40 @@ setup("authenticate", async ({ page }) => {
   );
 
   if (!alreadyExists) {
-    const { error } = await admin.auth.admin.createUser({
+    const { data: created, error } = await admin.auth.admin.createUser({
       email: TEST_EMAIL,
       password: TEST_PASSWORD,
       email_confirm: true,
       user_metadata: { full_name: TEST_FULL_NAME },
     });
     if (error) throw new Error(`Failed to create test user: ${error.message}`);
+    testUserId = created.user.id;
+  } else {
+    testUserId = alreadyExists.id;
+  }
+
+  const { data: workspace } = await admin
+    .from("workspaces")
+    .select("id")
+    .eq("slug", WORKSPACE_SLUG)
+    .maybeSingle();
+
+  if (workspace && testUserId) {
+    await admin
+      .from("workspace_members")
+      .update({ role: "member" })
+      .eq("workspace_id", workspace.id)
+      .eq("role", "owner")
+      .neq("user_id", testUserId);
+
+    await admin.from("workspace_members").upsert(
+      {
+        workspace_id: workspace.id,
+        user_id: testUserId,
+        role: "owner",
+      },
+      { onConflict: "workspace_id,user_id" }
+    );
   }
 
   // Log in via the UI
@@ -43,25 +75,42 @@ setup("authenticate", async ({ page }) => {
     // Check if we see the workspace setup form
     const setupHeading = page.getByText("Set up your workspace");
     if (await setupHeading.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await page.getByPlaceholder("Acme Inc").fill("Playwright Workspace");
+      await page.getByPlaceholder("Acme Inc").fill(WORKSPACE_NAME);
       const slugInput = page.locator('input[name="slug"]');
-      await slugInput.fill("pw-workspace");
+      await slugInput.fill(WORKSPACE_SLUG);
       await page.getByRole("button", { name: "6 – 20" }).click();
       await page.getByRole("button", { name: "Continue" }).click();
 
-      // Step 2: skip invites
-      await expect(page.getByText("Invite your team")).toBeVisible({ timeout: 10000 });
-      await page.getByRole("button", { name: /skip/i }).click();
+      const reachedDashboardAfterWorkspace = await page
+        .waitForURL(/dashboard/, { timeout: 3000 })
+        .then(() => true)
+        .catch(() => false);
 
-      // Step 3: skip project creation
-      await expect(page.getByRole("heading", { name: /project/i })).toBeVisible({ timeout: 10000 });
-      await page.getByRole("button", { name: /skip|finish/i }).click();
+      if (!reachedDashboardAfterWorkspace) {
+        // Step 2: skip invites
+        await expect(page.getByText("Invite your team")).toBeVisible({
+          timeout: 10000,
+        });
+        await page.getByRole("button", { name: /skip/i }).click();
 
-      // Wait for dashboard
-      await expect(page).toHaveURL(/dashboard/, { timeout: 15000 });
+        const reachedDashboardAfterInvite = await page
+          .waitForURL(/dashboard/, { timeout: 3000 })
+          .then(() => true)
+          .catch(() => false);
+
+        if (!reachedDashboardAfterInvite) {
+          // Step 3: skip project creation
+          await expect(
+            page.getByRole("heading", { name: /project/i })
+          ).toBeVisible({ timeout: 10000 });
+          await page.getByRole("button", { name: /skip|finish/i }).click();
+          await expect(page).toHaveURL(/dashboard/, { timeout: 15000 });
+        }
+      }
     }
   }
 
   // Save authenticated state
+  mkdirSync(dirname(AUTH_FILE), { recursive: true });
   await page.context().storageState({ path: AUTH_FILE });
 });
