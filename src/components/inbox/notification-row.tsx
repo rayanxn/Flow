@@ -49,26 +49,36 @@ export function NotificationRow({
     }
   }
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleClick();
+    }
+  }
+
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={isPending || isLoading ? -1 : 0}
+      aria-disabled={isPending || isLoading}
       onClick={handleClick}
-      disabled={isPending || isLoading}
+      onKeyDown={handleKeyDown}
       className={cn(
-        "group w-full flex items-start gap-3 py-3.5 px-4 text-left transition-colors",
+        "group flex w-full cursor-pointer flex-col gap-3 rounded-xl px-4 py-3.5 text-left transition-colors sm:flex-row sm:items-start",
         isUnread
-          ? "bg-[#2E2E2C0A] border-l-[3px] border-l-primary rounded-r-lg"
-          : "rounded-lg hover:bg-background/50"
+          ? "border border-primary/15 bg-primary/5 shadow-sm"
+          : "border border-transparent hover:bg-background/50"
       )}
     >
       {/* Avatar + unread dot */}
       <div className="relative shrink-0">
         <Avatar size="sm" className="size-8">
-          <AvatarFallback>
+        <AvatarFallback>
             {getInitials(activity?.actor?.full_name, activity?.actor?.email)}
           </AvatarFallback>
         </Avatar>
         {isUnread && (
-          <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[#8B4049] ring-2 ring-white" />
+          <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-danger ring-2 ring-[var(--color-surface)]" />
         )}
       </div>
 
@@ -79,7 +89,7 @@ export function NotificationRow({
             "text-sm leading-[18px]",
             isUnread
               ? "font-semibold text-text"
-              : "text-[#7A756C]"
+              : "text-text-secondary"
           )}
         >
           {actionText}
@@ -92,14 +102,21 @@ export function NotificationRow({
       </div>
 
       {/* Timestamp + mark-as-read / loading spinner */}
-      <div className="shrink-0 flex items-center gap-2">
+      <div className="flex w-full shrink-0 items-center justify-between gap-2 sm:w-auto sm:justify-end">
         {isLoading ? (
           <LoaderCircle className="size-4 animate-spin text-text-muted" />
         ) : (
           <>
-            <span className="text-xs text-text-muted whitespace-nowrap">
-              {formatRelative(notification.created_at)}
-            </span>
+            <div className="flex items-center gap-2">
+              {isUnread && (
+                <span className="inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-[0.08em] text-text-secondary">
+                  Unread
+                </span>
+              )}
+              <span className="text-xs text-text-muted whitespace-nowrap">
+                {formatRelative(notification.created_at)}
+              </span>
+            </div>
             {isUnread && (
               <button
                 type="button"
@@ -111,7 +128,7 @@ export function NotificationRow({
                     onMarkedRead?.(notification.id);
                   });
                 }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-surface-hover"
+                className="rounded p-1 opacity-100 transition-opacity hover:bg-surface-hover sm:opacity-0 sm:group-hover:opacity-100"
                 title="Mark as read"
               >
                 <Check className="size-3.5 text-text-muted" />
@@ -120,6 +137,6 @@ export function NotificationRow({
           </>
         )}
       </div>
-    </button>
+    </div>
   );
 }

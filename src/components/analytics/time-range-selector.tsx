@@ -18,14 +18,14 @@ export function TimeRangeSelector({ activeRange }: { activeRange: TimeRange }) {
   }
 
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-lg bg-surface-inset p-1">
+    <div className="inline-flex w-full items-center justify-between gap-0.5 rounded-lg bg-surface-inset p-1 sm:w-auto sm:justify-start">
       {ranges.map((range) => {
         const isActive = activeRange === range;
         return (
           <button
             key={range}
             onClick={() => handleChange(range)}
-            className={`rounded-md px-3 py-1 text-[13px] font-medium transition-colors ${
+            className={`flex-1 rounded-md px-3 py-1 text-[13px] font-medium transition-colors sm:flex-none ${
               isActive
                 ? "bg-surface text-text shadow-sm"
                 : "text-text-muted hover:text-text"

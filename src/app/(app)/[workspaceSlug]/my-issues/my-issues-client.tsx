@@ -24,7 +24,11 @@ export function MyIssuesClient({
 
   return (
     <>
-      <Button size="sm" onClick={() => setShowCreateModal(true)}>
+      <Button
+        size="sm"
+        onClick={() => setShowCreateModal(true)}
+        className="w-full sm:w-auto"
+      >
         <Plus className="w-4 h-4 mr-1" />
         New Issue
       </Button>

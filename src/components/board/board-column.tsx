@@ -45,7 +45,7 @@ export function BoardColumn({
 
   return (
     <div
-      className="flex flex-col min-w-[280px] w-[280px] shrink-0"
+      className="flex w-full min-w-0 shrink-0 flex-col rounded-xl border border-border bg-surface p-2 md:min-w-[280px] md:w-[280px] md:rounded-none md:border-none md:bg-transparent md:p-0"
       role="region"
       aria-label={`${config.label} column, ${issues.length} ${issues.length === 1 ? "issue" : "issues"}`}
     >
@@ -81,7 +81,7 @@ export function BoardColumn({
       >
         <div
           ref={setNodeRef}
-          className="flex flex-col gap-2 px-1 pb-4 flex-1 min-h-[120px] overflow-y-auto"
+          className="flex flex-1 flex-col gap-2 overflow-visible px-1 pb-2 md:min-h-[120px] md:overflow-y-auto md:pb-4"
         >
           {issues.map((issue) => (
             <BoardCard

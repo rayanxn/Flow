@@ -45,39 +45,39 @@ export function MyFocusCard({ issues, workspaceSlug, onIssueClick }: MyFocusCard
                     onIssueClick(issue.id);
                   }
                 }}
-                className={`flex items-center gap-3 py-3.5 px-4 bg-surface${onIssueClick ? " cursor-pointer hover:bg-surface-hover transition-colors" : ""}`}
+                className={`flex flex-col items-start gap-2.5 bg-surface px-4 py-3.5 sm:flex-row sm:items-center sm:gap-3${onIssueClick ? " cursor-pointer hover:bg-surface-hover transition-colors" : ""}`}
               >
-                {/* Priority dot */}
-                <span
-                  className="shrink-0 size-2 rounded-sm"
-                  style={{ backgroundColor: priority.color }}
-                  title={priority.label}
-                />
-
-                {/* Issue key */}
-                <span className="shrink-0 w-14 text-[11px] font-mono text-text-muted">
-                  {issue.issue_key}
-                </span>
-
-                {/* Title */}
-                <span className="flex-1 truncate text-sm font-medium text-text">
-                  {issue.title}
-                </span>
-
-                {/* Priority label */}
-                <span
-                  className="shrink-0 text-[11px] font-medium"
-                  style={{ color: priority.color }}
-                >
-                  {priority.label}
-                </span>
-
-                {/* Due date */}
-                {issue.due_date && (
-                  <span className="shrink-0 text-[11px] text-text-muted">
-                    {formatDate(issue.due_date)}
+                <div className="flex w-full items-center gap-3">
+                  <span
+                    className="shrink-0 size-2 rounded-sm"
+                    style={{ backgroundColor: priority.color }}
+                    title={priority.label}
+                  />
+                  <span className="shrink-0 text-[11px] font-mono text-text-muted sm:w-14">
+                    {issue.issue_key}
                   </span>
-                )}
+                  <span className="flex-1 truncate text-sm font-medium text-text">
+                    {issue.title}
+                  </span>
+                </div>
+
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold sm:bg-transparent sm:px-0 sm:py-0 sm:text-[11px]"
+                    style={{
+                      color: priority.color,
+                      backgroundColor: `${priority.color}14`,
+                    }}
+                  >
+                    {priority.label}
+                  </span>
+
+                  {issue.due_date && (
+                    <span className="inline-flex items-center rounded-full bg-background px-2 py-1 text-[10px] text-text-muted sm:bg-transparent sm:px-0 sm:py-0 sm:text-[11px]">
+                      {formatDate(issue.due_date)}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}

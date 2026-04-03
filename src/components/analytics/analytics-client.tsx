@@ -28,7 +28,7 @@ export function SprintSelector({
     <select
       value={selectedSprintId ?? ""}
       onChange={handleChange}
-      className="cursor-pointer rounded-lg border border-border-input bg-surface px-4 py-2 text-[13px] font-medium text-text transition-colors hover:border-border"
+      className="w-full max-w-full cursor-pointer rounded-lg border border-border-input bg-surface px-4 py-2 text-[13px] font-medium text-text transition-colors hover:border-border sm:w-auto"
     >
       {sprints.map((sprint) => (
         <option key={sprint.id} value={sprint.id}>

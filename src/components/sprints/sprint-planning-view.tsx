@@ -135,7 +135,7 @@ function DraggableIssueRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex cursor-grab items-center gap-2.5 border-b border-border px-5 py-2.5 transition-colors hover:bg-surface-hover/60 active:cursor-grabbing",
+        "border-b border-border px-4 py-3 transition-colors sm:px-5 sm:py-2.5",
         disabled
           ? "cursor-default"
           : "cursor-grab hover:bg-surface-hover/60 active:cursor-grabbing",
@@ -154,39 +154,86 @@ function IssueRowContent({ issue }: { issue: IssueWithDetails }) {
 
   return (
     <>
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
-        <circle cx="2" cy="2" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="5" cy="2" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="8" cy="2" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="2" cy="5" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="5" cy="5" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="8" cy="5" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="2" cy="8" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="5" cy="8" r="1.2" fill="var(--color-text-muted)" />
-        <circle cx="8" cy="8" r="1.2" fill="var(--color-text-muted)" />
-      </svg>
-      <span className="text-[11px] font-mono text-text-secondary shrink-0 w-13">
-        {issue.issue_key}
-      </span>
-      <span className="text-[13px] text-text truncate flex-1">{issue.title}</span>
-      <span
-        className="text-[10px] font-semibold shrink-0 rounded-sm px-1.5 py-0.5"
-        style={{ color: priorityConfig.color, backgroundColor: priorityConfig.bgColor }}
-      >
-        {priorityConfig.label}
-      </span>
-      {issue.assignee ? (
-        <div className="flex h-[22px] w-[22px] items-center justify-center shrink-0 rounded-full bg-avatar">
-          <span className="text-[9px] font-semibold text-text-secondary">
-            {getInitials(issue.assignee.full_name)}
+      <div className="flex w-full flex-col gap-2 sm:hidden">
+        <div className="flex items-center gap-2">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
+            <circle cx="2" cy="2" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="5" cy="2" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="8" cy="2" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="2" cy="5" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="5" cy="5" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="8" cy="5" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="2" cy="8" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="5" cy="8" r="1.2" fill="var(--color-text-muted)" />
+            <circle cx="8" cy="8" r="1.2" fill="var(--color-text-muted)" />
+          </svg>
+          <span className="text-[11px] font-mono text-text-secondary">
+            {issue.issue_key}
+          </span>
+          <span
+            className="rounded-full px-2 py-1 text-[10px] font-semibold"
+            style={{ color: priorityConfig.color, backgroundColor: priorityConfig.bgColor }}
+          >
+            {priorityConfig.label}
+          </span>
+          <span className="ml-auto rounded-full bg-background px-2 py-1 text-[10px] font-mono font-medium text-text-secondary">
+            {issue.story_points ?? "–"} pts
           </span>
         </div>
-      ) : (
-        <div className="w-[22px] shrink-0" />
-      )}
-      <span className="text-[11px] font-mono font-medium text-text-secondary shrink-0 rounded-sm px-1.5 py-0.5 bg-background">
-        {issue.story_points ?? "–"}
-      </span>
+        <span className="text-[13px] leading-5 text-text">{issue.title}</span>
+        <div className="flex items-center gap-2">
+          {issue.assignee ? (
+            <div className="flex items-center gap-2">
+              <div className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-avatar">
+                <span className="text-[9px] font-semibold text-text-secondary">
+                  {getInitials(issue.assignee.full_name)}
+                </span>
+              </div>
+              <span className="text-[11px] text-text-secondary">
+                {issue.assignee.full_name ?? "Assigned"}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[11px] text-text-muted">Unassigned</span>
+          )}
+        </div>
+      </div>
+
+      <div className="hidden w-full items-center gap-2.5 sm:flex">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
+          <circle cx="2" cy="2" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="5" cy="2" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="8" cy="2" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="2" cy="5" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="5" cy="5" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="8" cy="5" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="2" cy="8" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="5" cy="8" r="1.2" fill="var(--color-text-muted)" />
+          <circle cx="8" cy="8" r="1.2" fill="var(--color-text-muted)" />
+        </svg>
+        <span className="text-[11px] font-mono text-text-secondary shrink-0 w-13">
+          {issue.issue_key}
+        </span>
+        <span className="text-[13px] text-text truncate flex-1">{issue.title}</span>
+        <span
+          className="text-[10px] font-semibold shrink-0 rounded-sm px-1.5 py-0.5"
+          style={{ color: priorityConfig.color, backgroundColor: priorityConfig.bgColor }}
+        >
+          {priorityConfig.label}
+        </span>
+        {issue.assignee ? (
+          <div className="flex h-[22px] w-[22px] items-center justify-center shrink-0 rounded-full bg-avatar">
+            <span className="text-[9px] font-semibold text-text-secondary">
+              {getInitials(issue.assignee.full_name)}
+            </span>
+          </div>
+        ) : (
+          <div className="w-[22px] shrink-0" />
+        )}
+        <span className="text-[11px] font-mono font-medium text-text-secondary shrink-0 rounded-sm px-1.5 py-0.5 bg-background">
+          {issue.story_points ?? "–"}
+        </span>
+      </div>
     </>
   );
 }
@@ -527,11 +574,11 @@ export function SprintPlanningView({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex flex-1 min-h-0 overflow-hidden pb-6 gap-4 px-10">
+        <div className="flex flex-1 min-h-0 flex-col gap-4 overflow-y-auto px-4 pb-4 md:px-6 xl:flex-row xl:overflow-hidden xl:px-10 xl:pb-6">
           {/* LEFT PANE — Backlog */}
-          <DroppablePane id="backlog" className="flex-1 overflow-hidden rounded-xl border border-border bg-surface">
-            <div className="border-b border-border px-5 pt-4 pb-3">
-              <div className="flex items-center justify-between">
+          <DroppablePane id="backlog" className="flex-1 min-h-[22rem] overflow-hidden rounded-xl border border-border bg-surface">
+            <div className="border-b border-border px-4 pb-3 pt-4 sm:px-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-baseline gap-2">
                   <h2 className="text-[15px] font-semibold text-text">Backlog</h2>
                   <span className="text-xs text-text-secondary">
@@ -543,7 +590,7 @@ export function SprintPlanningView({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 mt-3">
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
                   <Input
@@ -556,7 +603,7 @@ export function SprintPlanningView({
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="h-8 rounded-lg border border-border bg-surface px-2 text-xs text-text focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-border-strong transition-colors"
+                  className="h-8 w-full rounded-lg border border-border bg-surface px-2 text-xs text-text transition-colors focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/10 sm:w-auto"
                 >
                   <option value="">Priority</option>
                   <option value="0">P0</option>
@@ -567,7 +614,7 @@ export function SprintPlanningView({
               </div>
 
               {/* Quick filter chips */}
-              <div className="flex items-center gap-1.5 mt-2.5">
+              <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                 {QUICK_FILTER_CONFIG.map((chip) => (
                   <button
                     key={chip.key}
@@ -602,17 +649,17 @@ export function SprintPlanningView({
           </DroppablePane>
 
           {/* RIGHT PANE — Sprint (warm tint) */}
-          <DroppablePane id="sprint" className="flex-1 overflow-hidden rounded-r-xl border border-border border-l-2 border-l-accent bg-surface">
+          <DroppablePane id="sprint" className="flex-1 min-h-[22rem] overflow-hidden rounded-xl border border-border border-l-2 border-l-accent bg-surface xl:rounded-r-xl">
             {sprint ? (
               <>
-                <div className="border-b border-border px-5 pt-4 pb-3.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
+                <div className="border-b border-border px-4 pb-3.5 pt-4 sm:px-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 flex-col gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 hover:bg-surface-hover transition-colors"
+                            className="inline-flex max-w-full items-center gap-2 rounded-full border border-border px-3 py-1 transition-colors hover:bg-surface-hover"
                           >
                             <span
                               className={cn(
@@ -622,7 +669,7 @@ export function SprintPlanningView({
                             >
                               {sprintStatusConfig?.label}
                             </span>
-                            <span className="text-sm font-semibold text-text">
+                            <span className="truncate text-sm font-semibold text-text">
                               {sprint.name}
                             </span>
                             <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
@@ -742,7 +789,7 @@ export function SprintPlanningView({
                   </div>
 
                   {/* Date range and goal */}
-                  <div className="mt-1.5 flex items-center gap-2 text-[11px] text-text-secondary">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-text-secondary">
                     {sprint.start_date && sprint.end_date && (
                       <span>
                         {formatDateRange(sprint.start_date, sprint.end_date)}
@@ -778,9 +825,9 @@ export function SprintPlanningView({
                   )}
 
                   {/* Sprint actions */}
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
                     {sprint.status !== "planning" && (
-                      <Button asChild size="sm" variant="ghost">
+                      <Button asChild size="sm" variant="ghost" className="w-full sm:w-auto">
                         <Link href={`/${workspaceSlug}/analytics?tab=sprints&sprint=${sprint.id}`}>
                           Analytics
                         </Link>
@@ -791,6 +838,7 @@ export function SprintPlanningView({
                         size="sm"
                         onClick={handleStartSprint}
                         disabled={sprintIssues.length === 0}
+                        className="w-full sm:w-auto"
                       >
                         Start Sprint
                       </Button>
@@ -800,6 +848,7 @@ export function SprintPlanningView({
                         size="sm"
                         variant="secondary"
                         onClick={() => setShowCompleteModal(true)}
+                        className="w-full sm:w-auto"
                       >
                         Complete Sprint
                       </Button>
@@ -827,7 +876,7 @@ export function SprintPlanningView({
                   ))}
 
                   {/* Drop zone placeholder */}
-                  <div className="mx-5 my-3 flex min-h-20 flex-1 items-center justify-center rounded-lg border-2 border-dashed border-border text-xs text-text-muted">
+                  <div className="mx-4 my-3 flex min-h-20 flex-1 items-center justify-center rounded-lg border-2 border-dashed border-border px-4 text-center text-xs text-text-muted sm:mx-5">
                     {dragDisabled
                       ? "Completed sprint. Scope is read-only."
                       : "Drag issues here from backlog"}

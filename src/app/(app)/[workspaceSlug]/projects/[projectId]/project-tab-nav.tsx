@@ -38,7 +38,10 @@ export function ProjectTabNav({ workspaceSlug, projectId }: ProjectTabNavProps) 
   useHotkeys(hotkeys);
 
   return (
-    <nav className="flex items-center gap-4" aria-label="Project views">
+    <nav
+      className="-mx-4 flex items-center gap-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0"
+      aria-label="Project views"
+    >
       {projectTabs.map((tab) => {
         const href = `${base}/${tab.href}`;
         const active = pathname.startsWith(href);
@@ -47,7 +50,7 @@ export function ProjectTabNav({ workspaceSlug, projectId }: ProjectTabNavProps) 
             key={tab.href}
             href={href}
             className={cn(
-              "group pb-2.5 pt-3 text-sm font-medium border-b-2 -mb-px transition-colors",
+              "group -mb-px shrink-0 whitespace-nowrap border-b-2 pb-2.5 pt-3 text-sm font-medium transition-colors",
               active
                 ? "text-text border-primary"
                 : "text-text-secondary border-transparent hover:text-text",
@@ -55,7 +58,7 @@ export function ProjectTabNav({ workspaceSlug, projectId }: ProjectTabNavProps) 
           >
             {tab.label}
             {tab.key && (
-              <span aria-hidden="true" className="ml-1.5 text-[10px] text-text-muted opacity-0 group-hover:opacity-50">
+              <span aria-hidden="true" className="ml-1.5 hidden text-[10px] text-text-muted opacity-0 transition-opacity group-hover:opacity-50 md:inline">
                 {tab.key}
               </span>
             )}

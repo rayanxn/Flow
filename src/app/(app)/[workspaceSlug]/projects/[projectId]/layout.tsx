@@ -15,7 +15,7 @@ export default async function ProjectLayout({
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
-      <div className="border-b border-border px-6 shrink-0">
+      <div className="shrink-0 border-b border-border px-4 md:px-6">
         <div className="flex items-center gap-2 pt-3 pb-1">
           <span
             className="size-2.5 rounded-sm"

@@ -6,7 +6,6 @@ import { getWorkspaceMembers } from "@/lib/queries/members";
 import { getWorkspaceProjects } from "@/lib/queries/workspaces";
 import { getWorkspaceSprints } from "@/lib/queries/analytics";
 import { getWorkspaceLabels } from "@/lib/queries/projects";
-import { IssueList } from "@/components/issues/issue-list";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { MyIssuesClient } from "./my-issues-client";
 import { MyIssuesContent } from "./my-issues-content";
@@ -56,9 +55,9 @@ export default async function MyIssuesPage({
       <Breadcrumb workspaceName={result.workspace.name} pageName="My Issues" />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-text">My Issues</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 sm:justify-end">
           <MyIssuesClient
             projects={projects}
             members={members}

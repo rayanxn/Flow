@@ -73,12 +73,12 @@ export default async function AnalyticsPage({
       ]);
 
     return (
-      <div className="flex flex-col py-6 px-10 gap-6">
+      <div className="flex flex-col gap-6 px-4 py-6 md:px-10">
         <Breadcrumb
           workspaceName={result.workspace.name}
           pageName="Analytics"
         />
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-[26px] font-bold text-text">Analytics</h1>
           <TimeRangeSelector activeRange={range} />
         </div>
@@ -92,7 +92,7 @@ export default async function AnalyticsPage({
 
         <ThroughputChart data={throughputData} />
 
-        <div className="flex gap-4">
+        <div className="grid gap-4 xl:grid-cols-2">
           <CycleTimeChart data={cycleTimeData} />
           <AssigneeChart data={assigneeData} />
         </div>
@@ -116,7 +116,7 @@ export default async function AnalyticsPage({
   if (!selectedSprint) {
     // Shouldn't happen since hasSprints is true, but handle gracefully
     return (
-      <div className="flex flex-col py-6 px-10 gap-6">
+      <div className="flex flex-col gap-6 px-4 py-6 md:px-10">
         <Breadcrumb
           workspaceName={result.workspace.name}
           pageName="Analytics"
@@ -138,9 +138,9 @@ export default async function AnalyticsPage({
     ]);
 
   return (
-    <div className="flex flex-col py-6 px-10 gap-6">
+    <div className="flex flex-col gap-6 px-4 py-6 md:px-10">
       <Breadcrumb workspaceName={result.workspace.name} pageName="Analytics" />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-[26px] font-bold text-text">Analytics</h1>
         <SprintSelector
           sprints={sprints}
@@ -159,7 +159,7 @@ export default async function AnalyticsPage({
 
       <BurndownChart data={burndownData} />
 
-      <div className="flex gap-4">
+      <div className="grid gap-4 xl:grid-cols-2">
         <LabelChart data={labelData} />
         <VelocityChart data={velocityData} />
       </div>
