@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -60,13 +60,13 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const base = `/${workspaceSlug}`;
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
 
-  // Load collapsed state from localStorage
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "true") setCollapsed(true);
-  }, []);
+    return window.localStorage.getItem(STORAGE_KEY) === "true";
+  });
 
   function toggleCollapsed() {
     const next = !collapsed;
@@ -148,7 +148,7 @@ export function Sidebar({
         })}
 
         {/* Divider */}
-        <div className="!my-3 h-px bg-[#2E2E2C]/6" />
+        <div className="!my-3 h-px bg-border-subtle" />
 
         {/* Projects section */}
         {!isCollapsed && (
@@ -229,7 +229,7 @@ export function Sidebar({
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden md:flex bg-background border-r border-[#2E2E2C]/6 flex-col h-screen shrink-0 transition-all duration-200",
+          "hidden md:flex bg-sidebar border-r border-border-subtle flex-col h-screen shrink-0 transition-all duration-200",
           collapsed ? "w-14" : "w-56",
         )}
       >
@@ -241,11 +241,11 @@ export function Sidebar({
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-overlay"
             onClick={onMobileClose}
           />
           {/* Sidebar panel */}
-          <aside className="relative w-56 h-full bg-background border-r border-[#2E2E2C]/6 flex flex-col">
+          <aside className="relative w-56 h-full bg-sidebar border-r border-border-subtle flex flex-col">
             {sidebarContent(false, true)}
           </aside>
         </div>

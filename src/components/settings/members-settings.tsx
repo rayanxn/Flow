@@ -37,9 +37,9 @@ const ROLE_LABELS: Record<WorkspaceRole, string> = {
 };
 
 const ROLE_BADGE_STYLES: Record<WorkspaceRole, string> = {
-  owner: "bg-[#2E2E2C] text-white",
-  admin: "bg-[#2E2E2C14] text-text",
-  member: "bg-[#2E2E2C0A] text-text-muted",
+  owner: "bg-primary text-background",
+  admin: "border border-border-input bg-surface-subtle text-text",
+  member: "border border-border-subtle bg-surface-hover text-text-muted",
 };
 
 export function MembersSettings({
@@ -98,7 +98,7 @@ export function MembersSettings({
             type="button"
             onClick={handleGenerateInvite}
             disabled={inviteLoading}
-            className="rounded-lg py-2 px-4 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
             {inviteLoading ? "Generating..." : "Generate invite link"}
           </button>
@@ -106,7 +106,7 @@ export function MembersSettings({
       </div>
 
       {inviteLink && (
-        <div className="mt-4 flex items-center gap-3 rounded-[10px] bg-[#F6F5F1] border border-[#2E2E2C14] px-4 py-3">
+        <div className="mt-4 flex items-center gap-3 rounded-[10px] border border-border-input bg-surface-inset px-4 py-3">
           <span className="flex-1 text-[13px] font-mono text-text truncate">
             {inviteLink}
           </span>
@@ -139,7 +139,7 @@ export function MembersSettings({
           return (
             <div
               key={member.id}
-              className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-[#F6F5F1] transition-colors"
+              className="flex items-center gap-3 rounded-lg py-3 px-3 transition-colors hover:bg-surface-hover"
             >
               <Avatar size="sm">
                 <AvatarFallback>{initials}</AvatarFallback>
@@ -169,7 +169,7 @@ export function MembersSettings({
                   onChange={(e) =>
                     handleRoleChange(member.id, e.target.value as "admin" | "member")
                   }
-                  className="px-2 py-1 rounded-md text-[11px] font-medium bg-[#2E2E2C0A] border border-[#2E2E2C14] text-text focus:outline-none"
+                  className="rounded-md border border-border-input bg-surface-subtle px-2 py-1 text-[11px] font-medium text-text focus:outline-none"
                 >
                   <option value="admin">Admin</option>
                   <option value="member">Member</option>
@@ -181,7 +181,7 @@ export function MembersSettings({
                 <button
                   type="button"
                   onClick={() => setRemovingMember(member)}
-                  className="text-[12px] text-text-muted hover:text-[#C45A3C] transition-colors"
+                  className="text-[12px] text-text-muted transition-colors hover:text-danger"
                 >
                   Remove
                 </button>

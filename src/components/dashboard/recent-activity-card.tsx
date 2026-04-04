@@ -81,7 +81,7 @@ export function RecentActivityCard({
               className={`flex items-start gap-2.5 py-3.5 px-4 bg-surface${isClickable ? " cursor-pointer hover:bg-surface-hover transition-colors" : ""}`}
             >
               {/* Avatar */}
-              <div className="shrink-0 size-7 rounded-[14px] bg-[#E8E4DE] flex items-center justify-center text-[10px] font-medium text-text-secondary">
+              <div className="shrink-0 size-7 rounded-[14px] bg-avatar flex items-center justify-center text-[10px] font-medium text-text-secondary">
                 {getActorInitials(activity.actor)}
               </div>
 

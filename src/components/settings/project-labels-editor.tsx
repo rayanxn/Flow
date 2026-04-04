@@ -101,13 +101,13 @@ export function ProjectLabelsEditor({
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Label name..."
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          className="flex-1 h-9 rounded-lg px-3 bg-white border border-[#2E2E2C14] text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+          className="h-9 flex-1 rounded-lg border border-border-input bg-surface px-3 text-sm text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
         />
         <button
           type="button"
           onClick={handleAdd}
           disabled={addLoading || !newName.trim()}
-          className="rounded-lg py-2 px-4 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           {addLoading ? "Adding..." : "Add"}
         </button>
@@ -120,7 +120,7 @@ export function ProjectLabelsEditor({
         {labels.map((label) => (
           <div
             key={label.id}
-            className="flex items-center gap-3 py-2.5 px-3 rounded-lg hover:bg-[#F6F5F1] transition-colors group"
+            className="group flex items-center gap-3 rounded-lg py-2.5 px-3 transition-colors hover:bg-surface-hover"
           >
             {editingId === label.id ? (
               <>
@@ -140,7 +140,7 @@ export function ProjectLabelsEditor({
                   onChange={(e) => setEditName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSaveEdit()}
                   autoFocus
-                  className="flex-1 h-8 rounded-md px-2 bg-white border border-[#2E2E2C14] text-sm text-text focus:outline-none"
+                  className="h-8 flex-1 rounded-md border border-border-input bg-surface px-2 text-sm text-text focus:outline-none"
                 />
                 <button
                   type="button"
@@ -176,7 +176,7 @@ export function ProjectLabelsEditor({
                 <button
                   type="button"
                   onClick={() => setDeletingLabel(label)}
-                  className="opacity-40 group-hover:opacity-100 transition-opacity text-text-muted hover:text-[#C45A3C]"
+                  className="text-text-muted opacity-40 transition-opacity group-hover:opacity-100 hover:text-danger"
                 >
                   <X className="size-3.5" />
                 </button>

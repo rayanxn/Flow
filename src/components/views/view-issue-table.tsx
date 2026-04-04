@@ -14,7 +14,7 @@ export function ViewIssueTable({ issues }: { issues: IssueWithDetails[] }) {
   }
 
   return (
-    <div className="border border-border/50 rounded-xl overflow-hidden bg-white">
+    <div className="overflow-hidden rounded-xl border border-border-input bg-surface">
       <table className="w-full">
         <thead>
           <tr className="border-b border-border/50">

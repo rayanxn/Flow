@@ -99,7 +99,7 @@ export function BoardQuickAdd({
                 className={cn(
                   "px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors",
                   priority === p
-                    ? "text-white"
+                    ? "text-background"
                     : "text-text-muted bg-surface-hover hover:bg-border",
                 )}
                 style={

@@ -19,7 +19,7 @@ export function SettingsNav({ items, sectionLabel, basePath }: SettingsNavProps)
   const pathname = usePathname();
 
   return (
-    <nav className="w-50 shrink-0 py-6 px-5 border-r border-[#2E2E2C]/6">
+    <nav className="w-50 shrink-0 border-r border-border-subtle py-6 px-5">
       <span className="text-[10px] font-mono font-medium text-text-muted opacity-40 tracking-[0.08em] uppercase">
         {sectionLabel}
       </span>

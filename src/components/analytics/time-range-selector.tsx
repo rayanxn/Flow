@@ -18,7 +18,7 @@ export function TimeRangeSelector({ activeRange }: { activeRange: TimeRange }) {
   }
 
   return (
-    <div className="inline-flex items-center gap-0.5 rounded-lg bg-[#F0EDE7] p-1">
+    <div className="inline-flex items-center gap-0.5 rounded-lg bg-surface-inset p-1">
       {ranges.map((range) => {
         const isActive = activeRange === range;
         return (
@@ -27,7 +27,7 @@ export function TimeRangeSelector({ activeRange }: { activeRange: TimeRange }) {
             onClick={() => handleChange(range)}
             className={`rounded-md px-3 py-1 text-[13px] font-medium transition-colors ${
               isActive
-                ? "bg-white text-text shadow-sm"
+                ? "bg-surface text-text shadow-sm"
                 : "text-text-muted hover:text-text"
             }`}
           >

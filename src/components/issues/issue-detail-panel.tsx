@@ -304,7 +304,7 @@ export function IssueDetailPanel({
                         className={cn(
                           "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors",
                           status === s
-                            ? "text-white"
+                            ? "text-background"
                             : "text-text-secondary bg-surface-hover hover:bg-border"
                         )}
                         style={
@@ -336,7 +336,7 @@ export function IssueDetailPanel({
                         className={cn(
                           "px-2 py-1 rounded-md text-xs font-medium transition-colors",
                           priority === p
-                            ? "text-white"
+                            ? "text-background"
                             : "text-text-secondary bg-surface-hover hover:bg-border"
                         )}
                         style={

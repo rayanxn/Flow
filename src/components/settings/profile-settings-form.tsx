@@ -90,20 +90,20 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
             id="profile-name"
             name="fullName"
             defaultValue={profile.full_name ?? ""}
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
         {/* Email (read-only) */}
         <div className="space-y-1.5">
           <label className="text-[13px] font-medium text-text block">Email</label>
-          <div className="flex items-center h-11 rounded-[10px] px-3.5 bg-[#F6F5F1] border border-[#2E2E2C14] text-sm text-text opacity-60">
+          <div className="flex h-11 items-center rounded-[10px] border border-border-input bg-surface-inset px-3.5 text-sm text-text opacity-60">
             {profile.email}
           </div>
         </div>
 
         {/* Notifications Section */}
-        <div className="pt-4 border-t border-[#2E2E2C0F]">
+        <div className="border-t border-border-subtle pt-4">
           <span className="tracking-[0.08em] text-text-muted text-[10px] font-mono font-medium opacity-50 uppercase">
             Notifications
           </span>
@@ -145,12 +145,12 @@ export function ProfileSettingsForm({ profile }: ProfileSettingsFormProps) {
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
-        {success && <p className="text-sm text-green-600">Profile updated.</p>}
+        {success && <p className="text-sm text-success">Profile updated.</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg py-2.5 px-6 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors disabled:opacity-50"
+          className="rounded-lg bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save changes"}
         </button>
@@ -171,7 +171,7 @@ function ToggleRow({
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between py-3.5 border-b border-[#2E2E2C0F] last:border-b-0">
+    <div className="flex items-center justify-between border-b border-border-subtle py-3.5 last:border-b-0">
       <div>
         <p className="text-[13px] font-medium text-text">{label}</p>
         <p className="text-xs text-text-muted mt-0.5">{description}</p>

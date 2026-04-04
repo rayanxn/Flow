@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 
 export default function WorkspaceError({
@@ -11,8 +12,8 @@ export default function WorkspaceError({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 px-6">
-      <div className="size-12 rounded-full bg-[#8B404918] flex items-center justify-center mb-4">
-        <AlertCircle className="size-6 text-[#C45A3C]" />
+      <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-danger-muted/10">
+        <AlertCircle className="size-6 text-danger" />
       </div>
       <h2 className="text-[17px] font-semibold text-text mb-1">
         Something went wrong
@@ -23,16 +24,16 @@ export default function WorkspaceError({
       <div className="flex items-center gap-3">
         <button
           onClick={reset}
-          className="rounded-lg py-2.5 px-6 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors"
+          className="rounded-lg bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover"
         >
           Try again
         </button>
-        <a
+        <Link
           href="/"
-          className="rounded-lg py-2.5 px-6 border border-[#2E2E2C14] text-[13px] font-medium text-text hover:bg-[#F6F5F1] transition-colors"
+          className="rounded-lg border border-border-input px-6 py-2.5 text-[13px] font-medium text-text transition-colors hover:bg-surface-hover"
         >
           Go to dashboard
-        </a>
+        </Link>
       </div>
     </div>
   );

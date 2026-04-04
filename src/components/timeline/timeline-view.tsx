@@ -58,7 +58,7 @@ export function TimelineView({ issues }: { issues: TimelineIssue[] }) {
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
               scale === s
-                ? "bg-primary text-white"
+                ? "bg-primary text-background"
                 : "text-text-secondary hover:bg-surface-hover"
             )}
           >
@@ -83,7 +83,7 @@ export function TimelineView({ issues }: { issues: TimelineIssue[] }) {
                 key={issue.id}
                 className={cn(
                   "flex items-center gap-2 px-4 border-b border-border/20",
-                  i % 2 === 1 && "bg-[#F0EDE7]/50"
+                  i % 2 === 1 && "bg-surface-inset/50"
                 )}
                 style={{ height: ROW_HEIGHT }}
               >
@@ -166,7 +166,7 @@ export function TimelineView({ issues }: { issues: TimelineIssue[] }) {
                 i % 2 === 1 ? (
                   <div
                     key={`row-bg-${i}`}
-                    className="absolute left-0 w-full bg-[#F0EDE7]/50"
+                    className="absolute left-0 w-full bg-surface-inset/50"
                     style={{
                       top: i * ROW_HEIGHT,
                       height: ROW_HEIGHT,
@@ -183,7 +183,7 @@ export function TimelineView({ issues }: { issues: TimelineIssue[] }) {
                     left: (todayCol - 1) * colWidth + colWidth / 2,
                   }}
                 >
-                  <div className="absolute -top-0 left-1/2 -translate-x-1/2 bg-primary text-white text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-b">
+                  <div className="absolute -top-0 left-1/2 -translate-x-1/2 rounded-b bg-primary px-1.5 py-0.5 font-mono text-[9px] font-semibold text-background">
                     TODAY
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export function TimelineView({ issues }: { issues: TimelineIssue[] }) {
                       />
                       {issue.assignee && initials && (
                         <div
-                          className="relative z-10 size-5 rounded-full bg-white/90 flex items-center justify-center shrink-0"
+                          className="relative z-10 flex size-5 shrink-0 items-center justify-center rounded-full bg-surface/90"
                           title={
                             issue.assignee.full_name ?? undefined
                           }

@@ -30,10 +30,10 @@ export function DeleteConfirmationModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay />
-        <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[420px] rounded-2xl bg-white pt-8 pb-6 px-8 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-50 w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border-input bg-surface px-8 pt-8 pb-6 shadow-xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex flex-col items-center gap-5">
             {/* Warning icon */}
-            <div className="size-10 rounded-full bg-[#8B404918] flex items-center justify-center">
+            <div className="flex size-10 items-center justify-center rounded-full bg-danger-muted/10">
               <svg
                 width="18"
                 height="18"
@@ -41,19 +41,19 @@ export function DeleteConfirmationModal({
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <circle cx="9" cy="9" r="7.5" stroke="#C45A3C" strokeWidth="1.5" />
-                <path d="M9 5V10" stroke="#C45A3C" strokeWidth="1.5" strokeLinecap="round" />
-                <path d="M9 12.5V13" stroke="#C45A3C" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="9" cy="9" r="7.5" stroke="var(--color-danger)" strokeWidth="1.5" />
+                <path d="M9 5V10" stroke="var(--color-danger)" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M9 12.5V13" stroke="var(--color-danger)" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
 
             {/* Title */}
-            <DialogPrimitive.Title className="text-[17px]/5.5 font-semibold text-[#2E2E2C] text-center">
+            <DialogPrimitive.Title className="text-center text-[17px]/5.5 font-semibold text-text">
               {title}
             </DialogPrimitive.Title>
 
             {/* Description */}
-            <DialogPrimitive.Description className="text-center text-[13px]/5 text-[#A3A39E] opacity-60 -mt-2">
+            <DialogPrimitive.Description className="-mt-2 text-center text-[13px]/5 text-text-muted">
               {description}
             </DialogPrimitive.Description>
 
@@ -63,7 +63,7 @@ export function DeleteConfirmationModal({
                 type="button"
                 onClick={() => onOpenChange(false)}
                 disabled={loading}
-                className="flex-1 rounded-lg py-2.5 px-5 border border-[#2E2E2C14] text-[13px] font-medium text-[#2E2E2C] hover:bg-[#F6F5F1] transition-colors disabled:opacity-50"
+                className="flex-1 rounded-lg border border-border-input px-5 py-2.5 text-[13px] font-medium text-text transition-colors hover:bg-surface-hover disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -71,7 +71,7 @@ export function DeleteConfirmationModal({
                 type="button"
                 onClick={onConfirm}
                 disabled={loading}
-                className="flex-1 rounded-lg py-2.5 px-5 bg-[#8B4049] text-[13px] font-medium text-white hover:bg-[#7A3640] transition-colors disabled:opacity-50"
+                className="flex-1 rounded-lg bg-danger-muted px-5 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-danger-muted-hover disabled:opacity-50"
               >
                 {loading ? "Deleting..." : confirmLabel}
               </button>

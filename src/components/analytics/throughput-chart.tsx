@@ -14,7 +14,7 @@ import type { ThroughputPoint } from "@/lib/queries/analytics";
 export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
   if (data.length === 0 || data.every((d) => d.count === 0)) {
     return (
-      <div className="flex flex-col rounded-xl gap-4 bg-white border border-border/50 p-5">
+      <div className="flex flex-col gap-4 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">Throughput</span>
         <div className="flex items-center justify-center h-40 text-sm text-text-muted">
           No completed issues in this period.
@@ -24,7 +24,7 @@ export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
   }
 
   return (
-    <div className="flex flex-col rounded-xl gap-4 bg-white border border-border/50 p-5">
+    <div className="flex flex-col gap-4 rounded-xl border border-border-input bg-surface p-5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-text">Throughput</span>
         <span className="text-[11px] text-text-muted">issues / week</span>
@@ -33,7 +33,7 @@ export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
         <BarChart data={data}>
           <CartesianGrid
             strokeDasharray="0"
-            stroke="#F0EDE7"
+            stroke="var(--color-chart-grid)"
             vertical={false}
           />
           <XAxis
@@ -41,7 +41,7 @@ export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
             tick={{
               fontSize: 10,
               fontFamily: "JetBrains Mono",
-              fill: "#B8B3AB",
+              fill: "var(--color-text-muted)",
             }}
             axisLine={false}
             tickLine={false}
@@ -50,7 +50,7 @@ export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
             tick={{
               fontSize: 10,
               fontFamily: "JetBrains Mono",
-              fill: "#B8B3AB",
+              fill: "var(--color-text-muted)",
             }}
             axisLine={false}
             tickLine={false}
@@ -59,16 +59,16 @@ export function ThroughputChart({ data }: { data: ThroughputPoint[] }) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#2E2E2C",
-              border: "none",
+              backgroundColor: "var(--color-primary)",
+              border: "1px solid var(--color-border-strong)",
               borderRadius: "8px",
               fontSize: "12px",
-              color: "#F6F5F1",
+              color: "var(--color-background)",
             }}
           />
           <Bar
             dataKey="count"
-            fill="#2E2E2C"
+            fill="var(--color-chart-strong)"
             radius={[4, 4, 0, 0]}
             maxBarSize={40}
           />

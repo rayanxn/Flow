@@ -18,10 +18,10 @@ const STATUS_BAR_ORDER: IssueStatus[] = [
 ];
 
 const NEUTRAL_STATUS_COLORS: Record<IssueStatus, string> = {
-  done: "#2D2A26",
-  in_review: "#9C9689",
-  in_progress: "#C8C3BB",
-  todo: "#E8E4DE",
+  done: "var(--color-primary)",
+  in_review: "var(--color-text-secondary)",
+  in_progress: "var(--color-text-muted)",
+  todo: "var(--color-border)",
 };
 
 const STATUS_LABELS: Record<IssueStatus, string> = {

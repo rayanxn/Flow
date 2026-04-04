@@ -16,7 +16,7 @@ export default function Error({
         </p>
         <button
           onClick={reset}
-          className="mt-6 inline-block cursor-pointer rounded-lg bg-primary px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+          className="mt-6 inline-block cursor-pointer rounded-lg bg-primary px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-primary-hover"
         >
           Try again
         </button>

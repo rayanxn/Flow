@@ -5,7 +5,7 @@ import type { VelocityPoint } from "@/lib/queries/analytics";
 export function VelocityChart({ data }: { data: VelocityPoint[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+      <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">
           Team Velocity
         </span>
@@ -20,7 +20,7 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
   const maxHeight = 120; // px
 
   return (
-    <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+    <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
       <span className="text-sm font-semibold text-text">
         Team Velocity
       </span>
@@ -30,13 +30,17 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
           const height =
             maxPoints > 0 ? (item.points / maxPoints) * maxHeight : 0;
 
-          // Color gradient from light to dark
-          const colors = ["#E8E4DE", "#DFD9D2", "#D6CFC6", "#2E2E2C"];
+          const colors = [
+            "var(--color-chart-highlight)",
+            "var(--color-chart-muted)",
+            "var(--color-chart-line)",
+            "var(--color-chart-strong)",
+          ];
           const colorIndex = Math.min(
             i + (4 - data.length),
             colors.length - 1
           );
-          const barColor = isLast ? "#2E2E2C" : colors[Math.max(0, colorIndex)];
+          const barColor = isLast ? "var(--color-chart-strong)" : colors[Math.max(0, colorIndex)];
 
           return (
             <div
@@ -53,7 +57,7 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
               <span
                 className="text-[10px] font-mono"
                 style={{
-                  color: isLast ? "#2E2E2C" : "#B8B3AB",
+                  color: isLast ? "var(--color-text)" : "var(--color-text-muted)",
                   fontWeight: isLast ? 600 : 400,
                 }}
               >
@@ -62,7 +66,7 @@ export function VelocityChart({ data }: { data: VelocityPoint[] }) {
               <span
                 className="text-xs"
                 style={{
-                  color: isLast ? "#2D2A26" : "#9C9689",
+                  color: isLast ? "var(--color-text)" : "var(--color-text-secondary)",
                   fontWeight: isLast ? 600 : 400,
                 }}
               >

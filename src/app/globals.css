@@ -1,11 +1,17 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-background: #F6F5F1;
+  --color-sidebar: #F6F5F1;
   --color-surface: #FFFFFF;
   --color-surface-hover: #FAF8F5;
+  --color-surface-subtle: #EDEAE4;
+  --color-surface-kbd: #DFDBCF;
+  --color-surface-inset: #F0EDE7;
   --color-border: #E8E4DE;
   --color-border-strong: #D6CFC7;
+  --color-border-subtle: #2E2E2C0F;
+  --color-border-input: #2E2E2C14;
   --color-text: #2D2A26;
   --color-text-secondary: #9C9689;
   --color-text-muted: #B8B3AB;
@@ -19,12 +25,67 @@
   --color-warning-light: #FFFBEB;
   --color-danger: #DC2626;
   --color-danger-light: #FEF2F2;
+  --color-danger-muted: #8B4049;
+  --color-danger-muted-hover: #7A3640;
   --color-purple: #7C3AED;
   --color-purple-light: #F5F3FF;
+  --color-avatar: #E8E4DE;
+  --color-overlay: #2E2E2C73;
+  --color-chart-grid: #F0EDE7;
+  --color-chart-line: #D5D0C8;
+  --color-chart-muted: #DFD9D2;
+  --color-chart-strong: #2E2E2C;
+  --color-chart-highlight: #E8E4DE;
 
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.dark {
+  --color-background: #1A1918;
+  --color-sidebar: #161514;
+  --color-surface: #222120;
+  --color-surface-hover: #2A2927;
+  --color-surface-subtle: #2A2927;
+  --color-surface-kbd: #3D3B38;
+  --color-surface-inset: #1E1D1B;
+  --color-border: #2E2D2A;
+  --color-border-strong: #3D3B38;
+  --color-border-subtle: #E8E5E00F;
+  --color-border-input: #E8E5E014;
+  --color-text: #E8E5E0;
+  --color-text-secondary: #8A857D;
+  --color-text-muted: #5C5852;
+  --color-primary: #E8E5E0;
+  --color-primary-hover: #D9D5CE;
+  --color-accent: #E8622C;
+  --color-accent-light: #382218;
+  --color-success: #5A8A6C;
+  --color-success-light: #203026;
+  --color-warning: #E0914A;
+  --color-warning-light: #362619;
+  --color-danger: #D4554B;
+  --color-danger-light: #341C19;
+  --color-danger-muted: #A04D58;
+  --color-danger-muted-hover: #8B4049;
+  --color-purple: #8B7BA6;
+  --color-purple-light: #2B2533;
+  --color-avatar: #2A2927;
+  --color-overlay: #00000080;
+  --color-chart-grid: #2E2D2A;
+  --color-chart-line: #3D3B38;
+  --color-chart-muted: #5C5852;
+  --color-chart-strong: #E8E5E0;
+  --color-chart-highlight: #3D3B38;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -34,8 +95,8 @@ body {
 }
 
 ::selection {
-  background-color: #2D2A26;
-  color: #F6F5F1;
+  background-color: var(--color-primary);
+  color: var(--color-background);
 }
 
 input::placeholder,

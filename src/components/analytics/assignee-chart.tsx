@@ -5,7 +5,7 @@ import type { AssigneeCount } from "@/lib/queries/analytics";
 export function AssigneeChart({ data }: { data: AssigneeCount[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+      <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">
           Issues by Assignee
         </span>
@@ -19,7 +19,7 @@ export function AssigneeChart({ data }: { data: AssigneeCount[] }) {
   const maxCount = Math.max(...data.map((d) => d.count));
 
   return (
-    <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+    <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
       <span className="text-sm font-semibold text-text">
         Issues by Assignee
       </span>
@@ -34,7 +34,7 @@ export function AssigneeChart({ data }: { data: AssigneeCount[] }) {
                   className="w-5 h-5 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-5 h-5 rounded-full bg-[#E8E4DE] flex items-center justify-center">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-avatar">
                   <span className="text-[9px] font-medium text-text-muted">
                     {item.name.charAt(0).toUpperCase()}
                   </span>
@@ -42,12 +42,12 @@ export function AssigneeChart({ data }: { data: AssigneeCount[] }) {
               )}
               <span className="text-xs text-text truncate">{item.name}</span>
             </div>
-            <div className="grow shrink basis-0 h-5 rounded-sm overflow-clip bg-[#F0EDE7]">
+            <div className="grow shrink basis-0 h-5 rounded-sm overflow-clip bg-surface-inset">
               <div
                 className="h-full rounded-sm transition-all"
                 style={{
                   width: `${(item.count / maxCount) * 100}%`,
-                  backgroundColor: "#2E2E2C",
+                  backgroundColor: "var(--color-chart-strong)",
                 }}
               />
             </div>

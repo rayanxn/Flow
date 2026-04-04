@@ -17,7 +17,7 @@ const BAR_COLORS = ["#4A7A5C", "#5C8A6E", "#7AA08A", "#9CB8A8", "#BED0C6"];
 export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
   if (data.length === 0 || data.every((d) => d.count === 0)) {
     return (
-      <div className="flex flex-col grow shrink basis-0 rounded-xl gap-4 bg-white border border-border/50 p-5">
+      <div className="flex flex-col grow shrink basis-0 gap-4 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">
           Cycle Time Distribution
         </span>
@@ -29,7 +29,7 @@ export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
   }
 
   return (
-    <div className="flex flex-col grow shrink basis-0 rounded-xl gap-4 bg-white border border-border/50 p-5">
+    <div className="flex flex-col grow shrink basis-0 gap-4 rounded-xl border border-border-input bg-surface p-5">
       <span className="text-sm font-semibold text-text">
         Cycle Time Distribution
       </span>
@@ -37,7 +37,7 @@ export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
         <BarChart data={data} layout="vertical">
           <CartesianGrid
             strokeDasharray="0"
-            stroke="#F0EDE7"
+            stroke="var(--color-chart-grid)"
             horizontal={false}
           />
           <XAxis
@@ -45,7 +45,7 @@ export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
             tick={{
               fontSize: 10,
               fontFamily: "JetBrains Mono",
-              fill: "#B8B3AB",
+              fill: "var(--color-text-muted)",
             }}
             axisLine={false}
             tickLine={false}
@@ -57,7 +57,7 @@ export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
             tick={{
               fontSize: 11,
               fontFamily: "JetBrains Mono",
-              fill: "#9C9689",
+              fill: "var(--color-text-secondary)",
             }}
             axisLine={false}
             tickLine={false}
@@ -65,11 +65,11 @@ export function CycleTimeChart({ data }: { data: CycleTimeBucket[] }) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#2E2E2C",
-              border: "none",
+              backgroundColor: "var(--color-primary)",
+              border: "1px solid var(--color-border-strong)",
               borderRadius: "8px",
               fontSize: "12px",
-              color: "#F6F5F1",
+              color: "var(--color-background)",
             }}
             formatter={(value) => [`${value} issues`, "Count"]}
           />

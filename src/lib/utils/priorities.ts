@@ -4,8 +4,8 @@ export const PRIORITY_CONFIG: Record<
   IssuePriority,
   { label: string; color: string; bgColor: string }
 > = {
-  0: { label: "P0", color: "#DC2626", bgColor: "#FEF2F2" },
-  1: { label: "P1", color: "#D97706", bgColor: "#FFFBEB" },
-  2: { label: "P2", color: "#16A34A", bgColor: "#F0FDF4" },
-  3: { label: "P3", color: "#78716C", bgColor: "#F5F0EB" },
+  0: { label: "P0", color: "var(--color-danger)", bgColor: "var(--color-danger-light)" },
+  1: { label: "P1", color: "var(--color-warning)", bgColor: "var(--color-warning-light)" },
+  2: { label: "P2", color: "var(--color-success)", bgColor: "var(--color-success-light)" },
+  3: { label: "P3", color: "var(--color-text-secondary)", bgColor: "var(--color-surface-hover)" },
 };

@@ -5,7 +5,7 @@ import type { LabelCount } from "@/lib/queries/analytics";
 export function LabelChart({ data }: { data: LabelCount[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+      <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">
           Issues by Label
         </span>
@@ -19,7 +19,7 @@ export function LabelChart({ data }: { data: LabelCount[] }) {
   const maxCount = Math.max(...data.map((d) => d.count));
 
   return (
-    <div className="flex flex-col grow shrink basis-0 rounded-xl gap-5 bg-white border border-border/50 p-5">
+    <div className="flex flex-col grow shrink basis-0 gap-5 rounded-xl border border-border-input bg-surface p-5">
       <span className="text-sm font-semibold text-text">
         Issues by Label
       </span>
@@ -29,7 +29,7 @@ export function LabelChart({ data }: { data: LabelCount[] }) {
             <span className="w-15 shrink-0 text-xs text-text">
               {item.name}
             </span>
-            <div className="grow shrink basis-0 h-5 rounded-sm overflow-clip bg-[#F0EDE7]">
+            <div className="grow shrink basis-0 h-5 rounded-sm overflow-clip bg-surface-inset">
               <div
                 className="h-full rounded-sm transition-all"
                 style={{

@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     <div className="w-full max-w-md">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="bg-primary rounded-lg w-10 h-10 flex items-center justify-center text-white font-bold">
+        <div className="bg-primary rounded-lg w-10 h-10 flex items-center justify-center text-background font-bold">
           F
         </div>
         <span className="font-medium text-text text-lg">Flow</span>
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
         <button
           type="submit"
           disabled={pending}
-          className="bg-primary text-white w-full h-12 rounded-lg font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="bg-primary text-background w-full h-12 rounded-lg font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:pointer-events-none"
         >
           {pending ? "Updating..." : "Update Password"}
         </button>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils/cn";
 
 const buttonVariants = {
   variant: {
-    default: "bg-primary text-white hover:bg-primary-hover",
+    default: "bg-primary text-background hover:bg-primary-hover",
     secondary: "bg-surface border border-border text-text hover:bg-surface-hover",
     ghost: "bg-transparent text-text hover:bg-surface-hover",
     danger: "bg-danger text-white hover:bg-danger/90",

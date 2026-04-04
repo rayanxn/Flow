@@ -84,7 +84,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
             id="ws-name"
             name="name"
             defaultValue={workspace.name}
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
@@ -93,7 +93,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
           <label className="text-[13px] font-medium text-text block">
             Workspace URL
           </label>
-          <div className="flex items-center h-11 rounded-[10px] px-3.5 bg-[#F6F5F1] border border-[#2E2E2C14] text-sm text-text-muted">
+          <div className="flex h-11 items-center rounded-[10px] border border-border-input bg-surface-inset px-3.5 text-sm text-text-muted">
             flow.app/{workspace.slug}
           </div>
           <p className="text-[11px] text-text-muted opacity-60">
@@ -111,7 +111,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
             name="issuePrefix"
             defaultValue={workspace.issue_prefix}
             maxLength={6}
-            className="w-32 h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-mono font-medium text-text uppercase focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-32 rounded-[10px] border border-border-input bg-surface px-3.5 font-mono text-sm font-medium text-text uppercase transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
@@ -124,7 +124,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
             id="ws-tz"
             name="timezone"
             defaultValue={workspace.timezone}
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           >
             {TIMEZONES.map((tz) => (
               <option key={tz} value={tz}>{tz}</option>
@@ -141,7 +141,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
             id="ws-sprint"
             name="defaultSprintLength"
             defaultValue={workspace.default_sprint_length}
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           >
             {SPRINT_LENGTHS.map((sl) => (
               <option key={sl.value} value={sl.value}>{sl.label}</option>
@@ -150,20 +150,20 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
-        {success && <p className="text-sm text-green-600">Settings saved.</p>}
+        {success && <p className="text-sm text-success">Settings saved.</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg py-2.5 px-6 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors disabled:opacity-50"
+          className="rounded-lg bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save changes"}
         </button>
       </form>
 
       {/* Danger Zone */}
-      <div className="mt-12 pt-8 border-t border-[#2E2E2C0F]">
-        <span className="tracking-[0.08em] text-[#C45A3C] text-[10px] font-mono font-medium opacity-60 uppercase">
+      <div className="mt-12 border-t border-border-subtle pt-8">
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-danger opacity-60">
           Danger Zone
         </span>
         <div className="mt-4 flex items-center justify-between">
@@ -176,7 +176,7 @@ export function WorkspaceGeneralForm({ workspace }: WorkspaceGeneralFormProps) {
           <button
             type="button"
             onClick={() => setDeleteOpen(true)}
-            className="rounded-lg py-2 px-4 border border-[#8B404940] text-[13px] font-medium text-[#C45A3C] hover:bg-[#8B404908] transition-colors"
+            className="rounded-lg border border-danger-muted/40 px-4 py-2 text-[13px] font-medium text-danger transition-colors hover:bg-danger-muted/8"
           >
             Delete workspace
           </button>

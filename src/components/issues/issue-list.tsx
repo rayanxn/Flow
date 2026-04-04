@@ -34,7 +34,7 @@ export function IssueList({ issues, showProject = true, onIssueClick }: IssueLis
   return (
     <div>
       {/* Column headers */}
-      <div className="flex items-center gap-3 px-6 py-2 border-b border-[#E8E4DE] text-[10px] text-text-muted uppercase tracking-wider font-medium">
+      <div className="flex items-center gap-3 px-6 py-2 border-b border-border text-[10px] text-text-muted uppercase tracking-wider font-medium">
         <div className="w-4 shrink-0" />
         <span className="w-[72px] shrink-0">ID</span>
         <span className="flex-1">Title</span>

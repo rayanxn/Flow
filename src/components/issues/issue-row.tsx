@@ -43,7 +43,7 @@ export function IssueRow({
   return (
     <div
       onClick={() => onClick?.(id)}
-      className="flex items-center gap-3 px-6 py-2.5 hover:bg-surface-hover/50 transition-colors group border-b border-[#F0EDE7] last:border-b-0 cursor-pointer"
+      className="group flex cursor-pointer items-center gap-3 border-b border-border px-6 py-2.5 transition-colors last:border-b-0 hover:bg-surface-hover/50"
     >
       {/* Checkbox */}
       <Checkbox className="shrink-0" onClick={(e) => e.stopPropagation()} />

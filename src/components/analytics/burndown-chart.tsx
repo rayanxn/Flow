@@ -14,7 +14,7 @@ import type { BurndownPoint } from "@/lib/utils/analytics";
 export function BurndownChart({ data }: { data: BurndownPoint[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col rounded-xl gap-4 bg-white border border-border/50 p-5">
+      <div className="flex flex-col gap-4 rounded-xl border border-border-input bg-surface p-5">
         <span className="text-sm font-semibold text-text">
           Sprint Burndown
         </span>
@@ -26,18 +26,18 @@ export function BurndownChart({ data }: { data: BurndownPoint[] }) {
   }
 
   return (
-    <div className="flex flex-col rounded-xl gap-4 bg-white border border-border/50 p-5">
+    <div className="flex flex-col gap-4 rounded-xl border border-border-input bg-surface p-5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-text">
           Sprint Burndown
         </span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 rounded-sm bg-[#2E2E2C]" />
+            <div className="h-0.5 w-4 rounded-sm bg-[var(--color-chart-strong)]" />
             <span className="text-[11px] text-text-muted">Actual</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-0.5 rounded-sm bg-[#D5D0C8] border-t border-dashed border-[#D5D0C8]" />
+            <div className="h-0.5 w-4 rounded-sm border-t border-dashed border-[var(--color-chart-line)] bg-[var(--color-chart-line)]" />
             <span className="text-[11px] text-text-muted">Ideal</span>
           </div>
         </div>
@@ -46,34 +46,34 @@ export function BurndownChart({ data }: { data: BurndownPoint[] }) {
         <LineChart data={data}>
           <CartesianGrid
             strokeDasharray="0"
-            stroke="#F0EDE7"
+            stroke="var(--color-chart-grid)"
             vertical={false}
           />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fontFamily: "JetBrains Mono", fill: "#B8B3AB" }}
+            tick={{ fontSize: 10, fontFamily: "JetBrains Mono", fill: "var(--color-text-muted)" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fontFamily: "JetBrains Mono", fill: "#B8B3AB" }}
+            tick={{ fontSize: 10, fontFamily: "JetBrains Mono", fill: "var(--color-text-muted)" }}
             axisLine={false}
             tickLine={false}
             width={30}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#2E2E2C",
-              border: "none",
+              backgroundColor: "var(--color-primary)",
+              border: "1px solid var(--color-border-strong)",
               borderRadius: "8px",
               fontSize: "12px",
-              color: "#F6F5F1",
+              color: "var(--color-background)",
             }}
           />
           <Line
             type="monotone"
             dataKey="ideal"
-            stroke="#D5D0C8"
+            stroke="var(--color-chart-line)"
             strokeWidth={1.5}
             strokeDasharray="6 4"
             dot={false}
@@ -81,10 +81,10 @@ export function BurndownChart({ data }: { data: BurndownPoint[] }) {
           <Line
             type="monotone"
             dataKey="actual"
-            stroke="#2E2E2C"
+            stroke="var(--color-chart-strong)"
             strokeWidth={2.5}
             dot={false}
-            activeDot={{ r: 4, fill: "#2E2E2C" }}
+            activeDot={{ r: 4, fill: "var(--color-chart-strong)" }}
           />
         </LineChart>
       </ResponsiveContainer>

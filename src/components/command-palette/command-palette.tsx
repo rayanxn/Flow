@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Command } from "cmdk";
+import { PlusCircle, Search, Settings2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { searchIssuesClient, getRecentIssuesClient, type SearchResult } from "@/lib/queries/search";
 
@@ -17,8 +18,8 @@ interface CommandPaletteProps {
 
 function KBD({ children }: { children: React.ReactNode }) {
   return (
-    <span className="flex items-center justify-center rounded-sm py-0.5 px-1.5 bg-[#F6F5F1] border border-[#2E2E2C0F]">
-      <span className="text-[#A3A39E] font-mono font-medium text-[10px] leading-[14px]">
+    <span className="flex items-center justify-center rounded-sm border border-border-input bg-surface-inset py-0.5 px-1.5">
+      <span className="font-mono text-[10px] leading-[14px] font-medium text-text-muted">
         {children}
       </span>
     </span>
@@ -42,11 +43,25 @@ export function CommandPalette({
 
   // Load recent items on open
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    const resetTimer = window.setTimeout(() => {
       setQuery("");
       setResults([]);
-      getRecentIssuesClient(workspaceId, userId, 3).then(setRecentItems);
-    }
+    }, 0);
+
+    let cancelled = false;
+
+    getRecentIssuesClient(workspaceId, userId, 3).then((items) => {
+      if (!cancelled) {
+        setRecentItems(items);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(resetTimer);
+    };
   }, [open, workspaceId, userId]);
 
   // Debounced search
@@ -54,7 +69,6 @@ export function CommandPalette({
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!query.trim()) {
-      setResults([]);
       return;
     }
 
@@ -98,49 +112,46 @@ export function CommandPalette({
     >
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-[#2E2E2C73]"
+        className="fixed inset-0 bg-overlay backdrop-blur-sm"
         onClick={() => onOpenChange(false)}
       />
 
       {/* Palette card */}
-      <div className="fixed left-1/2 top-[180px] -translate-x-1/2 w-[640px] flex flex-col rounded-[14px] overflow-hidden bg-white border border-[#2E2E2C14] shadow-[0px_24px_64px_#2E2E2C33,0px_2px_8px_#2E2E2C0F]">
+      <div className="fixed left-1/2 top-[180px] flex w-[640px] -translate-x-1/2 flex-col overflow-hidden rounded-[14px] border border-border-input bg-surface shadow-2xl">
         {/* Search input */}
-        <div className="flex items-center py-4 px-5 gap-3.5 border-b border-[#2E2E2C0F]">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" className="shrink-0 opacity-30">
-            <circle cx="8" cy="8" r="5.5" stroke="#2E2E2C" strokeWidth="1.5" />
-            <path d="M12 12L16 16" stroke="#2E2E2C" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+        <div className="flex items-center gap-3.5 border-b border-border-subtle py-4 px-5">
+          <Search className="h-[18px] w-[18px] shrink-0 text-text-muted opacity-60" />
           <Command.Input
             value={query}
             onValueChange={setQuery}
             placeholder="Search issues, projects, actions..."
-            className="flex-1 bg-transparent text-[15px] leading-5 text-[#2E2E2C] placeholder:text-[#2E2E2C] placeholder:opacity-30 focus:outline-none"
+            className="flex-1 bg-transparent text-[15px] leading-5 text-text placeholder:text-text-muted focus:outline-none"
           />
         </div>
 
         {/* Results */}
-        <Command.List className="flex flex-col p-2 max-h-[360px] overflow-y-auto">
+        <Command.List className="flex max-h-[360px] flex-col overflow-y-auto p-2">
           {/* Issues section */}
           {displayItems.length > 0 && (
             <Command.Group
               heading={
-                <span className="tracking-[0.08em] opacity-50 text-[#A3A39E] font-mono font-medium text-[10px] leading-3 px-3 pt-2 pb-1.5 block">
+                <span className="block px-3 pt-2 pb-1.5 font-mono text-[10px] leading-3 tracking-[0.08em] text-text-muted opacity-60">
                   {sectionLabel}
                 </span>
               }
             >
-              {displayItems.map((item, i) => (
+              {displayItems.map((item) => (
                 <Command.Item
                   key={item.id}
                   value={`issue-${item.id}`}
                   onSelect={() => navigateToIssue(item)}
-                  className="flex items-center justify-between rounded-lg py-2.5 px-3 cursor-pointer data-[selected=true]:bg-[#F6F5F1]"
+                  className="flex cursor-pointer items-center justify-between rounded-lg py-2.5 px-3 data-[selected=true]:bg-surface-hover"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="opacity-50 text-[#A3A39E] font-mono text-[11px] leading-[14px]">
+                    <span className="font-mono text-[11px] leading-[14px] text-text-muted opacity-60">
                       {item.issue_key}
                     </span>
-                    <span className="text-[#2E2E2C] font-medium text-[13px] leading-4">
+                    <span className="text-[13px] leading-4 font-medium text-text">
                       {item.title}
                     </span>
                   </div>
@@ -150,7 +161,7 @@ export function CommandPalette({
                         className="rounded-full size-1.5 shrink-0"
                         style={{ backgroundColor: item.project.color }}
                       />
-                      <span className="opacity-50 text-[#A3A39E] font-mono text-[10px] leading-3">
+                      <span className="font-mono text-[10px] leading-3 text-text-muted opacity-60">
                         {item.project.name}
                       </span>
                     </div>
@@ -163,12 +174,12 @@ export function CommandPalette({
           {/* Divider */}
           {!query.trim() && (
             <>
-              <div className="w-full h-px bg-[#2E2E2C0F] my-0.5" />
+              <div className="my-0.5 h-px w-full bg-border-subtle" />
 
               {/* Actions section */}
               <Command.Group
                 heading={
-                  <span className="tracking-[0.08em] opacity-50 text-[#A3A39E] font-mono font-medium text-[10px] leading-3 px-3 pt-2.5 pb-1.5 block">
+                  <span className="block px-3 pt-2.5 pb-1.5 font-mono text-[10px] leading-3 tracking-[0.08em] text-text-muted opacity-60">
                     ACTIONS
                   </span>
                 }
@@ -179,14 +190,11 @@ export function CommandPalette({
                     onOpenChange(false);
                     onCreateIssue?.();
                   }}
-                  className="flex items-center justify-between rounded-lg py-2.5 px-3 cursor-pointer data-[selected=true]:bg-[#F6F5F1]"
+                  className="flex cursor-pointer items-center justify-between rounded-lg py-2.5 px-3 data-[selected=true]:bg-surface-hover"
                 >
                   <div className="flex items-center gap-2.5">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-35">
-                      <circle cx="7" cy="7" r="6" stroke="#2E2E2C" strokeWidth="1.2" />
-                      <path d="M7 4.5V9.5M4.5 7H9.5" stroke="#2E2E2C" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                    <span className="text-[#2E2E2C] font-medium text-[13px] leading-4">
+                    <PlusCircle className="h-4 w-4 text-text-muted opacity-60" />
+                    <span className="text-[13px] leading-4 font-medium text-text">
                       Create new issue
                     </span>
                   </div>
@@ -202,14 +210,11 @@ export function CommandPalette({
                     router.push(`/${workspaceSlug}/settings/general`);
                     onOpenChange(false);
                   }}
-                  className="flex items-center justify-between rounded-lg py-2.5 px-3 cursor-pointer data-[selected=true]:bg-[#F6F5F1]"
+                  className="flex cursor-pointer items-center justify-between rounded-lg py-2.5 px-3 data-[selected=true]:bg-surface-hover"
                 >
                   <div className="flex items-center gap-2.5">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="opacity-35">
-                      <circle cx="7" cy="7" r="2" stroke="#2E2E2C" strokeWidth="1.2" />
-                      <path d="M7 1V3M7 11V13M1 7H3M11 7H13M2.75 2.75L4.17 4.17M9.83 9.83L11.25 11.25M11.25 2.75L9.83 4.17M4.17 9.83L2.75 11.25" stroke="#2E2E2C" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                    <span className="text-[#2E2E2C] font-medium text-[13px] leading-4">
+                    <Settings2 className="h-4 w-4 text-text-muted opacity-60" />
+                    <span className="text-[13px] leading-4 font-medium text-text">
                       Go to settings
                     </span>
                   </div>
@@ -225,14 +230,14 @@ export function CommandPalette({
                     key={project.id}
                     value={`project-${project.name}`}
                     onSelect={() => navigateToProject(project.id)}
-                    className="flex items-center justify-between rounded-lg py-2.5 px-3 cursor-pointer data-[selected=true]:bg-[#F6F5F1]"
+                    className="flex cursor-pointer items-center justify-between rounded-lg py-2.5 px-3 data-[selected=true]:bg-surface-hover"
                   >
                     <div className="flex items-center gap-2.5">
                       <span
                         className="rounded-full size-2 shrink-0"
                         style={{ backgroundColor: project.color }}
                       />
-                      <span className="text-[#2E2E2C] font-medium text-[13px] leading-4">
+                      <span className="text-[13px] leading-4 font-medium text-text">
                         {project.name}
                       </span>
                     </div>
@@ -244,31 +249,31 @@ export function CommandPalette({
 
           {/* Empty state */}
           {query.trim() && results.length === 0 && (
-            <Command.Empty className="py-6 text-center text-[13px] text-[#A3A39E]">
+            <Command.Empty className="py-6 text-center text-[13px] text-text-muted">
               No results found.
             </Command.Empty>
           )}
         </Command.List>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 py-2.5 px-5 border-t border-[#2E2E2C0F]">
+        <div className="flex items-center gap-3 border-t border-border-subtle py-2.5 px-5">
           <div className="flex items-center gap-1">
-            <span className="flex items-center justify-center rounded-[3px] py-px px-1 bg-[#F6F5F1] border border-[#2E2E2C0F]">
-              <span className="text-[#A3A39E] font-mono font-medium text-[9px] leading-[14px]">↑↓</span>
+            <span className="flex items-center justify-center rounded-[3px] border border-border-input bg-surface-inset py-px px-1">
+              <span className="font-mono text-[9px] leading-[14px] font-medium text-text-muted">↑↓</span>
             </span>
-            <span className="opacity-50 text-[#A3A39E] font-mono text-[10px] leading-3">Navigate</span>
+            <span className="font-mono text-[10px] leading-3 text-text-muted opacity-60">Navigate</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="flex items-center justify-center rounded-[3px] py-px px-1 bg-[#F6F5F1] border border-[#2E2E2C0F]">
-              <span className="text-[#A3A39E] font-mono font-medium text-[9px] leading-[14px]">↵</span>
+            <span className="flex items-center justify-center rounded-[3px] border border-border-input bg-surface-inset py-px px-1">
+              <span className="font-mono text-[9px] leading-[14px] font-medium text-text-muted">↵</span>
             </span>
-            <span className="opacity-50 text-[#A3A39E] font-mono text-[10px] leading-3">Open</span>
+            <span className="font-mono text-[10px] leading-3 text-text-muted opacity-60">Open</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="flex items-center justify-center rounded-[3px] py-px px-1 bg-[#F6F5F1] border border-[#2E2E2C0F]">
-              <span className="text-[#A3A39E] font-mono font-medium text-[9px] leading-[14px]">esc</span>
+            <span className="flex items-center justify-center rounded-[3px] border border-border-input bg-surface-inset py-px px-1">
+              <span className="font-mono text-[9px] leading-[14px] font-medium text-text-muted">esc</span>
             </span>
-            <span className="opacity-50 text-[#A3A39E] font-mono text-[10px] leading-3">Close</span>
+            <span className="font-mono text-[10px] leading-3 text-text-muted opacity-60">Close</span>
           </div>
         </div>
       </div>

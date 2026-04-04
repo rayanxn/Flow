@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, Suspense } from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
@@ -48,8 +48,26 @@ function MyIssuesContentInner({
   labels = [],
   projects = [],
 }: MyIssuesContentProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [sortKey, setSortKey] = useState<SortKey>("priority");
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window === "undefined") {
+      return "list";
+    }
+
+    const storedView = window.localStorage.getItem(VIEW_STORAGE_KEY);
+    return storedView === "board" ? "board" : "list";
+  });
+  const [sortKey, setSortKey] = useState<SortKey>(() => {
+    if (typeof window === "undefined") {
+      return "priority";
+    }
+
+    const storedSort = window.localStorage.getItem(SORT_STORAGE_KEY);
+    if (storedSort && SORT_OPTIONS.some((option) => option.key === storedSort)) {
+      return storedSort as SortKey;
+    }
+
+    return "priority";
+  });
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -78,16 +96,6 @@ function MyIssuesContentInner({
     issues,
     enabledFilters: ["status", "priority", "assignee", "label", "project"],
   });
-
-  // Load persisted state from localStorage
-  useEffect(() => {
-    const storedView = localStorage.getItem(VIEW_STORAGE_KEY);
-    if (storedView === "list" || storedView === "board") setViewMode(storedView);
-    const storedSort = localStorage.getItem(SORT_STORAGE_KEY);
-    if (storedSort && SORT_OPTIONS.some((o) => o.key === storedSort)) {
-      setSortKey(storedSort as SortKey);
-    }
-  }, []);
 
   function handleViewChange(mode: ViewMode) {
     setViewMode(mode);
@@ -165,13 +173,13 @@ function MyIssuesContentInner({
       {/* Controls row */}
       <div className="flex items-center gap-3">
         {/* View toggle */}
-        <div className="flex items-center rounded-lg overflow-hidden bg-[#EDEAE4] p-0.5 gap-0.5">
+        <div className="flex items-center gap-0.5 overflow-hidden rounded-lg bg-surface-inset p-0.5">
           <button
             onClick={() => handleViewChange("list")}
             className={cn(
               "px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors",
               viewMode === "list"
-                ? "bg-white text-text"
+                ? "bg-surface text-text"
                 : "text-text-secondary hover:text-text"
             )}
           >
@@ -182,7 +190,7 @@ function MyIssuesContentInner({
             className={cn(
               "px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors",
               viewMode === "board"
-                ? "bg-white text-text"
+                ? "bg-surface text-text"
                 : "text-text-secondary hover:text-text"
             )}
           >

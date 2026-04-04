@@ -66,7 +66,7 @@ export function ViewCard({
   return (
     <Link
       href={`/${workspaceSlug}/views/${view.id}`}
-      className="flex flex-col rounded-xl bg-white border border-border/50 p-5 gap-2 hover:border-border transition-colors"
+      className="flex flex-col gap-2 rounded-xl border border-border-input bg-surface p-5 transition-colors hover:border-border"
       style={{ borderLeftWidth: "4px", borderLeftColor: borderColor }}
     >
       <div className="flex items-start justify-between">

@@ -98,7 +98,7 @@ export function ProjectGeneralForm({
             name="name"
             defaultValue={project.name}
             required
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
@@ -112,7 +112,7 @@ export function ProjectGeneralForm({
             name="description"
             defaultValue={project.description ?? ""}
             rows={3}
-            className="w-full rounded-[10px] py-3 px-3.5 bg-white border border-[#2E2E2C14] text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors resize-none"
+            className="w-full resize-none rounded-[10px] border border-border-input bg-surface py-3 px-3.5 text-sm text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           />
         </div>
 
@@ -125,7 +125,7 @@ export function ProjectGeneralForm({
             id="proj-lead"
             name="leadId"
             defaultValue={project.lead_id ?? ""}
-            className="w-full h-11 rounded-[10px] px-3.5 bg-white border border-[#2E2E2C14] text-sm font-medium text-text focus:outline-none focus:ring-2 focus:ring-primary/10 transition-colors"
+            className="h-11 w-full rounded-[10px] border border-border-input bg-surface px-3.5 text-sm font-medium text-text transition-colors focus:outline-none focus:ring-2 focus:ring-primary/10"
           >
             <option value="">No lead</option>
             {members.map((m) => (
@@ -153,20 +153,20 @@ export function ProjectGeneralForm({
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
-        {success && <p className="text-sm text-green-600">Settings saved.</p>}
+        {success && <p className="text-sm text-success">Settings saved.</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg py-2.5 px-6 bg-[#2E2E2C] text-white text-[13px] font-medium hover:bg-[#1E1E1C] transition-colors disabled:opacity-50"
+          className="rounded-lg bg-primary px-6 py-2.5 text-[13px] font-medium text-background transition-colors hover:bg-primary-hover disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save changes"}
         </button>
       </form>
 
       {/* Danger Zone */}
-      <div className="mt-12 pt-8 border-t border-[#2E2E2C0F]">
-        <span className="tracking-[0.08em] text-[#C45A3C] text-[10px] font-mono font-medium opacity-60 uppercase">
+      <div className="mt-12 border-t border-border-subtle pt-8">
+        <span className="font-mono text-[10px] font-medium uppercase tracking-[0.08em] text-danger opacity-60">
           Danger Zone
         </span>
 
@@ -181,7 +181,7 @@ export function ProjectGeneralForm({
             <button
               type="button"
               onClick={handleArchive}
-              className="rounded-lg py-2 px-4 border border-[#2E2E2C14] text-[13px] font-medium text-text hover:bg-[#F6F5F1] transition-colors"
+              className="rounded-lg border border-border-input px-4 py-2 text-[13px] font-medium text-text transition-colors hover:bg-surface-hover"
             >
               Archive
             </button>
@@ -197,7 +197,7 @@ export function ProjectGeneralForm({
             <button
               type="button"
               onClick={() => setDeleteOpen(true)}
-              className="rounded-lg py-2 px-4 border border-[#8B404940] text-[13px] font-medium text-[#C45A3C] hover:bg-[#8B404908] transition-colors"
+              className="rounded-lg border border-danger-muted/40 px-4 py-2 text-[13px] font-medium text-danger transition-colors hover:bg-danger-muted/8"
             >
               Delete project
             </button>

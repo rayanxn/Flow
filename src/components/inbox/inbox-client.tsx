@@ -82,12 +82,12 @@ export function InboxClient({
             <h1 className="text-[26px] font-bold text-text leading-8">
               Inbox
             </h1>
-            <TabsList className="border-b-0 bg-[#EDEAE4] rounded-lg p-0.5 gap-1">
+            <TabsList className="gap-1 rounded-lg border-b-0 bg-surface-inset p-0.5">
               {TABS.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-md px-3.5 py-1.5 text-base data-[state=active]:bg-white data-[state=active]:shadow-none border-b-0 data-[state=active]:border-b-0"
+                  className="rounded-md border-b-0 px-3.5 py-1.5 text-base data-[state=active]:bg-surface data-[state=active]:shadow-none data-[state=active]:border-b-0"
                 >
                   {tab.label}
                 </TabsTrigger>

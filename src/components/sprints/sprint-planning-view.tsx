@@ -110,7 +110,7 @@ function DraggableIssueRow({ issue }: { issue: IssueWithDetails }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2.5 px-5 py-2.5 border-b border-[#F0EDE7] hover:bg-surface-hover/60 transition-colors cursor-grab active:cursor-grabbing",
+        "flex cursor-grab items-center gap-2.5 border-b border-border px-5 py-2.5 transition-colors hover:bg-surface-hover/60 active:cursor-grabbing",
         isDragging && "opacity-30",
       )}
       {...attributes}
@@ -127,15 +127,15 @@ function IssueRowContent({ issue }: { issue: IssueWithDetails }) {
   return (
     <>
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="shrink-0">
-        <circle cx="2" cy="2" r="1.2" fill="#C4C0BA" />
-        <circle cx="5" cy="2" r="1.2" fill="#C4C0BA" />
-        <circle cx="8" cy="2" r="1.2" fill="#C4C0BA" />
-        <circle cx="2" cy="5" r="1.2" fill="#C4C0BA" />
-        <circle cx="5" cy="5" r="1.2" fill="#C4C0BA" />
-        <circle cx="8" cy="5" r="1.2" fill="#C4C0BA" />
-        <circle cx="2" cy="8" r="1.2" fill="#C4C0BA" />
-        <circle cx="5" cy="8" r="1.2" fill="#C4C0BA" />
-        <circle cx="8" cy="8" r="1.2" fill="#C4C0BA" />
+        <circle cx="2" cy="2" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="5" cy="2" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="8" cy="2" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="2" cy="5" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="5" cy="5" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="8" cy="5" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="2" cy="8" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="5" cy="8" r="1.2" fill="var(--color-text-muted)" />
+        <circle cx="8" cy="8" r="1.2" fill="var(--color-text-muted)" />
       </svg>
       <span className="text-[11px] font-mono text-text-secondary shrink-0 w-13">
         {issue.issue_key}
@@ -148,7 +148,7 @@ function IssueRowContent({ issue }: { issue: IssueWithDetails }) {
         {priorityConfig.label}
       </span>
       {issue.assignee ? (
-        <div className="w-[22px] h-[22px] flex items-center justify-center shrink-0 rounded-full bg-[#E8E4DE]">
+        <div className="flex h-[22px] w-[22px] items-center justify-center shrink-0 rounded-full bg-avatar">
           <span className="text-[9px] font-semibold text-text-secondary">
             {getInitials(issue.assignee.full_name)}
           </span>
@@ -271,8 +271,12 @@ export function SprintPlanningView({
 
   // Sync local state when server re-renders with new sprint data
   useEffect(() => {
-    setBacklogIssues(initialBacklogIssues);
-    setSprintIssues(initialSprintIssues);
+    const syncFrame = window.requestAnimationFrame(() => {
+      setBacklogIssues(initialBacklogIssues);
+      setSprintIssues(initialSprintIssues);
+    });
+
+    return () => window.cancelAnimationFrame(syncFrame);
   }, [initialBacklogIssues, initialSprintIssues]);
 
   const sensors = useSensors(
@@ -494,8 +498,8 @@ export function SprintPlanningView({
       >
         <div className="flex flex-1 min-h-0 overflow-hidden pb-6 gap-4 px-10">
           {/* LEFT PANE — Backlog */}
-          <DroppablePane id="backlog" className="flex-1 rounded-xl border border-[#E8E4DE] bg-white overflow-hidden">
-            <div className="px-5 pt-4 pb-3 border-b border-[#E8E4DE]">
+          <DroppablePane id="backlog" className="flex-1 overflow-hidden rounded-xl border border-border bg-surface">
+            <div className="border-b border-border px-5 pt-4 pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-baseline gap-2">
                   <h2 className="text-[15px] font-semibold text-text">Backlog</h2>
@@ -567,10 +571,10 @@ export function SprintPlanningView({
           </DroppablePane>
 
           {/* RIGHT PANE — Sprint (warm tint) */}
-          <DroppablePane id="sprint" className="flex-1 rounded-r-xl border border-[#E8E4DE] border-l-2 border-l-[#C17B5A] bg-[#FDFBF8] overflow-hidden">
+          <DroppablePane id="sprint" className="flex-1 overflow-hidden rounded-r-xl border border-border border-l-2 border-l-accent bg-surface">
             {sprint ? (
               <>
-                <div className="px-5 pt-4 pb-3.5 border-b border-[#E8E4DE]">
+                <div className="border-b border-border px-5 pt-4 pb-3.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <DropdownMenu>
@@ -694,13 +698,13 @@ export function SprintPlanningView({
 
                   {/* Capacity bar */}
                   {(sprint.capacity ?? sprintPoints) > 0 && (
-                    <div className="mt-3 h-1.5 w-full rounded-[3px] bg-[#F0EDE7] overflow-hidden">
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-[3px] bg-surface-inset">
                       <div
                         className={cn(
                           "h-full rounded-[3px] transition-all",
                           sprint.capacity && sprintPoints > sprint.capacity
                             ? "bg-danger"
-                            : "bg-[#C17B5A]",
+                            : "bg-accent",
                         )}
                         style={{
                           width: `${Math.min(100, (sprintPoints / (sprint.capacity ?? sprintPoints)) * 100)}%`,
@@ -742,14 +746,14 @@ export function SprintPlanningView({
                   ))}
 
                   {/* Drop zone placeholder */}
-                  <div className="flex items-center justify-center flex-1 min-h-20 mx-5 my-3 rounded-lg border-2 border-dashed border-[#E8E4DE] text-xs text-[#C4C0BA]">
+                  <div className="mx-5 my-3 flex min-h-20 flex-1 items-center justify-center rounded-lg border-2 border-dashed border-border text-xs text-text-muted">
                     Drag issues here from backlog
                   </div>
                 </div>
 
                 {/* Team Load — per-person progress bars */}
                 {teamLoad.length > 0 && (
-                  <div className="border-t border-[#E8E4DE] px-5 py-3.5">
+                  <div className="border-t border-border px-5 py-3.5">
                     <div className="flex items-center justify-between mb-2.5">
                       <span className="text-[11px] font-medium uppercase tracking-[0.05em] text-text-secondary">
                         Team Load
@@ -761,14 +765,14 @@ export function SprintPlanningView({
                     <div className="flex flex-col gap-2">
                       {teamLoad.map((entry) => (
                         <div key={entry.userId} className="flex items-center gap-2">
-                          <div className="w-[22px] h-[22px] flex items-center justify-center shrink-0 rounded-full bg-[#E8E4DE]">
+                          <div className="flex h-[22px] w-[22px] items-center justify-center shrink-0 rounded-full bg-avatar">
                             <span className="text-[9px] font-semibold text-text-secondary">
                               {getInitials(entry.fullName)}
                             </span>
                           </div>
-                          <div className="flex-1 h-1.5 rounded-[3px] bg-[#F0EDE7] overflow-hidden">
+                          <div className="flex-1 h-1.5 overflow-hidden rounded-[3px] bg-surface-inset">
                             <div
-                              className="h-full rounded-[3px] bg-[#C17B5A] transition-all"
+                              className="h-full rounded-[3px] bg-accent transition-all"
                               style={{
                                 width: `${(entry.points / maxTeamPoints) * 100}%`,
                               }}

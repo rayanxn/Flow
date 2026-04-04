@@ -48,7 +48,7 @@ export function MagneticButton({
   };
 
   const variantStyles = {
-    primary: "bg-primary text-white",
+    primary: "bg-primary text-background",
     outline: "border border-border-strong text-text bg-transparent",
     inverted: "bg-surface text-primary",
   };

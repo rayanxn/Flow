@@ -39,7 +39,7 @@ export function ProjectSettingsClient({
   return (
     <div className="flex h-full">
       {/* Settings sub-nav */}
-      <nav className="w-44 shrink-0 py-6 px-4 border-r border-[#2E2E2C]/6">
+      <nav className="w-44 shrink-0 border-r border-border-subtle py-6 px-4">
         <span className="text-[10px] font-mono font-medium text-text-muted opacity-40 tracking-[0.08em] uppercase">
           Project
         </span>

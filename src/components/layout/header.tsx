@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useShell } from "@/components/layout/workspace-shell";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 interface HeaderProps {
   workspaceSlug: string;
@@ -48,14 +49,16 @@ export function Header({
       <button
         type="button"
         onClick={() => shell?.openPalette()}
-        className="flex items-center gap-2 bg-[#EDEAE4] rounded-lg px-4 py-2 text-sm text-text-secondary hover:opacity-80 transition-opacity"
+        className="hidden min-w-[210px] items-center gap-2 rounded-lg border border-border bg-surface-subtle px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-hover sm:flex"
       >
         <Search className="w-3.5 h-3.5" />
         <span className="flex-1 text-left text-[13px]">Search...</span>
-        <kbd className="hidden sm:inline-flex items-center rounded-sm bg-[#DFDBCF] px-1.5 py-0.5 text-[11px] text-text-muted font-mono">
+        <kbd className="inline-flex items-center rounded-sm border border-border-strong bg-surface-kbd px-1.5 py-0.5 text-[11px] text-text-muted font-mono">
           <span className="text-[11px]">&#8984;</span>K
         </kbd>
       </button>
+
+      <ThemeToggle />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

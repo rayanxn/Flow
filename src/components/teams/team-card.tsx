@@ -6,7 +6,7 @@ export function TeamCard({ team }: { team: TeamWithMembers }) {
   const initial = team.name.charAt(0).toUpperCase();
 
   return (
-    <div className="flex flex-col rounded-2xl overflow-clip bg-white border border-[#2E2E2C]/8">
+    <div className="flex flex-col overflow-clip rounded-2xl border border-border-input bg-surface">
       <div className="flex items-center justify-between py-4.5 px-6 bg-muted/30">
         <div className="flex items-center gap-3">
           <Avatar size="sm" className="shrink-0 size-8">
@@ -23,7 +23,7 @@ export function TeamCard({ team }: { team: TeamWithMembers }) {
             </span>
           </div>
         </div>
-        <span className="text-xs font-medium font-mono text-[#8B4049]">
+        <span className="text-xs font-medium font-mono text-danger-muted">
           {team.activeIssueCount} active {team.activeIssueCount === 1 ? "issue" : "issues"}
         </span>
       </div>
