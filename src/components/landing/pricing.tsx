@@ -72,46 +72,46 @@ export function Pricing() {
               key={plan.name}
               className={`flex flex-col rounded-3xl p-8 text-left ${
                 plan.dark
-                  ? "bg-primary text-background"
+                  ? "bg-primary text-white"
                   : "border border-border bg-surface"
               }`}
             >
               {/* Header */}
               <div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-sm font-semibold ${plan.dark ? "text-background" : "text-text"}`}>
+                  <span className={`text-sm font-semibold ${plan.dark ? "text-white" : "text-text"}`}>
                     {plan.name}
                   </span>
                   {plan.badge && (
-                    <span className="rounded-full bg-background/20 px-2.5 py-0.5 text-[11px] font-medium text-background">
+                    <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-medium text-white">
                       {plan.badge}
                     </span>
                   )}
                 </div>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className={`text-4xl font-bold ${plan.dark ? "text-background" : "text-text"}`}>
+                  <span className={`text-4xl font-bold ${plan.dark ? "text-white" : "text-text"}`}>
                     {plan.price}
                   </span>
                   {plan.priceSuffix && (
-                    <span className={`text-sm ${plan.dark ? "text-background/60" : "text-text-muted"}`}>
+                    <span className={`text-sm ${plan.dark ? "text-white/60" : "text-text-muted"}`}>
                       {plan.priceSuffix}
                     </span>
                   )}
                 </div>
-                <p className={`mt-2 text-sm ${plan.dark ? "text-background/50" : "text-text-muted"}`}>
+                <p className={`mt-2 text-sm ${plan.dark ? "text-white/50" : "text-text-muted"}`}>
                   {plan.sub}
                 </p>
               </div>
 
               {/* Divider */}
-              <div className={`my-6 h-px ${plan.dark ? "bg-background/10" : "bg-border"}`} />
+              <div className={`my-6 h-px ${plan.dark ? "bg-white/10" : "bg-border"}`} />
 
               {/* Features */}
               <ul className="flex-1 space-y-3">
                 {plan.features.map((feature) => (
                   <li
                     key={feature}
-                    className={`text-sm ${plan.dark ? "text-background/70" : "text-text-secondary"}`}
+                    className={`text-sm ${plan.dark ? "text-white/70" : "text-text-secondary"}`}
                   >
                     {feature}
                   </li>
@@ -123,7 +123,7 @@ export function Pricing() {
                 <MagneticButton
                   variant={plan.variant}
                   href="/signup"
-                  className={`w-full ${plan.dark ? "border-background/20" : ""}`}
+                  className={`w-full ${plan.dark ? "border-white/20" : ""}`}
                 >
                   {plan.cta}
                 </MagneticButton>

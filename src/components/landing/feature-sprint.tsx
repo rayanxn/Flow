@@ -25,7 +25,7 @@ export function FeatureSprint() {
             key={`${day}-${i}`}
             className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-medium transition-all duration-300 ${
               i === activeDay
-                ? "bg-primary text-background scale-110"
+                ? "bg-primary text-white scale-110"
                 : "text-text-secondary hover:bg-surface-hover"
             }`}
           >
@@ -42,7 +42,7 @@ export function FeatureSprint() {
       </div>
 
       {/* Button */}
-      <button className="mt-4 w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-background transition-transform duration-200 hover:scale-[1.02]">
+      <button className="mt-4 w-full rounded-full bg-primary px-6 py-3 text-sm font-medium text-white transition-transform duration-200 hover:scale-[1.02]">
         Commit Plan
       </button>
     </div>
