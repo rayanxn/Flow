@@ -264,7 +264,7 @@ export function BoardView({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex gap-4 p-6 h-full overflow-x-auto">
+      <div className="flex h-full flex-col gap-4 overflow-y-auto p-4 md:flex-row md:overflow-x-auto md:overflow-y-hidden md:p-6">
         {STATUS_ORDER.map((status) => (
           <BoardColumn
             key={status}

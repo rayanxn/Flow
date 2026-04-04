@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useMemo, useCallback, Suspense, useSyncExternalStore } from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
@@ -34,6 +34,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 const VIEW_STORAGE_KEY = "flow-my-issues-view";
 const SORT_STORAGE_KEY = "flow-my-issues-sort";
+const STORAGE_EVENT = "flow-my-issues-preferences";
 
 interface MyIssuesContentProps {
   issues: IssueWithDetails[];
@@ -42,32 +43,44 @@ interface MyIssuesContentProps {
   projects?: { id: string; name: string; color: string }[];
 }
 
+function subscribePreferences(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(STORAGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(STORAGE_EVENT, onStoreChange);
+  };
+}
+
+function getStoredViewMode(): ViewMode {
+  const storedView = window.localStorage.getItem(VIEW_STORAGE_KEY);
+  return storedView === "list" || storedView === "board" ? storedView : "list";
+}
+
+function getStoredSortKey(): SortKey {
+  const storedSort = window.localStorage.getItem(SORT_STORAGE_KEY);
+  return storedSort && SORT_OPTIONS.some((option) => option.key === storedSort)
+    ? (storedSort as SortKey)
+    : "priority";
+}
+
 function MyIssuesContentInner({
   issues,
   members = [],
   labels = [],
   projects = [],
 }: MyIssuesContentProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window === "undefined") {
-      return "list";
-    }
-
-    const storedView = window.localStorage.getItem(VIEW_STORAGE_KEY);
-    return storedView === "board" ? "board" : "list";
-  });
-  const [sortKey, setSortKey] = useState<SortKey>(() => {
-    if (typeof window === "undefined") {
-      return "priority";
-    }
-
-    const storedSort = window.localStorage.getItem(SORT_STORAGE_KEY);
-    if (storedSort && SORT_OPTIONS.some((option) => option.key === storedSort)) {
-      return storedSort as SortKey;
-    }
-
-    return "priority";
-  });
+  const viewMode = useSyncExternalStore(
+    subscribePreferences,
+    getStoredViewMode,
+    () => "list",
+  );
+  const sortKey = useSyncExternalStore(
+    subscribePreferences,
+    getStoredSortKey,
+    () => "priority",
+  );
   const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -98,13 +111,13 @@ function MyIssuesContentInner({
   });
 
   function handleViewChange(mode: ViewMode) {
-    setViewMode(mode);
-    localStorage.setItem(VIEW_STORAGE_KEY, mode);
+    window.localStorage.setItem(VIEW_STORAGE_KEY, mode);
+    window.dispatchEvent(new Event(STORAGE_EVENT));
   }
 
   function handleSortChange(key: string) {
-    setSortKey(key as SortKey);
-    localStorage.setItem(SORT_STORAGE_KEY, key);
+    window.localStorage.setItem(SORT_STORAGE_KEY, key);
+    window.dispatchEvent(new Event(STORAGE_EVENT));
   }
 
   const handleIssueClick = useCallback(
@@ -171,13 +184,13 @@ function MyIssuesContentInner({
       />
 
       {/* Controls row */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* View toggle */}
-        <div className="flex items-center gap-0.5 overflow-hidden rounded-lg bg-surface-inset p-0.5">
+        <div className="flex w-full items-center gap-0.5 overflow-hidden rounded-lg bg-surface-inset p-0.5 sm:w-auto">
           <button
             onClick={() => handleViewChange("list")}
             className={cn(
-              "px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors",
+              "flex-1 px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors sm:flex-none",
               viewMode === "list"
                 ? "bg-surface text-text"
                 : "text-text-secondary hover:text-text"
@@ -188,7 +201,7 @@ function MyIssuesContentInner({
           <button
             onClick={() => handleViewChange("board")}
             className={cn(
-              "px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors",
+              "flex-1 px-3.5 py-1.5 text-sm font-medium rounded-md transition-colors sm:flex-none",
               viewMode === "board"
                 ? "bg-surface text-text"
                 : "text-text-secondary hover:text-text"
@@ -201,7 +214,7 @@ function MyIssuesContentInner({
         {/* Sort dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-text-secondary border border-border rounded-lg hover:bg-surface-hover transition-colors">
+            <button className="flex w-full items-center justify-between gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-hover sm:w-auto sm:justify-start sm:py-1.5">
               <span>Sort: {activeSortLabel}</span>
               <ChevronDown className="w-3.5 h-3.5" />
             </button>

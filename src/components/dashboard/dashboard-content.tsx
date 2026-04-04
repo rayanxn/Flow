@@ -48,15 +48,15 @@ export function DashboardContent({
 
   return (
     <>
-      <div className="flex flex-1 gap-6 px-4 md:px-10 pt-6 pb-8">
-        <div className="flex flex-col" style={{ flexGrow: 1.6, flexBasis: 0 }}>
+      <div className="flex flex-1 flex-col gap-6 px-4 pt-6 pb-8 md:px-10 lg:flex-row">
+        <div className="flex flex-col lg:min-w-0" style={{ flexGrow: 1.6, flexBasis: 0 }}>
           <MyFocusCard
             issues={issues}
             workspaceSlug={workspaceSlug}
             onIssueClick={handleIssueClick}
           />
         </div>
-        <div className="flex flex-col flex-1" style={{ flexBasis: 0 }}>
+        <div className="flex flex-col lg:min-w-0 lg:flex-1" style={{ flexBasis: 0 }}>
           <RecentActivityCard
             activities={activities}
             workspaceSlug={workspaceSlug}

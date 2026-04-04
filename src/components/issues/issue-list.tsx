@@ -32,9 +32,9 @@ export function IssueList({ issues, showProject = true, onIssueClick }: IssueLis
   );
 
   return (
-    <div>
+    <div className="space-y-4 sm:space-y-0">
       {/* Column headers */}
-      <div className="flex items-center gap-3 px-6 py-2 border-b border-border text-[10px] text-text-muted uppercase tracking-wider font-medium">
+      <div className="hidden items-center gap-3 border-b border-border px-6 py-2 text-[10px] font-medium uppercase tracking-wider text-text-muted sm:flex">
         <div className="w-4 shrink-0" />
         <span className="w-[72px] shrink-0">ID</span>
         <span className="flex-1">Title</span>
@@ -74,7 +74,7 @@ function StatusGroup({
     <div>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 px-6 py-2.5 w-full hover:bg-surface-hover transition-colors"
+        className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 transition-colors hover:bg-surface-hover sm:rounded-none sm:px-6"
       >
         {expanded ? (
           <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
@@ -90,7 +90,7 @@ function StatusGroup({
       </button>
 
       {expanded && (
-        <div>
+        <div className="flex flex-col gap-2 px-4 pb-1 sm:block sm:px-0 sm:pb-0">
           {issues.map((issue) => (
             <IssueRow
               key={issue.id}

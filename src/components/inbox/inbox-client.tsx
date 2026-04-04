@@ -76,29 +76,29 @@ export function InboxClient({
   return (
     <div>
       {/* Title row: Inbox + tabs inline, mark all read on the right */}
-      <div className="flex items-center justify-between pb-4">
+      <div className="pb-4">
         <Tabs defaultValue="all" className="flex-1">
-          <div className="flex items-center gap-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
             <h1 className="text-[26px] font-bold text-text leading-8">
               Inbox
             </h1>
-            <TabsList className="gap-1 rounded-lg border-b-0 bg-surface-inset p-0.5">
+            <TabsList className="w-full gap-1 rounded-lg border-b-0 bg-surface-inset p-0.5 sm:w-auto">
               {TABS.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-md border-b-0 px-3.5 py-1.5 text-base data-[state=active]:bg-surface data-[state=active]:shadow-none data-[state=active]:border-b-0"
+                  className="flex-1 rounded-md border-b-0 px-3.5 py-1.5 text-base data-[state=active]:bg-surface data-[state=active]:shadow-none data-[state=active]:border-b-0 sm:flex-none"
                 >
                   {tab.label}
                 </TabsTrigger>
               ))}
             </TabsList>
-            <div className="flex-1" />
+            <div className="hidden flex-1 sm:block" />
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 disabled={isPending}
-                className="text-sm text-text-secondary hover:text-text transition-colors disabled:opacity-50"
+                className="text-left text-sm text-text-secondary transition-colors hover:text-text disabled:opacity-50 sm:text-right"
               >
                 Mark all as read
               </button>

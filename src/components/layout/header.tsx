@@ -65,12 +65,13 @@ export function Header({
       {/* Search trigger */}
       <button
         type="button"
+        aria-label="Search..."
         onClick={() => shell?.openPalette()}
-        className="hidden min-w-[210px] items-center gap-2 rounded-lg border border-border bg-surface-subtle px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-hover sm:flex"
+        className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface-subtle px-2.5 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-hover sm:min-w-[210px] sm:px-4"
       >
         <Search className="w-3.5 h-3.5" />
-        <span className="flex-1 text-left text-[13px]">Search...</span>
-        <kbd className="inline-flex items-center rounded-sm border border-border-strong bg-surface-kbd px-1.5 py-0.5 text-[11px] text-text-muted font-mono">
+        <span className="hidden flex-1 text-left text-[13px] sm:inline">Search...</span>
+        <kbd className="hidden items-center rounded-sm border border-border-strong bg-surface-kbd px-1.5 py-0.5 text-[11px] text-text-muted font-mono sm:inline-flex">
           <span className="text-[11px]">&#8984;</span>K
         </kbd>
       </button>
