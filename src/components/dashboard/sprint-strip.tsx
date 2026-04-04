@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { differenceInDays, format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import type { Tables, IssueStatus } from "@/lib/types";
 
@@ -8,6 +10,8 @@ interface SprintStripProps {
   sprint: Tables<"sprints">;
   issueCounts: Record<IssueStatus, number>;
   totalIssues: number;
+  workspaceSlug: string;
+  projectName: string | null;
 }
 
 const STATUS_BAR_ORDER: IssueStatus[] = [
@@ -35,6 +39,8 @@ export function SprintStrip({
   sprint,
   issueCounts,
   totalIssues,
+  workspaceSlug,
+  projectName,
 }: SprintStripProps) {
   const donePercent =
     totalIssues > 0 ? Math.round((issueCounts.done / totalIssues) * 100) : 0;
@@ -49,7 +55,7 @@ export function SprintStrip({
       : null;
 
   return (
-    <div className="flex items-center gap-6 rounded-xl border border-border bg-surface py-5 px-6">
+    <div className="flex flex-col gap-5 rounded-xl border border-border bg-surface px-6 py-5 lg:flex-row lg:items-center">
       {/* Progress ring */}
       <div className="relative shrink-0">
         <ProgressRing value={donePercent} size={52} strokeWidth={5}>
@@ -67,7 +73,12 @@ export function SprintStrip({
       </div>
 
       {/* Sprint info */}
-      <div className="shrink-0">
+      <div className="min-w-0 shrink-0">
+        {projectName && (
+          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+            {projectName}
+          </p>
+        )}
         <p className="text-base font-semibold text-text">{sprint.name}</p>
         <p className="text-[13px] text-text-secondary">
           {daysRemaining !== null && (
@@ -78,13 +89,18 @@ export function SprintStrip({
           {daysRemaining !== null && dateRange && <span> · </span>}
           {dateRange && <span>{dateRange}</span>}
         </p>
+        {sprint.goal && (
+          <p className="mt-1 max-w-xl truncate text-[13px] text-text-secondary">
+            Goal: {sprint.goal}
+          </p>
+        )}
       </div>
 
       {/* Divider */}
-      <div className="hidden sm:block h-9 w-px bg-border shrink-0" />
+      <div className="hidden h-9 w-px shrink-0 bg-border lg:block" />
 
       {/* Status bar — fills remaining space */}
-      <div className="hidden sm:flex flex-1 flex-col gap-2.5">
+      <div className="hidden flex-1 flex-col gap-2.5 sm:flex">
         <p className="text-[11px] font-medium tracking-[0.04em] text-text-secondary uppercase">
           Issues by Status
         </p>
@@ -117,6 +133,21 @@ export function SprintStrip({
             </span>
           ))}
         </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <Button asChild size="sm" variant="secondary">
+          <Link
+            href={`/${workspaceSlug}/projects/${sprint.project_id}/sprint-planning?sprint=${sprint.id}`}
+          >
+            Sprint Planning
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="ghost">
+          <Link href={`/${workspaceSlug}/analytics?tab=sprints&sprint=${sprint.id}`}>
+            Analytics
+          </Link>
+        </Button>
       </div>
     </div>
   );

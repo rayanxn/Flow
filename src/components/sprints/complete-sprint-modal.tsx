@@ -18,6 +18,7 @@ interface CompleteSprintModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sprint: Tables<"sprints">;
+  workspaceSlug: string;
   totalIssues: number;
   doneIssues: number;
   incompleteIssues: number;
@@ -27,6 +28,7 @@ export function CompleteSprintModal({
   open,
   onOpenChange,
   sprint,
+  workspaceSlug,
   totalIssues,
   doneIssues,
   incompleteIssues,
@@ -49,8 +51,8 @@ export function CompleteSprintModal({
 
     setLoading(false);
     onOpenChange(false);
-    router.refresh();
-  }, [sprint.id, onOpenChange, router]);
+    router.push(`/${workspaceSlug}/analytics?tab=sprints&sprint=${sprint.id}`);
+  }, [sprint.id, workspaceSlug, onOpenChange, router]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -59,6 +61,7 @@ export function CompleteSprintModal({
           <DialogTitle>Complete {sprint.name}</DialogTitle>
           <DialogDescription>
             {doneIssues} of {totalIssues} issue{totalIssues !== 1 ? "s" : ""} completed.
+            {" "}Flow will open sprint analytics after completion.
           </DialogDescription>
         </DialogHeader>
 
@@ -84,7 +87,7 @@ export function CompleteSprintModal({
             Cancel
           </Button>
           <Button onClick={handleComplete} disabled={loading}>
-            {loading ? "Completing..." : "Complete Sprint"}
+            {loading ? "Completing..." : "Complete & Review"}
           </Button>
         </DialogFooter>
       </DialogContent>

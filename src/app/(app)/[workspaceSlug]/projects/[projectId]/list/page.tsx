@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getProjectIssues } from "@/lib/queries/issues";
 import { getProjectById, getProjectLabels, getProjectSprints } from "@/lib/queries/projects";
 import { getWorkspaceMembers } from "@/lib/queries/members";
+import { getProjectActiveSprintSummary } from "@/lib/queries/sprints";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { ListPageClient } from "./list-client";
 import { ListViewContent } from "./list-view-content";
@@ -11,15 +12,16 @@ export default async function ListPage({
 }: {
   params: Promise<{ workspaceSlug: string; projectId: string }>;
 }) {
-  const { projectId } = await params;
+  const { workspaceSlug, projectId } = await params;
 
   const projectData = await getProjectById(projectId);
   if (!projectData) notFound();
 
-  const [issues, labels, sprints, members] = await Promise.all([
+  const [issues, labels, sprints, activeSprintSummary, members] = await Promise.all([
     getProjectIssues(projectId),
     getProjectLabels(projectId),
     getProjectSprints(projectId),
+    getProjectActiveSprintSummary(projectId),
     getWorkspaceMembers(projectData.workspace_id),
   ]);
 
@@ -27,21 +29,17 @@ export default async function ListPage({
   const hasIssues = issues.length > 0;
   const maxSortOrder = issues.reduce((max, i) => Math.max(max, i.sort_order), 0);
 
-  const activeSprint = sprints.find((s) => s.status === "active");
-  const sprintIssues = activeSprint
-    ? issues.filter((i) => i.sprint_id === activeSprint.id)
-    : [];
-  const sprintDone = sprintIssues.filter((i) => i.status === "done");
-
   return (
     <div className="py-2">
-      {activeSprint && (
+      {activeSprintSummary && (
         <SprintHeader
-          sprint={activeSprint}
-          totalIssues={sprintIssues.length}
-          doneIssues={sprintDone.length}
-          totalPoints={sprintIssues.reduce((s, i) => s + (i.story_points ?? 0), 0)}
-          donePoints={sprintDone.reduce((s, i) => s + (i.story_points ?? 0), 0)}
+          sprint={activeSprintSummary.sprint}
+          totalIssues={activeSprintSummary.totalIssues}
+          doneIssues={activeSprintSummary.doneIssues}
+          totalPoints={activeSprintSummary.totalPoints}
+          donePoints={activeSprintSummary.donePoints}
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
         />
       )}
 

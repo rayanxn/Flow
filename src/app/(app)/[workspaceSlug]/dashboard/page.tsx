@@ -36,7 +36,7 @@ export default async function DashboardPage({
 
   // Determine active sprint for sprint context
   let activeSprint = null;
-  let issueCounts: Record<IssueStatus, number> = {
+  const issueCounts: Record<IssueStatus, number> = {
     todo: 0,
     in_progress: 0,
     in_review: 0,
@@ -98,9 +98,10 @@ export default async function DashboardPage({
   const focusIssues = await enrichIssues(focusIssuesRaw ?? [], supabase);
 
   // Fetch recent activities and workspace members
-  const [recentActivities, members] = await Promise.all([
+  const [recentActivities, members, projects] = await Promise.all([
     getRecentActivities(workspace.id, 6),
     getWorkspaceMembers(workspace.id),
+    getWorkspaceProjects(workspace.id),
   ]);
 
   // Fetch full issue details for issue-type activities (needed by IssueDetailPanel)
@@ -125,6 +126,10 @@ export default async function DashboardPage({
     }
   }
 
+  const activeSprintProject = activeSprint
+    ? projects.find((project) => project.id === activeSprint.project_id) ?? null
+    : null;
+
   return (
     <div className="flex flex-col flex-1">
       {/* Breadcrumb */}
@@ -144,6 +149,8 @@ export default async function DashboardPage({
             sprint={activeSprint}
             issueCounts={issueCounts}
             totalIssues={totalIssues}
+            workspaceSlug={workspaceSlug}
+            projectName={activeSprintProject?.name ?? null}
           />
         </div>
       )}

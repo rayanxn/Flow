@@ -6,6 +6,7 @@ import {
   getProjectSprints,
 } from "@/lib/queries/projects";
 import { getWorkspaceMembers } from "@/lib/queries/members";
+import { getProjectActiveSprintSummary } from "@/lib/queries/sprints";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { BoardPageEmpty } from "./board-empty";
 import { BoardWithDetail } from "./board-with-detail";
@@ -15,15 +16,16 @@ export default async function BoardPage({
 }: {
   params: Promise<{ workspaceSlug: string; projectId: string }>;
 }) {
-  const { projectId } = await params;
+  const { workspaceSlug, projectId } = await params;
 
   const projectData = await getProjectById(projectId);
   if (!projectData) notFound();
 
-  const [issues, labels, sprints, members] = await Promise.all([
+  const [issues, labels, sprints, activeSprintSummary, members] = await Promise.all([
     getProjectIssues(projectId),
     getProjectLabels(projectId),
     getProjectSprints(projectId),
+    getProjectActiveSprintSummary(projectId),
     getWorkspaceMembers(projectData.workspace_id),
   ]);
 
@@ -40,21 +42,17 @@ export default async function BoardPage({
     );
   }
 
-  const activeSprint = sprints.find((s) => s.status === "active");
-  const sprintIssues = activeSprint
-    ? issues.filter((i) => i.sprint_id === activeSprint.id)
-    : [];
-  const sprintDone = sprintIssues.filter((i) => i.status === "done");
-
   return (
     <div className="h-full flex flex-col">
-      {activeSprint && (
+      {activeSprintSummary && (
         <SprintHeader
-          sprint={activeSprint}
-          totalIssues={sprintIssues.length}
-          doneIssues={sprintDone.length}
-          totalPoints={sprintIssues.reduce((s, i) => s + (i.story_points ?? 0), 0)}
-          donePoints={sprintDone.reduce((s, i) => s + (i.story_points ?? 0), 0)}
+          sprint={activeSprintSummary.sprint}
+          totalIssues={activeSprintSummary.totalIssues}
+          doneIssues={activeSprintSummary.doneIssues}
+          totalPoints={activeSprintSummary.totalPoints}
+          donePoints={activeSprintSummary.donePoints}
+          workspaceSlug={workspaceSlug}
+          projectId={projectId}
         />
       )}
       <div className="flex-1">

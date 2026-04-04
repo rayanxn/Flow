@@ -7,6 +7,7 @@ import {
   getSprintBurndown,
   getIssuesByLabel,
   getTeamVelocity,
+  getSprintSnapshot,
   getOverviewKPIs,
   getThroughputSeries,
   getCycleTimeDistribution,
@@ -24,6 +25,7 @@ import { OverviewKPICards } from "@/components/analytics/overview-kpi-cards";
 import { ThroughputChart } from "@/components/analytics/throughput-chart";
 import { CycleTimeChart } from "@/components/analytics/cycle-time-chart";
 import { AssigneeChart } from "@/components/analytics/assignee-chart";
+import { SprintSnapshotCard } from "@/components/analytics/sprint-snapshot-card";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export default async function AnalyticsPage({
@@ -45,7 +47,7 @@ export default async function AnalyticsPage({
   const hasSprints = sprints.length > 0;
 
   // Determine active tab — fall back to overview if no sprints
-  let activeTab: "overview" | "sprints" =
+  const activeTab: "overview" | "sprints" =
     resolvedSearchParams.tab === "sprints" && hasSprints ? "sprints" : "overview";
 
   const range = parseRange(resolvedSearchParams.range);
@@ -125,13 +127,14 @@ export default async function AnalyticsPage({
     );
   }
 
-  const [currentKPIs, previousKPIs, burndownData, labelData, velocityData] =
+  const [currentKPIs, previousKPIs, burndownData, labelData, velocityData, snapshot] =
     await Promise.all([
       getSprintAnalytics(selectedSprint.id),
       getPreviousSprintKPIs(selectedSprint),
       getSprintBurndown(selectedSprint.id, selectedSprint),
       getIssuesByLabel(result.workspace.id, selectedSprint.id),
       getTeamVelocity(result.workspace.id),
+      getSprintSnapshot(selectedSprint),
     ]);
 
   return (
@@ -146,6 +149,11 @@ export default async function AnalyticsPage({
       </div>
 
       <AnalyticsTabs activeTab={activeTab} hasSprints={hasSprints} />
+
+      <SprintSnapshotCard
+        snapshot={snapshot}
+        workspaceSlug={workspaceSlug}
+      />
 
       <KPICards current={currentKPIs} previous={previousKPIs} />
 

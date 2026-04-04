@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   DndContext,
@@ -19,7 +20,6 @@ import { Plus, Search, ChevronDown, X } from "lucide-react";
 import { format } from "date-fns";
 import { updateIssue } from "@/lib/actions/issues";
 import { startSprint } from "@/lib/actions/sprints";
-import { formatDateFull } from "@/lib/utils/dates";
 import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { cn } from "@/lib/utils/cn";
 import { getInitials } from "@/lib/utils/format";
@@ -44,6 +44,7 @@ import type { WorkspaceMember } from "@/lib/queries/members";
 // --- Types ---
 
 interface SprintPlanningViewProps {
+  workspaceSlug: string;
   projectId: string;
   workspaceId: string;
   sprint: Tables<"sprints"> | null;
@@ -73,6 +74,24 @@ const QUICK_FILTER_CONFIG: {
   { key: "my-issues", label: "My Issues", activeClass: "border-text-muted text-text bg-surface-hover" },
 ];
 
+const SPRINT_STATUS_CONFIG = {
+  active: {
+    label: "Active",
+    badgeClassName: "text-success border-success/40 bg-success/5",
+    dotClassName: "bg-success",
+  },
+  planning: {
+    label: "Planning",
+    badgeClassName: "text-warning border-warning/40 bg-warning/5",
+    dotClassName: "bg-warning",
+  },
+  completed: {
+    label: "Completed",
+    badgeClassName: "text-text-secondary border-border bg-background",
+    dotClassName: "bg-text-muted",
+  },
+} as const;
+
 // --- Helpers ---
 
 function findContainer(
@@ -97,9 +116,15 @@ function formatDateRange(start: string | null, end: string | null): string {
 
 // --- Draggable Issue Row ---
 
-function DraggableIssueRow({ issue }: { issue: IssueWithDetails }) {
+function DraggableIssueRow({
+  issue,
+  disabled = false,
+}: {
+  issue: IssueWithDetails;
+  disabled?: boolean;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: issue.id });
+    useDraggable({ id: issue.id, disabled });
 
   const style = transform
     ? { transform: `translate(${transform.x}px, ${transform.y}px)` }
@@ -111,10 +136,13 @@ function DraggableIssueRow({ issue }: { issue: IssueWithDetails }) {
       style={style}
       className={cn(
         "flex cursor-grab items-center gap-2.5 border-b border-border px-5 py-2.5 transition-colors hover:bg-surface-hover/60 active:cursor-grabbing",
+        disabled
+          ? "cursor-default"
+          : "cursor-grab hover:bg-surface-hover/60 active:cursor-grabbing",
         isDragging && "opacity-30",
       )}
-      {...attributes}
-      {...listeners}
+      {...(disabled ? {} : attributes)}
+      {...(disabled ? {} : listeners)}
     >
       <IssueRowContent issue={issue} />
     </div>
@@ -203,6 +231,7 @@ function DroppablePane({
 // --- Main Component ---
 
 export function SprintPlanningView({
+  workspaceSlug,
   projectId,
   workspaceId,
   sprint,
@@ -239,8 +268,12 @@ export function SprintPlanningView({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const selectableSprints = useMemo(
-    () => sprints.filter((s) => s.status !== "completed"),
+  const sprintGroups = useMemo(
+    () => ({
+      active: sprints.filter((s) => s.status === "active"),
+      planning: sprints.filter((s) => s.status === "planning"),
+      completed: sprints.filter((s) => s.status === "completed"),
+    }),
     [sprints],
   );
 
@@ -278,7 +311,6 @@ export function SprintPlanningView({
 
     return () => window.cancelAnimationFrame(syncFrame);
   }, [initialBacklogIssues, initialSprintIssues]);
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -341,12 +373,9 @@ export function SprintPlanningView({
     [sprintIssues],
   );
 
-  const donePoints = useMemo(
-    () => doneIssues.reduce((sum, i) => sum + (i.story_points ?? 0), 0),
-    [doneIssues],
-  );
-
   const incompleteIssues = sprintIssues.length - doneIssues.length;
+  const dragDisabled = sprint?.status === "completed";
+  const sprintStatusConfig = sprint ? SPRINT_STATUS_CONFIG[sprint.status] : null;
 
   const teamLoad = useMemo((): TeamLoadEntry[] => {
     const map = new Map<string, number>();
@@ -482,8 +511,10 @@ export function SprintPlanningView({
     const result = await startSprint(sprint.id);
     if (result.error) {
       setStartingError(result.error);
+      return;
     }
-  }, [sprint]);
+    router.refresh();
+  }, [router, sprint]);
 
   // --- Render ---
 
@@ -586,12 +617,10 @@ export function SprintPlanningView({
                             <span
                               className={cn(
                                 "text-[10px] font-semibold px-1.5 py-0.5 rounded border",
-                                sprint.status === "active"
-                                  ? "text-success border-success/40 bg-success/5"
-                                  : "text-warning border-warning/40 bg-warning/5",
+                                sprintStatusConfig?.badgeClassName,
                               )}
                             >
-                              {sprint.status === "active" ? "Active" : "Planning"}
+                              {sprintStatusConfig?.label}
                             </span>
                             <span className="text-sm font-semibold text-text">
                               {sprint.name}
@@ -600,12 +629,10 @@ export function SprintPlanningView({
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-[260px]">
-                          {selectableSprints.some((s) => s.status === "active") && (
+                          {sprintGroups.active.length > 0 && (
                             <>
                               <DropdownMenuLabel>Active</DropdownMenuLabel>
-                              {selectableSprints
-                                .filter((s) => s.status === "active")
-                                .map((s) => (
+                              {sprintGroups.active.map((s) => (
                                   <DropdownMenuItem
                                     key={s.id}
                                     className={cn(
@@ -614,7 +641,12 @@ export function SprintPlanningView({
                                     )}
                                     onSelect={() => handleSprintChange(s.id)}
                                   >
-                                    <span className="w-2 h-2 rounded-full bg-success shrink-0" />
+                                    <span
+                                      className={cn(
+                                        "w-2 h-2 rounded-full shrink-0",
+                                        SPRINT_STATUS_CONFIG.active.dotClassName,
+                                      )}
+                                    />
                                     <span className="text-sm text-text flex-1">{s.name}</span>
                                     <span className="text-xs text-text-muted">
                                       {formatDateRange(s.start_date, s.end_date)}
@@ -626,12 +658,10 @@ export function SprintPlanningView({
                                 ))}
                             </>
                           )}
-                          {selectableSprints.some((s) => s.status === "planning") && (
+                          {sprintGroups.planning.length > 0 && (
                             <>
                               <DropdownMenuLabel>Planning</DropdownMenuLabel>
-                              {selectableSprints
-                                .filter((s) => s.status === "planning")
-                                .map((s) => (
+                              {sprintGroups.planning.map((s) => (
                                   <DropdownMenuItem
                                     key={s.id}
                                     className={cn(
@@ -640,7 +670,12 @@ export function SprintPlanningView({
                                     )}
                                     onSelect={() => handleSprintChange(s.id)}
                                   >
-                                    <span className="w-2 h-2 rounded-full bg-warning shrink-0" />
+                                    <span
+                                      className={cn(
+                                        "w-2 h-2 rounded-full shrink-0",
+                                        SPRINT_STATUS_CONFIG.planning.dotClassName,
+                                      )}
+                                    />
                                     <span className="text-sm text-text flex-1">{s.name}</span>
                                     <span className="text-xs text-text-muted">
                                       {formatDateRange(s.start_date, s.end_date)}
@@ -650,6 +685,35 @@ export function SprintPlanningView({
                                     )}
                                   </DropdownMenuItem>
                                 ))}
+                            </>
+                          )}
+                          {sprintGroups.completed.length > 0 && (
+                            <>
+                              <DropdownMenuLabel>Completed</DropdownMenuLabel>
+                              {sprintGroups.completed.map((s) => (
+                                <DropdownMenuItem
+                                  key={s.id}
+                                  className={cn(
+                                    "flex items-center gap-2 cursor-pointer",
+                                    s.id === sprint.id && "bg-surface-hover",
+                                  )}
+                                  onSelect={() => handleSprintChange(s.id)}
+                                >
+                                  <span
+                                    className={cn(
+                                      "w-2 h-2 rounded-full shrink-0",
+                                      SPRINT_STATUS_CONFIG.completed.dotClassName,
+                                    )}
+                                  />
+                                  <span className="text-sm text-text flex-1">{s.name}</span>
+                                  <span className="text-xs text-text-muted">
+                                    {formatDateRange(s.start_date, s.end_date)}
+                                  </span>
+                                  {s.id === sprint.id && (
+                                    <X className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                                  )}
+                                </DropdownMenuItem>
+                              ))}
                             </>
                           )}
                           <DropdownMenuSeparator />
@@ -715,6 +779,13 @@ export function SprintPlanningView({
 
                   {/* Sprint actions */}
                   <div className="flex items-center gap-2 mt-3">
+                    {sprint.status !== "planning" && (
+                      <Button asChild size="sm" variant="ghost">
+                        <Link href={`/${workspaceSlug}/analytics?tab=sprints&sprint=${sprint.id}`}>
+                          Analytics
+                        </Link>
+                      </Button>
+                    )}
                     {sprint.status === "planning" && (
                       <Button
                         size="sm"
@@ -735,6 +806,12 @@ export function SprintPlanningView({
                     )}
                   </div>
 
+                  {dragDisabled && (
+                    <p className="mt-2 text-xs text-text-secondary">
+                      Completed sprint scope is read-only.
+                    </p>
+                  )}
+
                   {startingError && (
                     <p className="mt-2 text-xs text-danger">{startingError}</p>
                   )}
@@ -742,12 +819,18 @@ export function SprintPlanningView({
 
                 <div className="flex-1 overflow-y-auto">
                   {sprintIssues.map((issue) => (
-                    <DraggableIssueRow key={issue.id} issue={issue} />
+                    <DraggableIssueRow
+                      key={issue.id}
+                      issue={issue}
+                      disabled={dragDisabled}
+                    />
                   ))}
 
                   {/* Drop zone placeholder */}
                   <div className="mx-5 my-3 flex min-h-20 flex-1 items-center justify-center rounded-lg border-2 border-dashed border-border text-xs text-text-muted">
-                    Drag issues here from backlog
+                    {dragDisabled
+                      ? "Completed sprint. Scope is read-only."
+                      : "Drag issues here from backlog"}
                   </div>
                 </div>
 
@@ -822,6 +905,7 @@ export function SprintPlanningView({
           open={showCompleteModal}
           onOpenChange={setShowCompleteModal}
           sprint={sprint}
+          workspaceSlug={workspaceSlug}
           totalIssues={sprintIssues.length}
           doneIssues={doneIssues.length}
           incompleteIssues={incompleteIssues}
