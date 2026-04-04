@@ -10,6 +10,29 @@ export type ActiveSprintSummary = {
   donePoints: number;
 };
 
+async function getCompletedSprintScopeIssueIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  sprintId: string
+): Promise<string[] | null> {
+  const { data: completionActivity } = await supabase
+    .from("activities")
+    .select("metadata")
+    .eq("entity_type", "sprint")
+    .eq("action", "completed")
+    .eq("entity_id", sprintId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const metadata =
+    (completionActivity?.metadata as Record<string, unknown> | null) ?? null;
+  const scopeIssueIds = metadata?.scope_issue_ids;
+
+  if (!Array.isArray(scopeIssueIds)) return null;
+
+  return scopeIssueIds.filter((value): value is string => typeof value === "string");
+}
+
 export async function getBacklogIssues(
   projectId: string,
   excludeSprintId?: string
@@ -40,11 +63,27 @@ export async function getSprintIssues(
 ): Promise<IssueWithDetails[]> {
   const supabase = await createClient();
 
-  const { data: issues } = await supabase
-    .from("issues")
-    .select("*")
-    .eq("sprint_id", sprintId)
-    .order("sort_order", { ascending: true });
+  const completedSprintScopeIssueIds = await getCompletedSprintScopeIssueIds(
+    supabase,
+    sprintId,
+  );
+
+  let issues: Tables<"issues">[] | null = null;
+
+  if (completedSprintScopeIssueIds && completedSprintScopeIssueIds.length > 0) {
+    const { data } = await supabase
+      .from("issues")
+      .select("*")
+      .in("id", completedSprintScopeIssueIds);
+    issues = (data ?? []).sort((a, b) => a.sort_order - b.sort_order);
+  } else {
+    const { data } = await supabase
+      .from("issues")
+      .select("*")
+      .eq("sprint_id", sprintId)
+      .order("sort_order", { ascending: true });
+    issues = data ?? [];
+  }
 
   if (!issues || issues.length === 0) return [];
 

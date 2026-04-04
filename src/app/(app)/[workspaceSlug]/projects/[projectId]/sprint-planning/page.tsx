@@ -25,27 +25,27 @@ export default async function SprintPlanningPage({
   ]);
 
   // Determine which sprint to show:
-  // 1. URL param ?sprint=<id> if it matches a valid sprint
+  // 1. URL param ?sprint=<id> if it matches any sprint, including completed
   // 2. First "planning" sprint
   // 3. First "active" sprint
-  const selectableSprints = sprints.filter((s) => s.status !== "completed");
-  let selectedSprint =
-    resolvedSearchParams.sprint
-      ? selectableSprints.find((s) => s.id === resolvedSearchParams.sprint) ?? null
-      : null;
-
-  if (!selectedSprint) {
-    selectedSprint =
-      selectableSprints.find((s) => s.status === "planning") ??
-      selectableSprints.find((s) => s.status === "active") ??
-      null;
-  }
+  // 4. Most recent completed sprint
+  const activeSelectableSprints = sprints.filter((s) => s.status !== "completed");
+  const selectedSprint =
+    (resolvedSearchParams.sprint
+      ? sprints.find((s) => s.id === resolvedSearchParams.sprint) ?? null
+      : null) ??
+    activeSelectableSprints.find((s) => s.status === "planning") ??
+    activeSelectableSprints.find((s) => s.status === "active") ??
+    sprints.find((s) => s.status === "completed") ??
+    null;
 
   // Fetch backlog (excluding the selected sprint) and sprint issues in parallel
-  const [backlogIssues, sprintIssues] = await Promise.all([
+  const [backlogIssuesRaw, sprintIssues] = await Promise.all([
     getBacklogIssues(projectId, selectedSprint?.id),
     selectedSprint ? getSprintIssues(selectedSprint.id) : Promise.resolve([]),
   ]);
+  const sprintIssueIds = new Set(sprintIssues.map((issue) => issue.id));
+  const backlogIssues = backlogIssuesRaw.filter((issue) => !sprintIssueIds.has(issue.id));
 
   const planningViewKey = [
     selectedSprint?.id ?? "no-sprint",

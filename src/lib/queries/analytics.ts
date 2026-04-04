@@ -13,6 +13,7 @@ import { differenceInDays, startOfWeek, format, addWeeks } from "date-fns";
 type SprintCompletionInfo = {
   movedCount: number;
   completedAt: string | null;
+  scopeIssueIds: string[] | null;
 };
 
 async function getSprintCompletionInfo(
@@ -33,10 +34,16 @@ async function getSprintCompletionInfo(
     (completionActivity?.metadata as Record<string, unknown> | null) ?? null;
   const movedCount =
     typeof metadata?.moved_count === "number" ? metadata.moved_count : 0;
+  const scopeIssueIds = Array.isArray(metadata?.scope_issue_ids)
+    ? metadata.scope_issue_ids.filter(
+        (value): value is string => typeof value === "string"
+      )
+    : null;
 
   return {
     movedCount,
     completedAt: completionActivity?.created_at ?? null,
+    scopeIssueIds,
   };
 }
 
@@ -65,13 +72,19 @@ export async function getSprintAnalytics(
 ): Promise<SprintKPIs> {
   const supabase = await createClient();
 
-  const [{ data: issues }, completionInfo] = await Promise.all([
-    supabase
-      .from("issues")
-      .select("id, status, story_points, created_at, completed_at")
-      .eq("sprint_id", sprintId),
-    getSprintCompletionInfo(supabase, sprintId),
-  ]);
+  const completionInfo = await getSprintCompletionInfo(supabase, sprintId);
+  const hasScopeIssueIds =
+    !!completionInfo.scopeIssueIds && completionInfo.scopeIssueIds.length > 0;
+  const issuesQuery = hasScopeIssueIds
+    ? supabase
+        .from("issues")
+        .select("id, status, story_points, created_at, completed_at")
+        .in("id", completionInfo.scopeIssueIds!)
+    : supabase
+        .from("issues")
+        .select("id, status, story_points, created_at, completed_at")
+        .eq("sprint_id", sprintId);
+  const { data: issues } = await issuesQuery;
 
   if ((!issues || issues.length === 0) && completionInfo.movedCount === 0) {
     return {
@@ -86,7 +99,9 @@ export async function getSprintAnalytics(
   const sprintIssues = issues ?? [];
   const doneIssues = sprintIssues.filter((i) => i.status === "done");
   const issuesCompleted = doneIssues.length;
-  const totalIssues = sprintIssues.length + completionInfo.movedCount;
+  const totalIssues = hasScopeIssueIds
+    ? completionInfo.scopeIssueIds!.length
+    : sprintIssues.length + completionInfo.movedCount;
   const avgCycleTime = computeCycleTime(sprintIssues);
   const velocity = doneIssues.reduce(
     (sum, i) => sum + (i.story_points ?? 0),
@@ -130,19 +145,24 @@ export async function getSprintBurndown(
 ): Promise<BurndownPoint[]> {
   const supabase = await createClient();
 
-  const [{ data: sprintIssues }, completionInfo] = await Promise.all([
-    supabase
+  const completionInfo = await getSprintCompletionInfo(supabase, sprintId);
+  const scopeIssueIds = completionInfo.scopeIssueIds ?? [];
+
+  let issueIds = scopeIssueIds;
+  let totalIssues = scopeIssueIds.length;
+
+  if (scopeIssueIds.length === 0) {
+    const { data: sprintIssues } = await supabase
       .from("issues")
       .select("id")
-      .eq("sprint_id", sprintId),
-    getSprintCompletionInfo(supabase, sprintId),
-  ]);
+      .eq("sprint_id", sprintId);
 
-  const issueRows = sprintIssues ?? [];
-  const totalIssues = issueRows.length + completionInfo.movedCount;
+    const issueRows = sprintIssues ?? [];
+    issueIds = issueRows.map((i) => i.id);
+    totalIssues = issueRows.length + completionInfo.movedCount;
+  }
+
   if (totalIssues === 0) return [];
-
-  const issueIds = issueRows.map((i) => i.id);
 
   if (issueIds.length === 0) {
     return computeBurndownSeries([], sprint, totalIssues);
@@ -180,17 +200,25 @@ export async function getSprintSnapshot(
 ): Promise<SprintSnapshot> {
   const supabase = await createClient();
 
-  const [{ data: issues }, { data: project }, completionInfo] = await Promise.all([
-    supabase
-      .from("issues")
-      .select("status")
-      .eq("sprint_id", sprint.id),
+  const completionInfo = await getSprintCompletionInfo(supabase, sprint.id);
+  const hasScopeIssueIds =
+    !!completionInfo.scopeIssueIds && completionInfo.scopeIssueIds.length > 0;
+
+  const [{ data: issues }, { data: project }] = await Promise.all([
+    hasScopeIssueIds
+      ? supabase
+          .from("issues")
+          .select("status")
+          .in("id", completionInfo.scopeIssueIds!)
+      : supabase
+          .from("issues")
+          .select("status")
+          .eq("sprint_id", sprint.id),
     supabase
       .from("projects")
       .select("id, name")
       .eq("id", sprint.project_id)
       .single(),
-    getSprintCompletionInfo(supabase, sprint.id),
   ]);
 
   const sprintIssues = issues ?? [];
@@ -208,7 +236,9 @@ export async function getSprintSnapshot(
     startDate: sprint.start_date,
     endDate: sprint.end_date,
     completedAt: completionInfo.completedAt,
-    scopeIssues: sprintIssues.length + completionInfo.movedCount,
+    scopeIssues: hasScopeIssueIds
+      ? completionInfo.scopeIssueIds!.length
+      : sprintIssues.length + completionInfo.movedCount,
     issuesCompleted,
     rolledOverIssues: completionInfo.movedCount,
   };
@@ -226,20 +256,30 @@ export async function getIssuesByLabel(
 ): Promise<LabelCount[]> {
   const supabase = await createClient();
 
-  // Get issues (optionally filtered by sprint)
-  let issueQuery = supabase
-    .from("issues")
-    .select("id")
-    .eq("workspace_id", workspaceId);
+  let issueIds: string[] = [];
 
   if (sprintId) {
-    issueQuery = issueQuery.eq("sprint_id", sprintId);
+    const completionInfo = await getSprintCompletionInfo(supabase, sprintId);
+
+    if (completionInfo.scopeIssueIds && completionInfo.scopeIssueIds.length > 0) {
+      issueIds = completionInfo.scopeIssueIds;
+    } else {
+      const { data: issues } = await supabase
+        .from("issues")
+        .select("id")
+        .eq("workspace_id", workspaceId)
+        .eq("sprint_id", sprintId);
+      issueIds = (issues ?? []).map((issue) => issue.id);
+    }
+  } else {
+    const { data: issues } = await supabase
+      .from("issues")
+      .select("id")
+      .eq("workspace_id", workspaceId);
+    issueIds = (issues ?? []).map((issue) => issue.id);
   }
 
-  const { data: issues } = await issueQuery;
-  if (!issues || issues.length === 0) return [];
-
-  const issueIds = issues.map((i) => i.id);
+  if (issueIds.length === 0) return [];
 
   // Get issue_labels joins
   const { data: issueLabels } = await supabase

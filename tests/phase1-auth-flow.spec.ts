@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../src/lib/types";
 
 /**
  * Phase 1 Verification #1 (from issue #3):
@@ -17,7 +18,7 @@ const TEST_FULL_NAME = "E2E Tester";
 const TEST_WORKSPACE_NAME = `Test Workspace ${Date.now()}`;
 const TEST_WORKSPACE_SLUG = `test-ws-${Date.now()}`;
 
-let adminClient: ReturnType<typeof createClient>;
+let adminClient: SupabaseClient<Database>;
 let testUserId: string | null = null;
 
 test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {

@@ -198,14 +198,19 @@ export async function completeSprint(
     return { error: "Only active sprints can be completed" };
   }
 
-  // Count and move incomplete issues to backlog
-  const { data: incompleteIssues } = await supabase
+  // Capture the sprint scope before moving issues so completed sprint analytics can
+  // reconstruct the original sprint composition later.
+  const { data: sprintIssues, error: sprintIssuesError } = await supabase
     .from("issues")
-    .select("id")
-    .eq("sprint_id", sprintId)
-    .neq("status", "done");
+    .select("id, status")
+    .eq("sprint_id", sprintId);
 
-  const movedCount = incompleteIssues?.length ?? 0;
+  if (sprintIssuesError) {
+    return { error: sprintIssuesError.message };
+  }
+
+  const scopeIssueIds = (sprintIssues ?? []).map((issue) => issue.id);
+  const movedCount = (sprintIssues ?? []).filter((issue) => issue.status !== "done").length;
 
   if (movedCount > 0) {
     const { error: moveError } = await supabase
@@ -248,6 +253,7 @@ export async function completeSprint(
           name: data.name,
           project_id: data.project_id,
           moved_count: movedCount,
+          scope_issue_ids: scopeIssueIds,
         },
       });
 
@@ -314,4 +320,3 @@ export async function deleteSprint(
   revalidatePath("/", "layout");
   return { data: undefined };
 }
-
