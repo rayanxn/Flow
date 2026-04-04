@@ -1,19 +1,18 @@
 import { expect, test } from "@playwright/test";
 
-const BASE_URL = "http://localhost:3001";
 const WS = "/pw-workspace";
 
 test.use({ viewport: { width: 375, height: 812 } });
 
 async function openFrontendProject(page: import("@playwright/test").Page) {
-  await page.goto(`${BASE_URL}${WS}/projects`);
+  await page.goto(`${WS}/projects`);
   await page.getByRole("link", { name: /Frontend v2\.4/i }).click();
 }
 
 test("dashboard stacks recent activity below the primary content on mobile", async ({
   page,
 }) => {
-  await page.goto(`${BASE_URL}${WS}/dashboard`);
+  await page.goto(`${WS}/dashboard`);
 
   const primary = page.getByRole("heading", { name: "My Top Issues" });
   const secondary = page.getByRole("heading", { name: "Recent Activity" });
@@ -30,7 +29,7 @@ test("dashboard stacks recent activity below the primary content on mobile", asy
 });
 
 test("command palette stays inside the mobile viewport", async ({ page }) => {
-  await page.goto(`${BASE_URL}${WS}/dashboard`);
+  await page.goto(`${WS}/dashboard`);
   await page.getByRole("button", { name: "Search..." }).click();
 
   const input = page.getByPlaceholder("Search issues, projects, actions...");
@@ -54,7 +53,7 @@ test("project tabs remain visible without wrapping on mobile", async ({ page }) 
 test("my issues shows assigned issue titles as readable mobile cards", async ({
   page,
 }) => {
-  await page.goto(`${BASE_URL}${WS}/my-issues`);
+  await page.goto(`${WS}/my-issues`);
 
   const issueTitle = page.getByText("Redesign onboarding flow").first();
   await expect(issueTitle).toBeVisible();
@@ -106,7 +105,7 @@ test("sprint planning stacks backlog and sprint panes on mobile", async ({
 });
 
 test("analytics KPI cards fit the mobile viewport", async ({ page }) => {
-  await page.goto(`${BASE_URL}${WS}/analytics`);
+  await page.goto(`${WS}/analytics`);
 
   await expect(page.getByText("Issues Completed")).toBeVisible();
   await expect(page.getByText("Avg Cycle Time")).toBeVisible();
@@ -117,7 +116,7 @@ test("analytics KPI cards fit the mobile viewport", async ({ page }) => {
 test("older unread inbox notifications stay visually distinct on mobile", async ({
   page,
 }) => {
-  await page.goto(`${BASE_URL}${WS}/inbox`);
+  await page.goto(`${WS}/inbox`);
 
   const olderUnreadRow = page
     .locator('[role="button"]')
