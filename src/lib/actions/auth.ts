@@ -3,6 +3,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse } from "@/lib/types";
+import { buildAuthRedirectUrl, normalizeRedirectPath } from "@/lib/utils/redirect-path";
+import {
+  resolvePostAuthRedirect,
+} from "@/lib/utils/auth-redirect";
 
 export async function signUp(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
@@ -10,6 +14,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
   const fullName = formData.get("fullName") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const nextPath = formData.get("next") as string | null;
 
   if (!email || !password || !fullName) {
     return { error: "All fields are required" };
@@ -31,7 +36,7 @@ export async function signUp(formData: FormData): Promise<ActionResponse> {
     return { error: error.message };
   }
 
-  redirect("/onboarding");
+  redirect(await resolvePostAuthRedirect(nextPath));
 }
 
 export async function signIn(formData: FormData): Promise<ActionResponse> {
@@ -39,6 +44,7 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const nextPath = formData.get("next") as string | null;
 
   if (!email || !password) {
     return { error: "Email and password are required" };
@@ -53,13 +59,19 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
     return { error: error.message };
   }
 
-  redirect("/onboarding");
+  redirect(await resolvePostAuthRedirect(nextPath));
 }
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");
+}
+
+export async function signOutTo(nextPath: string | null | undefined): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect(buildAuthRedirectUrl("/login", nextPath));
 }
 
 export async function forgotPassword(
@@ -104,13 +116,22 @@ export async function resetPassword(
   redirect("/login");
 }
 
-export async function signInWithOAuth(provider: "google" | "github") {
+export async function signInWithOAuth(
+  provider: "google" | "github",
+  nextPath?: string | null,
+) {
   const supabase = await createClient();
+  const redirectUrl = new URL("/callback", process.env.NEXT_PUBLIC_APP_URL);
+  const safeNextPath = normalizeRedirectPath(nextPath);
+
+  if (safeNextPath) {
+    redirectUrl.searchParams.set("next", safeNextPath);
+  }
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/callback`,
+      redirectTo: redirectUrl.toString(),
     },
   });
 

@@ -81,32 +81,13 @@ setup("authenticate", async ({ page }) => {
       await page.getByRole("button", { name: "6 – 20" }).click();
       await page.getByRole("button", { name: "Continue" }).click();
 
-      const reachedDashboardAfterWorkspace = await page
-        .waitForURL(/dashboard/, { timeout: 3000 })
-        .then(() => true)
-        .catch(() => false);
+      await expect(
+        page.getByRole("heading", { name: /create your first project/i })
+      ).toBeVisible({ timeout: 10000 });
 
-      if (!reachedDashboardAfterWorkspace) {
-        // Step 2: skip invites
-        await expect(page.getByText("Invite your team")).toBeVisible({
-          timeout: 10000,
-        });
-        await page.getByRole("button", { name: /skip/i }).click();
-
-        const reachedDashboardAfterInvite = await page
-          .waitForURL(/dashboard/, { timeout: 3000 })
-          .then(() => true)
-          .catch(() => false);
-
-        if (!reachedDashboardAfterInvite) {
-          // Step 3: skip project creation
-          await expect(
-            page.getByRole("heading", { name: /project/i })
-          ).toBeVisible({ timeout: 10000 });
-          await page.getByRole("button", { name: /skip|finish/i }).click();
-          await expect(page).toHaveURL(/dashboard/, { timeout: 15000 });
-        }
-      }
+      await page.getByPlaceholder("My First Project").fill("Playwright Project");
+      await page.getByRole("button", { name: "Create Project" }).click();
+      await expect(page).toHaveURL(/\/projects\/.*\/board/, { timeout: 15000 });
     }
   }
 

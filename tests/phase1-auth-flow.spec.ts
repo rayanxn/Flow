@@ -4,7 +4,7 @@ import type { Database } from "../src/lib/types";
 
 /**
  * Phase 1 Verification #1 (from issue #3):
- * Sign up → log in → see onboarding → create workspace → land on dashboard
+ * Sign up → log in → see onboarding → create workspace → create first project → land on board
  *
  * Uses the Supabase admin API to create a confirmed test user,
  * then drives the full flow through the browser.
@@ -21,7 +21,7 @@ const TEST_WORKSPACE_SLUG = `test-ws-${Date.now()}`;
 let adminClient: SupabaseClient<Database>;
 let testUserId: string | null = null;
 
-test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
+test.describe.serial("Phase 1: Auth → Onboarding → Board", () => {
   test.beforeAll(async () => {
     adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -110,7 +110,7 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
     await expect(page).toHaveURL(/onboarding/, { timeout: 10000 });
   });
 
-  test("4. Onboarding step 1: create workspace", async ({ page }) => {
+  test("4. Onboarding creates the workspace and first project", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(TEST_EMAIL);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
@@ -119,7 +119,7 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
 
     // Step 1 UI
     await expect(page.getByText("Set up your workspace")).toBeVisible();
-    await expect(page.getByText("Step 1 of 3", { exact: false })).toBeVisible();
+    await expect(page.getByText("Step 1 of 2", { exact: false })).toBeVisible();
 
     // Fill workspace name
     await page.getByPlaceholder("Acme Inc").fill(TEST_WORKSPACE_NAME);
@@ -139,27 +139,57 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
     await page.getByRole("button", { name: "Continue" }).click();
 
     // Should move to step 2
-    await expect(page.getByText("Invite your team")).toBeVisible({
+    await expect(page.getByText("Create your first project")).toBeVisible({
       timeout: 10000,
     });
-    await expect(page.getByText("Step 2 of 3", { exact: false })).toBeVisible();
+    await expect(page.getByText("Step 2 of 2", { exact: false })).toBeVisible();
+
+    await page.getByPlaceholder("My First Project").fill("Onboarding Project");
+    await page.getByRole("button", { name: "Create Project" }).click();
+
+    await expect(page).toHaveURL(new RegExp(`${TEST_WORKSPACE_SLUG}/projects/.*/board`), {
+      timeout: 15000,
+    });
+    await expect(page.getByRole("button", { name: /create first issue/i })).toBeVisible();
   });
 
-  test("5. Onboarding step 2: skip invite → step 3: skip project → land on dashboard", async ({
+  test("5. Board-first setup is visible on the new project", async ({
     page,
   }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(TEST_EMAIL);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
     await page.getByRole("button", { name: "Sign In" }).click();
+    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
-    // User already has a workspace from test 4, so should redirect to dashboard
-    await expect(page).toHaveURL(new RegExp(`${TEST_WORKSPACE_SLUG}/dashboard`), {
-      timeout: 10000,
-    });
+    const { data: workspace } = await adminClient
+      .from("workspaces")
+      .select("id")
+      .eq("slug", TEST_WORKSPACE_SLUG)
+      .single();
+
+    const { data: project } = await adminClient
+      .from("projects")
+      .select("id")
+      .eq("workspace_id", workspace.id)
+      .order("created_at", { ascending: true })
+      .single();
+
+    await page.goto(`/${TEST_WORKSPACE_SLUG}/projects/${project.id}/board`);
+
+    await expect(page.getByRole("button", { name: /create first issue/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /create first sprint/i })).toBeVisible();
   });
 
-  test("6. Dashboard shows app shell with sidebar", async ({ page }) => {
+  test("6. Subsequent login redirects to dashboard", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel(/email/i).fill(TEST_EMAIL);
+    await page.getByLabel(/password/i).fill(TEST_PASSWORD);
+    await page.getByRole("button", { name: "Sign In" }).click();
+    await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
+  });
+
+  test("7. Dashboard shows app shell with sidebar", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(TEST_EMAIL);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
@@ -183,7 +213,7 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
     await expect(page.getByText("ET", { exact: true })).toBeVisible();
   });
 
-  test("7. Sidebar navigation works", async ({ page }) => {
+  test("8. Sidebar navigation works", async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(TEST_EMAIL);
     await page.getByLabel(/password/i).fill(TEST_PASSWORD);
@@ -206,7 +236,7 @@ test.describe.serial("Phase 1: Auth → Onboarding → Dashboard", () => {
     await expect(page).toHaveURL(/dashboard/);
   });
 
-  test("8. Unauthenticated user is redirected to login", async ({ page }) => {
+  test("9. Unauthenticated user is redirected to login", async ({ page }) => {
     // Fresh context, no cookies — should redirect to login
     await page.goto(`/${TEST_WORKSPACE_SLUG}/dashboard`);
     await expect(page).toHaveURL(/login/, { timeout: 10000 });

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResponse, Tables } from "@/lib/types";
 import { createActivity } from "@/lib/actions/activities";
+import { createWorkspaceLinkInvite } from "@/lib/actions/invites";
 
 export async function createWorkspace(
   formData: FormData
@@ -101,6 +102,20 @@ export async function createProject(
     } = await supabase.auth.getUser();
 
     if (user) {
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("id, primary_project_id")
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (membership && !membership.primary_project_id) {
+        await supabase
+          .from("workspace_members")
+          .update({ primary_project_id: data.id })
+          .eq("id", membership.id);
+      }
+
       await createActivity({
         supabase,
         workspaceId,
@@ -122,34 +137,20 @@ export async function createWorkspaceInvite(
   workspaceId: string,
   role: "admin" | "member" = "member"
 ): Promise<ActionResponse<Tables<"workspace_invites">>> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "Not authenticated" };
+  if (role === "admin") {
+    return { error: "Admin invites must be created as targeted email invites" };
   }
 
-  const { data, error } = await supabase
-    .from("workspace_invites")
-    .insert({
-      workspace_id: workspaceId,
-      role,
-      created_by: user.id,
-      expires_at: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) {
-    return { error: error.message };
+  const result = await createWorkspaceLinkInvite(workspaceId);
+  if (result.error) {
+    return result;
   }
 
-  return { data };
+  if (!result.data) {
+    return { error: "Unable to create invite link" };
+  }
+
+  return { data: result.data.invite };
 }
 
 export async function updateWorkspace(
@@ -338,6 +339,13 @@ export async function removeMember(
   return { data: undefined };
 }
 
-export async function finishOnboarding(workspaceSlug: string): Promise<void> {
+export async function finishOnboarding(
+  workspaceSlug: string,
+  projectId?: string,
+): Promise<void> {
+  if (projectId) {
+    redirect(`/${workspaceSlug}/projects/${projectId}/board`);
+  }
+
   redirect(`/${workspaceSlug}/dashboard`);
 }

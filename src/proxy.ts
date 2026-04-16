@@ -1,10 +1,23 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { normalizeRedirectPath } from "@/lib/utils/redirect-path";
 
-const PUBLIC_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password", "/callback"];
+const PUBLIC_PREFIXES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/callback",
+  "/join",
+];
 const AUTH_PREFIXES = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
-export async function middleware(request: NextRequest) {
+function getRequestedPath(request: NextRequest) {
+  const search = request.nextUrl.search || "";
+  return `${request.nextUrl.pathname}${search}`;
+}
+
+export async function proxy(request: NextRequest) {
   const { user, supabaseResponse } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
@@ -12,17 +25,19 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = isLandingPage || PUBLIC_PREFIXES.some((route) => pathname.startsWith(route));
   const isAuthPage = AUTH_PREFIXES.some((route) => pathname.startsWith(route));
 
-  // Unauthenticated users can only access public routes
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("next", getRequestedPath(request));
     return NextResponse.redirect(url);
   }
 
-  // Authenticated users on auth pages → redirect to onboarding or workspace
   if (user && isAuthPage) {
+    const nextPath = normalizeRedirectPath(request.nextUrl.searchParams.get("next"));
     const url = request.nextUrl.clone();
-    url.pathname = "/onboarding";
+    url.pathname = nextPath ?? "/";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

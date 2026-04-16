@@ -4,6 +4,8 @@ export type IssueStatus = "todo" | "in_progress" | "in_review" | "done";
 export type IssuePriority = 0 | 1 | 2 | 3;
 export type WorkspaceRole = "owner" | "admin" | "member";
 export type MemberRole = "admin" | "member";
+export type WorkspaceInviteType = "email" | "link";
+export type WorkspaceInviteStatus = "pending" | "accepted" | "revoked" | "expired";
 export type SprintStatus = "planning" | "active" | "completed";
 export type NotificationType = "mention" | "assigned" | "comment" | "status_change" | "general";
 

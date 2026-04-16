@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createWorkspaceInvite } from "@/lib/actions/workspaces";
+import { createWorkspaceLinkInvite } from "@/lib/actions/invites";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +22,11 @@ export function InviteMemberButton({ workspaceId }: { workspaceId: string }) {
     setInviteLink(null);
     setCopied(false);
     startTransition(async () => {
-      const result = await createWorkspaceInvite(workspaceId, "member");
+      const result = await createWorkspaceLinkInvite(workspaceId);
       if (result.error) {
         setError(result.error);
-      } else if (result.data) {
-        const code = result.data.code;
-        const link = `${window.location.origin}/join/${code}`;
-        setInviteLink(link);
+      } else if (result.data?.url) {
+        setInviteLink(result.data.url);
       }
     });
     setOpen(true);

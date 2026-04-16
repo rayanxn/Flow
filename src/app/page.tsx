@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LandingPage } from "@/components/landing/landing-page";
+import { getDefaultSignedInPath } from "@/lib/utils/auth-redirect";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -12,18 +13,5 @@ export default async function Home() {
     return <LandingPage />;
   }
 
-  // Check if user has a workspace
-  const { data: membership } = await supabase
-    .from("workspace_members")
-    .select("workspace:workspaces(slug)")
-    .eq("user_id", user.id)
-    .limit(1)
-    .single();
-
-  if (membership?.workspace) {
-    const workspace = membership.workspace as { slug: string };
-    redirect(`/${workspace.slug}/dashboard`);
-  }
-
-  redirect("/onboarding");
+  redirect(await getDefaultSignedInPath());
 }

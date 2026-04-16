@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   createWorkspace,
   createProject,
-  createWorkspaceInvite,
   finishOnboarding,
 } from "@/lib/actions/workspaces";
 import type { ActionResponse, Tables } from "@/lib/types";
@@ -40,7 +39,7 @@ function slugify(value: string) {
 function ProgressBar({ step }: { step: number }) {
   return (
     <div className="flex items-center gap-1.5">
-      {[1, 2, 3].map((s) => (
+      {[1, 2].map((s) => (
         <div
           key={s}
           className={cn(
@@ -63,7 +62,7 @@ function TopBar({ step }: { step: number }) {
       <span className="font-serif text-xl text-text">Flow</span>
       <ProgressBar step={step} />
       <span className="uppercase tracking-wider text-xs font-medium text-text-secondary">
-        Step {step} of 3
+        Step {step} of 2
       </span>
     </header>
   );
@@ -86,12 +85,6 @@ function StepWorkspace({
 
   // Keep slug in sync with name unless user manually edits
   const [slugTouched, setSlugTouched] = useState(false);
-
-  useEffect(() => {
-    if (!slugTouched) {
-      setSlug(slugify(name));
-    }
-  }, [name, slugTouched]);
 
   async function action(
     _prev: WorkspaceState,
@@ -123,7 +116,13 @@ function StepWorkspace({
           name="name"
           placeholder="Acme Inc"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            const nextName = e.target.value;
+            setName(nextName);
+            if (!slugTouched) {
+              setSlug(slugify(nextName));
+            }
+          }}
           required
         />
       </div>
@@ -177,87 +176,7 @@ function StepWorkspace({
 }
 
 // ---------------------------------------------------------------------------
-// Step 2 – Invite
-// ---------------------------------------------------------------------------
-
-function StepInvite({
-  workspace,
-  onContinue,
-}: {
-  workspace: Tables<"workspaces">;
-  onContinue: () => void;
-}) {
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function generate() {
-      const result = await createWorkspaceInvite(workspace.id, "member");
-      if (result.error) {
-        setError(result.error);
-      } else if (result.data) {
-        const origin = typeof window !== "undefined" ? window.location.origin : "";
-        setInviteUrl(`${origin}/invite/${result.data.id}`);
-      }
-      setLoading(false);
-    }
-    generate();
-  }, [workspace.id]);
-
-  async function copyToClipboard() {
-    if (!inviteUrl) return;
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback: select the input
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      {error && <p className="text-sm text-danger">{error}</p>}
-
-      <div className="flex flex-col gap-2">
-        <Label>Invite Link</Label>
-        <div className="flex gap-2">
-          <Input
-            readOnly
-            value={loading ? "Generating link..." : inviteUrl ?? ""}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            onClick={copyToClipboard}
-            disabled={loading || !inviteUrl}
-          >
-            {copied ? "Copied!" : "Copy"}
-          </Button>
-        </div>
-      </div>
-
-      <Button type="button" size="lg" className="w-full" onClick={onContinue}>
-        Continue
-      </Button>
-
-      <button
-        type="button"
-        onClick={onContinue}
-        className="text-sm text-text-muted hover:text-text-secondary transition-colors text-center"
-      >
-        Skip for now
-      </button>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Step 3 – First project
+// Step 2 – First project
 // ---------------------------------------------------------------------------
 
 type ProjectState = ActionResponse<Tables<"projects">> | null;
@@ -277,7 +196,7 @@ function StepProject({
     formData.set("color", color);
     const result = await createProject(formData);
     if (result.data) {
-      await finishOnboarding(workspace.slug);
+      await finishOnboarding(workspace.slug, result.data.id);
     }
     return result;
   }
@@ -286,10 +205,6 @@ function StepProject({
     action,
     null,
   );
-
-  async function skip() {
-    await finishOnboarding(workspace.slug);
-  }
 
   return (
     <form action={formAction} className="flex flex-col gap-6">
@@ -340,16 +255,8 @@ function StepProject({
       </div>
 
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
-        {pending ? "Creating..." : "Continue"}
+        {pending ? "Creating..." : "Create Project"}
       </Button>
-
-      <button
-        type="button"
-        onClick={skip}
-        className="text-sm text-text-muted hover:text-text-secondary transition-colors text-center"
-      >
-        Skip for now
-      </button>
     </form>
   );
 }
@@ -364,12 +271,8 @@ const STEP_META: Record<number, { title: string; subtitle: string }> = {
     subtitle: "This is where your team will plan, track, and ship.",
   },
   2: {
-    title: "Invite your team",
-    subtitle: "Share this link with your teammates.",
-  },
-  3: {
     title: "Create your first project",
-    subtitle: "Projects organize your team\u2019s work.",
+    subtitle: "You’ll land on its board so you can start with real work right away.",
   },
 };
 
@@ -404,13 +307,6 @@ export function OnboardingWizard() {
           )}
 
           {step === 2 && workspace && (
-            <StepInvite
-              workspace={workspace}
-              onContinue={() => setStep(3)}
-            />
-          )}
-
-          {step === 3 && workspace && (
             <StepProject workspace={workspace} />
           )}
         </div>

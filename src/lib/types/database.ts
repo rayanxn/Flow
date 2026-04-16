@@ -131,33 +131,72 @@ export type Database = {
       };
       workspace_invites: {
         Row: {
+          accepted_at: string | null;
+          accepted_by: string | null;
           id: string;
           workspace_id: string;
           code: string;
+          email: string | null;
+          invite_type: "email" | "link";
           role: "admin" | "member";
           created_by: string;
           expires_at: string | null;
           created_at: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
         };
         Insert: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
           id?: string;
           workspace_id: string;
           code?: string;
+          email?: string | null;
+          invite_type?: "email" | "link";
           role?: "admin" | "member";
           created_by: string;
           expires_at?: string | null;
           created_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
         };
         Update: {
+          accepted_at?: string | null;
+          accepted_by?: string | null;
           id?: string;
           workspace_id?: string;
           code?: string;
+          email?: string | null;
+          invite_type?: "email" | "link";
           role?: "admin" | "member";
           created_by?: string;
           expires_at?: string | null;
           created_at?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "workspace_invites_accepted_by_fkey";
+            columns: ["accepted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workspace_invites_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "workspace_invites_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "workspace_invites_workspace_id_fkey";
             columns: ["workspace_id"];

@@ -25,7 +25,9 @@ export default async function TeamsPage({
         <h1 className="text-2xl font-semibold tracking-[-0.02em] text-text">
           Teams
         </h1>
-        <InviteMemberButton workspaceId={result.workspace.id} />
+        {(result.role === "owner" || result.role === "admin") && (
+          <InviteMemberButton workspaceId={result.workspace.id} />
+        )}
       </div>
       {teams.length > 0 ? (
         <TeamsList teams={teams} />

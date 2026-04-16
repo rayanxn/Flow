@@ -6,6 +6,7 @@ import {
   getProjectSprints,
 } from "@/lib/queries/projects";
 import { getWorkspaceMembers } from "@/lib/queries/members";
+import { getWorkspaceBySlug } from "@/lib/queries/workspaces";
 import { getProjectActiveSprintSummary } from "@/lib/queries/sprints";
 import { SprintHeader } from "@/components/sprints/sprint-header";
 import { BoardPageEmpty } from "./board-empty";
@@ -21,23 +22,33 @@ export default async function BoardPage({
   const projectData = await getProjectById(projectId);
   if (!projectData) notFound();
 
-  const [issues, labels, sprints, activeSprintSummary, members] = await Promise.all([
+  const [issues, labels, sprints, activeSprintSummary, members, workspaceResult] = await Promise.all([
     getProjectIssues(projectId),
     getProjectLabels(projectId),
     getProjectSprints(projectId),
     getProjectActiveSprintSummary(projectId),
     getWorkspaceMembers(projectData.workspace_id),
+    getWorkspaceBySlug(workspaceSlug),
   ]);
+
+  const showFirstRunSetup = Boolean(
+    workspaceResult &&
+    workspaceResult.role === "owner" &&
+    workspaceResult.primary_project_id === projectData.id,
+  );
 
   if (issues.length === 0) {
     const projects = [{ id: projectData.id, name: projectData.name, color: projectData.color }];
     return (
       <BoardPageEmpty
+        workspaceId={projectData.workspace_id}
+        workspaceSlug={workspaceSlug}
         projectId={projectData.id}
         projects={projects}
         members={members}
         sprints={sprints}
         labels={labels}
+        showFirstRunSetup={showFirstRunSetup}
       />
     );
   }

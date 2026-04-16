@@ -99,6 +99,33 @@ export function formatActivityAction(activity: ActivityWithActor): string {
       return `${actorName} ${activity.action} project ${name}`;
     }
 
+    case "invite": {
+      const email = meta.email as string | undefined;
+      const inviteType = meta.invite_type as string | undefined;
+      const role = meta.role as string | undefined;
+      const target =
+        inviteType === "link"
+          ? "a join link"
+          : email
+            ? email
+            : "an invite";
+
+      if (activity.action === "created") {
+        const roleLabel = role === "admin" ? "admin" : "member";
+        return `${actorName} invited ${target} as ${roleLabel}`;
+      }
+
+      if (activity.action === "accepted") {
+        return `${actorName} accepted ${target}`;
+      }
+
+      if (activity.action === "revoked") {
+        return `${actorName} revoked ${target}`;
+      }
+
+      return `${actorName} ${activity.action} ${target}`;
+    }
+
     default:
       return `${actorName} ${activity.action}`;
   }

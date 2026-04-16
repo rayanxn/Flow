@@ -1,12 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Github } from "lucide-react";
 import { signIn, signInWithOAuth } from "@/lib/actions/auth";
 import type { ActionResponse } from "@/lib/types";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
   const [state, formAction, pending] = useActionState<
     ActionResponse | null,
     FormData
@@ -37,6 +40,7 @@ export default function LoginPage() {
 
       {/* Form */}
       <form action={formAction} className="space-y-5">
+        <input type="hidden" name="next" value={nextPath ?? ""} />
         <div className="space-y-2">
           <label
             htmlFor="email"
@@ -101,7 +105,7 @@ export default function LoginPage() {
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={() => signInWithOAuth("google")}
+          onClick={() => signInWithOAuth("google", nextPath)}
           className="flex-1 flex items-center justify-center gap-2 bg-surface border border-border rounded-lg h-12 font-medium text-sm text-text hover:bg-surface-hover transition-colors"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -127,7 +131,7 @@ export default function LoginPage() {
 
         <button
           type="button"
-          onClick={() => signInWithOAuth("github")}
+          onClick={() => signInWithOAuth("github", nextPath)}
           className="flex-1 flex items-center justify-center gap-2 bg-surface border border-border rounded-lg h-12 font-medium text-sm text-text hover:bg-surface-hover transition-colors"
         >
           <Github className="w-5 h-5" />
@@ -139,7 +143,7 @@ export default function LoginPage() {
       <p className="text-center text-sm text-text-secondary mt-8">
         Don&apos;t have an account?{" "}
         <Link
-          href="/signup"
+          href={nextPath ? `/signup?next=${encodeURIComponent(nextPath)}` : "/signup"}
           className="text-text font-medium hover:underline"
         >
           Sign up
