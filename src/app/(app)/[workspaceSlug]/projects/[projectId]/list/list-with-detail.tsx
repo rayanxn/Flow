@@ -41,6 +41,7 @@ export function ListWithDetail({ issues, members = [] }: ListWithDetailProps) {
         onIssueClick={handleIssueClick}
       />
       <IssueDetailPanel
+        key={selectedIssue?.id ?? "issue-detail-empty"}
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense, useSyncExternalStore } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  Suspense,
+  useSyncExternalStore,
+} from "react";
 import { ChevronDown } from "lucide-react";
 import { IssueList } from "@/components/issues/issue-list";
 import { BoardView } from "@/components/board/board-view";
@@ -20,6 +26,7 @@ import { cn } from "@/lib/utils/cn";
 import { STATUS_ORDER } from "@/lib/utils/statuses";
 import type { IssueWithDetails } from "@/lib/queries/issues";
 import type { IssueStatus } from "@/lib/types";
+import { getIssueClient } from "@/lib/queries/issues-client";
 
 type ViewMode = "list" | "board";
 type SortKey = "priority" | "due_date" | "created_at" | "title" | "status";
@@ -39,6 +46,7 @@ const STORAGE_EVENT = "flow-my-issues-preferences";
 interface MyIssuesContentProps {
   issues: IssueWithDetails[];
   members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
+  sprints?: { id: string; name: string; status: string; project_id?: string }[];
   labels?: { id: string; name: string; color: string }[];
   projects?: { id: string; name: string; color: string }[];
 }
@@ -68,6 +76,7 @@ function getStoredSortKey(): SortKey {
 function MyIssuesContentInner({
   issues,
   members = [],
+  sprints = [],
   labels = [],
   projects = [],
 }: MyIssuesContentProps) {
@@ -81,16 +90,22 @@ function MyIssuesContentInner({
     getStoredSortKey,
     () => "priority",
   );
-  const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [selectedIssueFallback, setSelectedIssueFallback] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const openIssue = useCallback(
     (issue: IssueWithDetails) => {
-      setSelectedIssue(issue);
+      setSelectedIssueId(issue.id);
+      setSelectedIssueFallback(issue);
       setDetailOpen(true);
     },
     []
   );
+
+  const selectedIssue = selectedIssueId
+    ? issues.find((issue) => issue.id === selectedIssueId) ?? selectedIssueFallback
+    : null;
 
   useIssueFromUrl(issues, openIssue);
 
@@ -121,8 +136,8 @@ function MyIssuesContentInner({
   }
 
   const handleIssueClick = useCallback(
-    (id: string) => {
-      const issue = issues.find((i) => i.id === id);
+    async (id: string) => {
+      const issue = issues.find((i) => i.id === id) ?? (await getIssueClient(id));
       if (issue) openIssue(issue);
     },
     [issues, openIssue]
@@ -250,6 +265,7 @@ function MyIssuesContentInner({
             showProject={true}
             onIssueClick={handleIssueClick}
             issueFilter={issueFilterFn}
+            showHierarchy={false}
           />
         )
       ) : hasActiveFilters ? (
@@ -274,10 +290,14 @@ function MyIssuesContentInner({
 
       {/* Issue detail panel */}
       <IssueDetailPanel
+        key={selectedIssue?.id ?? "issue-detail-empty"}
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}
         members={members}
+        sprints={sprints}
+        labels={labels}
+        onIssueNavigate={handleIssueClick}
       />
     </>
   );

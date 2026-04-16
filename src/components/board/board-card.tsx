@@ -23,8 +23,12 @@ export interface BoardCardProps {
   labels: { id: string; name: string; color: string }[];
   projectName?: string;
   projectColor?: string;
+  parent?: { id: string; issue_key: string; title: string } | null;
+  subIssueDoneCount?: number;
+  subIssueTotalCount?: number;
   isDragOverlay?: boolean;
   onClick?: (id: string) => void;
+  onParentClick?: (id: string) => void;
 }
 
 export function BoardCard({
@@ -38,8 +42,12 @@ export function BoardCard({
   labels,
   projectName,
   projectColor,
+  parent,
+  subIssueDoneCount = 0,
+  subIssueTotalCount = 0,
   isDragOverlay = false,
   onClick,
+  onParentClick,
 }: BoardCardProps) {
   const sortable = useSortable({ id, disabled: isDragOverlay });
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -56,6 +64,10 @@ export function BoardCard({
   const isDone = status === "done";
   const isOverdue =
     !isDone && dueDate && new Date(dueDate) < new Date(new Date().toDateString());
+  const subIssueProgress =
+    subIssueTotalCount > 0
+      ? Math.max(0, Math.min(100, (subIssueDoneCount / subIssueTotalCount) * 100))
+      : 0;
 
   return (
     <div
@@ -75,11 +87,18 @@ export function BoardCard({
       {/* Header: issue key + priority dot */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-mono text-text-muted">{issueKey}</span>
-        <span
-          className="w-2.5 h-2.5 rounded-full shrink-0"
-          style={{ backgroundColor: priorityConfig.color }}
-          title={priorityConfig.label}
-        />
+        <div className="flex items-center gap-2">
+          {subIssueTotalCount > 0 && (
+            <span className="rounded-full border border-border bg-surface-hover px-1.5 py-0.5 text-[10px] font-medium text-text-secondary">
+              {subIssueDoneCount}/{subIssueTotalCount}
+            </span>
+          )}
+          <span
+            className="w-2.5 h-2.5 rounded-full shrink-0"
+            style={{ backgroundColor: priorityConfig.color }}
+            title={priorityConfig.label}
+          />
+        </div>
       </div>
 
       {/* Title */}
@@ -102,6 +121,43 @@ export function BoardCard({
               {label.name}
             </span>
           ))}
+        </div>
+      )}
+
+      {subIssueTotalCount > 0 && (
+        <div className="mt-2 space-y-1">
+          <div className="flex items-center justify-between text-[10px] text-text-muted">
+            <span>Sub-issues</span>
+            <span>
+              {subIssueDoneCount}/{subIssueTotalCount} done
+            </span>
+          </div>
+          <div className="h-1 rounded-full bg-surface-hover">
+            <div
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{ width: `${subIssueProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {parent && (
+        <div className="mt-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onParentClick?.(parent.id);
+            }}
+            disabled={!onParentClick}
+            className={cn(
+              "inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-surface-hover px-2 py-1 text-[10px] font-medium text-text-secondary transition-colors",
+              onParentClick ? "hover:bg-border" : "cursor-default",
+            )}
+          >
+            <span className="truncate">parent:</span>
+            <span className="font-mono">{parent.issue_key}</span>
+          </button>
         </div>
       )}
 

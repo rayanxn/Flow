@@ -380,6 +380,7 @@ export type Database = {
           status: "todo" | "in_progress" | "in_review" | "done";
           priority: number;
           assignee_id: string | null;
+          parent_id: string | null;
           sprint_id: string | null;
           due_date: string | null;
           story_points: number | null;
@@ -401,6 +402,7 @@ export type Database = {
           status?: "todo" | "in_progress" | "in_review" | "done";
           priority?: number;
           assignee_id?: string | null;
+          parent_id?: string | null;
           sprint_id?: string | null;
           due_date?: string | null;
           story_points?: number | null;
@@ -422,6 +424,7 @@ export type Database = {
           status?: "todo" | "in_progress" | "in_review" | "done";
           priority?: number;
           assignee_id?: string | null;
+          parent_id?: string | null;
           sprint_id?: string | null;
           due_date?: string | null;
           story_points?: number | null;
@@ -433,6 +436,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "issues_parent_id_fkey";
+            columns: ["parent_id"];
+            isOneToOne: false;
+            referencedRelation: "issues";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "issues_workspace_id_fkey";
             columns: ["workspace_id"];
@@ -689,6 +699,7 @@ export type Database = {
           p_story_points?: number | null;
           p_sort_order?: number;
           p_label_ids?: string[];
+          p_parent_id?: string | null;
         };
         Returns: Database["public"]["Tables"]["issues"]["Row"];
       };

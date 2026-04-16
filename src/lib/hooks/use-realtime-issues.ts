@@ -32,6 +32,10 @@ export function useRealtimeIssues({
           assignee: null,
           project: null,
           labels: [],
+          parent: null,
+          sub_issues_count: 0,
+          sub_issues_done_count: 0,
+          sub_issues_story_points: 0,
         };
         return [...prev, stub];
       });

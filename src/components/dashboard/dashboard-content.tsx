@@ -65,6 +65,7 @@ export function DashboardContent({
         </div>
       </div>
       <IssueDetailPanel
+        key={selectedIssue?.id ?? "issue-detail-empty"}
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

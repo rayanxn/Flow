@@ -1,6 +1,10 @@
 import type { Tables } from "@/lib/types";
-import type { IssueWithDetails } from "@/lib/queries/issues";
+import type {
+  IssueParentSummary,
+  IssueWithDetails,
+} from "@/lib/queries/issues";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Client-side version of enrichIssues for use in browser components.
@@ -81,6 +85,47 @@ export async function enrichIssuesClient(
     }
   }
 
+  const parentIds = [
+    ...new Set(issues.map((issue) => issue.parent_id).filter(Boolean)),
+  ] as string[];
+  const parentMap = new Map<string, IssueParentSummary>();
+
+  if (parentIds.length > 0) {
+    const { data: parents } = await supabase
+      .from("issues")
+      .select("id, issue_key, title")
+      .in("id", parentIds);
+
+    for (const parent of parents ?? []) {
+      parentMap.set(parent.id, parent);
+    }
+  }
+
+  const parentIssueIds = issues.map((issue) => issue.id);
+  const { data: children } = await supabase
+    .from("issues")
+    .select("id, parent_id, status, story_points")
+    .in("parent_id", parentIssueIds);
+
+  const childCounts = new Map<string, number>();
+  const childDoneCounts = new Map<string, number>();
+  const childStoryPoints = new Map<string, number>();
+
+  for (const child of children ?? []) {
+    if (!child.parent_id) continue;
+    childCounts.set(child.parent_id, (childCounts.get(child.parent_id) ?? 0) + 1);
+    if (child.status === "done") {
+      childDoneCounts.set(
+        child.parent_id,
+        (childDoneCounts.get(child.parent_id) ?? 0) + 1,
+      );
+    }
+    childStoryPoints.set(
+      child.parent_id,
+      (childStoryPoints.get(child.parent_id) ?? 0) + (child.story_points ?? 0),
+    );
+  }
+
   return issues.map((issue) => ({
     ...issue,
     assignee: issue.assignee_id
@@ -88,5 +133,42 @@ export async function enrichIssuesClient(
       : null,
     project: projectMap.get(issue.project_id) ?? null,
     labels: issueLabelMap.get(issue.id) ?? [],
+    parent: issue.parent_id ? parentMap.get(issue.parent_id) ?? null : null,
+    sub_issues_count: childCounts.get(issue.id) ?? 0,
+    sub_issues_done_count: childDoneCounts.get(issue.id) ?? 0,
+    sub_issues_story_points: childStoryPoints.get(issue.id) ?? 0,
   }));
+}
+
+export async function getIssueClient(
+  issueId: string
+): Promise<IssueWithDetails | null> {
+  const supabase = createClient();
+
+  const { data: issue } = await supabase
+    .from("issues")
+    .select("*")
+    .eq("id", issueId)
+    .maybeSingle();
+
+  if (!issue) return null;
+
+  const [enriched] = await enrichIssuesClient([issue], supabase);
+  return enriched ?? null;
+}
+
+export async function getSubIssuesClient(
+  parentId: string
+): Promise<IssueWithDetails[]> {
+  const supabase = createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("*")
+    .eq("parent_id", parentId)
+    .order("sort_order", { ascending: true });
+
+  if (!issues || issues.length === 0) return [];
+
+  return enrichIssuesClient(issues, supabase);
 }

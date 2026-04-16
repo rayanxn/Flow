@@ -35,6 +35,16 @@ export function formatActivityAction(activity: ActivityWithActor): string {
       if (activity.action === "deleted") {
         return `${actorName} deleted ${label}`;
       }
+      if (activity.action === "added_sub_issue") {
+        const childIssueKey = (meta.child_issue_key as string) ?? issueKey;
+        const parentIssueKey = (meta.parent_issue_key as string) ?? issueKey;
+        return `${actorName} added ${childIssueKey} under ${parentIssueKey}`;
+      }
+      if (activity.action === "removed_from_parent") {
+        const childIssueKey = (meta.child_issue_key as string) ?? issueKey;
+        const parentIssueKey = (meta.parent_issue_key as string) ?? issueKey;
+        return `${actorName} removed ${childIssueKey} from ${parentIssueKey}`;
+      }
       if (activity.action === "updated") {
         // Support both flat format (field/new_value) and nested changes format
         const field = meta.field as string | undefined;

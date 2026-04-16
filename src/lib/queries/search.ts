@@ -8,6 +8,14 @@ export type SearchResult = {
   project: { id: string; name: string; color: string } | null;
 };
 
+export type ParentIssueSearchResult = {
+  id: string;
+  issue_key: string;
+  title: string;
+  project_id: string;
+  sprint_id: string | null;
+};
+
 export async function searchIssuesClient(
   workspaceId: string,
   query: string,
@@ -84,4 +92,36 @@ export async function getRecentIssuesClient(
     status: issue.status,
     project: projectMap.get(issue.project_id) ?? null,
   }));
+}
+
+export async function searchParentIssuesClient(
+  projectId: string,
+  query: string,
+  options?: {
+    excludeIssueId?: string;
+    limit?: number;
+  }
+): Promise<ParentIssueSearchResult[]> {
+  const supabase = createClient();
+  const trimmed = query.trim();
+  const limit = options?.limit ?? 6;
+
+  let request = supabase
+    .from("issues")
+    .select("id, issue_key, title, project_id, sprint_id")
+    .eq("project_id", projectId)
+    .is("parent_id", null)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (options?.excludeIssueId) {
+    request = request.neq("id", options.excludeIssueId);
+  }
+
+  if (trimmed) {
+    request = request.or(`title.ilike.%${trimmed}%,issue_key.ilike.%${trimmed}%`);
+  }
+
+  const { data } = await request;
+  return data ?? [];
 }

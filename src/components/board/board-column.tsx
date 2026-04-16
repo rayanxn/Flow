@@ -16,24 +16,28 @@ interface BoardColumnProps {
   status: IssueStatus;
   issues: IssueWithDetails[];
   showProject?: boolean;
+  showHierarchy?: boolean;
   projectId: string;
   quickAddActive: boolean;
   onQuickAddOpen: () => void;
   onQuickAddClose: () => void;
   onQuickAddCreated: () => void;
   onIssueClick?: (id: string) => void;
+  onParentClick?: (id: string) => void;
 }
 
 export function BoardColumn({
   status,
   issues,
   showProject = false,
+  showHierarchy = true,
   projectId,
   quickAddActive,
   onQuickAddOpen,
   onQuickAddClose,
   onQuickAddCreated,
   onIssueClick,
+  onParentClick,
 }: BoardColumnProps) {
   const { setNodeRef } = useDroppable({ id: status });
   const config = STATUS_CONFIG[status];
@@ -96,7 +100,11 @@ export function BoardColumn({
               labels={issue.labels}
               projectName={showProject ? issue.project?.name : undefined}
               projectColor={showProject ? issue.project?.color : undefined}
+              parent={showHierarchy ? issue.parent : null}
+              subIssueDoneCount={showHierarchy ? issue.sub_issues_done_count : 0}
+              subIssueTotalCount={showHierarchy ? issue.sub_issues_count : 0}
               onClick={onIssueClick}
+              onParentClick={onParentClick}
             />
           ))}
 

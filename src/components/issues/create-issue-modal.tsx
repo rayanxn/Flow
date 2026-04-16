@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { toast } from "sonner";
@@ -20,11 +20,14 @@ import { cn } from "@/lib/utils/cn";
 import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { STATUS_CONFIG, STATUS_ORDER } from "@/lib/utils/statuses";
 import type { IssuePriority, IssueStatus } from "@/lib/types";
+import { ParentIssuePicker } from "./parent-issue-picker";
+import type { ParentIssueSearchResult } from "@/lib/queries/search";
 
 interface CreateIssueModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultProjectId?: string;
+  defaultParentIssue?: ParentIssueSearchResult | null;
   defaultAssigneeId?: string;
   defaultStatus?: IssueStatus;
   projects?: { id: string; name: string; color: string }[];
@@ -38,6 +41,7 @@ export function CreateIssueModal({
   open,
   onOpenChange,
   defaultProjectId,
+  defaultParentIssue,
   defaultAssigneeId,
   defaultStatus,
   projects = [],
@@ -50,73 +54,79 @@ export function CreateIssueModal({
   const { workspace } = useWorkspace();
   const [priority, setPriority] = useState<IssuePriority>(3);
   const [status, setStatus] = useState<IssueStatus>(defaultStatus ?? "todo");
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId ?? "");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    defaultParentIssue?.project_id ?? defaultProjectId ?? "",
+  );
+  const [selectedSprintId, setSelectedSprintId] = useState<string>(
+    defaultParentIssue?.sprint_id ?? "",
+  );
+  const [selectedParent, setSelectedParent] = useState<ParentIssueSearchResult | null>(
+    defaultParentIssue ?? null,
+  );
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ title?: string; projectId?: string }>({});
   const [showLabelPicker, setShowLabelPicker] = useState(false);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+  function resetFormState() {
+    setPriority(3);
+    setStatus(defaultStatus ?? "todo");
+    setSelectedProjectId(defaultParentIssue?.project_id ?? defaultProjectId ?? "");
+    setSelectedSprintId(defaultParentIssue?.sprint_id ?? "");
+    setSelectedParent(defaultParentIssue ?? null);
+    setSelectedLabels([]);
+    setError(null);
+    setFieldErrors({});
+    setShowLabelPicker(false);
+  }
 
-      const form = e.currentTarget;
-      const formData = new FormData(form);
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-      // Custom validation
-      const title = (formData.get("title") as string)?.trim();
-      const projectId = formData.get("projectId") as string;
-      const errors: { title?: string; projectId?: string } = {};
-      if (!title) errors.title = "Title is required";
-      if (!projectId) errors.projectId = "Please select a project";
-      if (Object.keys(errors).length > 0) {
-        setFieldErrors(errors);
-        return;
-      }
-      setFieldErrors({});
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
-      setLoading(true);
-      setError(null);
-      formData.set("workspaceId", workspace.id);
-      formData.set("priority", String(priority));
-      formData.set("status", status);
-      formData.set("labelIds", selectedLabels.join(","));
-      formData.set("sortOrder", String(initialSortOrder));
-
-      const result = await createIssue(formData);
-
-      if ("error" in result && result.error) {
-        setError(result.error);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(false);
-      onOpenChange(false);
-      setPriority(3);
-      setStatus(defaultStatus ?? "todo");
-      setSelectedLabels([]);
-      if ("data" in result && result.data) {
-        toast.success(`Issue ${result.data.issue_key} created`);
-      }
-      router.refresh();
-    },
-    [workspace.id, priority, status, selectedLabels, defaultStatus, onOpenChange, router],
-  );
-
-  // Reset state on open
-  useEffect(() => {
-    if (open) {
-      setPriority(3);
-      setStatus(defaultStatus ?? "todo");
-      setSelectedProjectId(defaultProjectId ?? "");
-      setSelectedLabels([]);
-      setError(null);
-      setFieldErrors({});
-      setShowLabelPicker(false);
+    const title = (formData.get("title") as string)?.trim();
+    const projectId = selectedProjectId;
+    const errors: { title?: string; projectId?: string } = {};
+    if (!title) errors.title = "Title is required";
+    if (!projectId) errors.projectId = "Please select a project";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
     }
-  }, [open]);
+    setFieldErrors({});
+
+    setLoading(true);
+    setError(null);
+    formData.set("workspaceId", workspace.id);
+    formData.set("projectId", selectedProjectId);
+    formData.set("sprintId", selectedSprintId);
+    formData.set("priority", String(priority));
+    formData.set("status", status);
+    formData.set("labelIds", selectedLabels.join(","));
+    formData.set("sortOrder", String(initialSortOrder));
+    if (selectedParent) {
+      formData.set("parentId", selectedParent.id);
+    }
+
+    const result = await createIssue(formData);
+
+    if ("error" in result && result.error) {
+      setError(result.error);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    resetFormState();
+    onOpenChange(false);
+    if ("data" in result && result.data) {
+      toast.success(`Issue ${result.data.issue_key} created`);
+    }
+    router.refresh();
+  }
 
   function toggleLabel(labelId: string) {
     setSelectedLabels((prev) =>
@@ -130,8 +140,9 @@ export function CreateIssueModal({
     setSelectedLabels((prev) => prev.filter((id) => id !== labelId));
   }
 
-  const activeSprints = sprints.filter((s) => {
-    const statusOk = s.status === "active" || s.status === "planning";
+  const availableSprints = sprints.filter((s) => {
+    const statusOk =
+      s.status === "active" || s.status === "planning" || s.id === selectedSprintId;
     const projectOk =
       !selectedProjectId || !s.project_id || s.project_id === selectedProjectId;
     return statusOk && projectOk;
@@ -143,7 +154,10 @@ export function CreateIssueModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent
+        className="sm:max-w-[520px]"
+        onOpenAutoFocus={resetFormState}
+      >
         <DialogHeader>
           <DialogTitle>New Issue</DialogTitle>
         </DialogHeader>
@@ -256,6 +270,29 @@ export function CreateIssueModal({
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Parent Issue</Label>
+              <ParentIssuePicker
+                projectId={selectedProjectId}
+                value={selectedParent}
+                onChange={(nextParent) => {
+                  setSelectedParent(nextParent);
+                  if (nextParent) {
+                    const projectChanged = nextParent.project_id !== selectedProjectId;
+                    setSelectedProjectId(nextParent.project_id);
+                    setSelectedSprintId(nextParent.sprint_id ?? "");
+                    if (projectChanged) {
+                      setSelectedLabels([]);
+                    }
+                    if (fieldErrors.projectId) {
+                      setFieldErrors((prev) => ({ ...prev, projectId: undefined }));
+                    }
+                  }
+                }}
+                placeholder="Search for a parent issue..."
+              />
+            </div>
+
             {/* Project & Sprint row */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -265,8 +302,10 @@ export function CreateIssueModal({
                   name="projectId"
                   className="flex h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-border-strong transition-colors"
                   value={selectedProjectId}
+                  disabled={Boolean(selectedParent)}
                   onChange={(e) => {
                     setSelectedProjectId(e.target.value);
+                    setSelectedSprintId("");
                     setSelectedLabels([]);
                     if (fieldErrors.projectId) setFieldErrors((prev) => ({ ...prev, projectId: undefined }));
                   }}
@@ -283,6 +322,11 @@ export function CreateIssueModal({
                 {fieldErrors.projectId && (
                   <p className="text-sm text-danger">{fieldErrors.projectId}</p>
                 )}
+                {selectedParent && (
+                  <p className="text-xs text-text-muted">
+                    Locked to the selected parent issue&apos;s project.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -291,10 +335,11 @@ export function CreateIssueModal({
                   id="issue-sprint"
                   name="sprintId"
                   className="flex h-9 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-border-strong transition-colors"
-                  defaultValue=""
+                  value={selectedSprintId}
+                  onChange={(e) => setSelectedSprintId(e.target.value)}
                 >
                   <option value="">No sprint</option>
-                  {activeSprints.map((s) => (
+                  {availableSprints.map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
                     </option>
