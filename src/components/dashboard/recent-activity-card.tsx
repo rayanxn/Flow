@@ -22,6 +22,8 @@ function getActorInitials(
 function getActivityIcon(activity: ActivityWithActor) {
   if (activity.action === "created") return Plus;
   if (activity.action === "deleted") return Trash2;
+  if (activity.action === "added_sub_issue") return Plus;
+  if (activity.action === "removed_from_parent") return Trash2;
   if (activity.action === "updated") {
     const meta = activity.metadata as Record<string, unknown>;
     const changes = meta?.changes as Record<string, unknown> | undefined;

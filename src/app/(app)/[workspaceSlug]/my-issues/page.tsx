@@ -69,7 +69,13 @@ export default async function MyIssuesPage({
       </div>
 
       {/* View toggle, sort dropdown, and issue list/board */}
-      <MyIssuesContent issues={issues} members={members} labels={labels} projects={projects} />
+      <MyIssuesContent
+        issues={issues}
+        members={members}
+        sprints={sprints}
+        labels={labels}
+        projects={projects}
+      />
     </div>
   );
 }

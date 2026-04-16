@@ -8,6 +8,155 @@ import {
   createNotificationsForActivity,
 } from "@/lib/actions/activities";
 
+type IssueRecord = Tables<"issues">;
+type HierarchyIssueSummary = Pick<
+  IssueRecord,
+  | "id"
+  | "workspace_id"
+  | "project_id"
+  | "issue_key"
+  | "title"
+  | "sprint_id"
+  | "assignee_id"
+  | "parent_id"
+>;
+
+async function validateParentIssue(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  {
+    parentId,
+    workspaceId,
+    projectId,
+    issueId,
+  }: {
+    parentId: string | null;
+    workspaceId: string;
+    projectId: string;
+    issueId?: string;
+  }
+): Promise<ActionResponse<HierarchyIssueSummary | null>> {
+  if (!parentId) {
+    return { data: null };
+  }
+
+  if (issueId && parentId === issueId) {
+    return { error: "An issue cannot be its own parent" };
+  }
+
+  const { data: parent, error: parentError } = await supabase
+    .from("issues")
+    .select(
+      "id, workspace_id, project_id, issue_key, title, sprint_id, assignee_id, parent_id",
+    )
+    .eq("id", parentId)
+    .maybeSingle();
+
+  if (parentError || !parent) {
+    return { error: "Parent issue not found" };
+  }
+
+  if (parent.workspace_id !== workspaceId) {
+    return { error: "Parent issue must belong to the same workspace" };
+  }
+
+  if (parent.project_id !== projectId) {
+    return { error: "Parent issue must belong to the same project" };
+  }
+
+  if (parent.parent_id) {
+    return { error: "Sub-issues cannot be nested more than one level deep" };
+  }
+
+  if (issueId) {
+    const { count, error: childCountError } = await supabase
+      .from("issues")
+      .select("id", { count: "exact", head: true })
+      .eq("parent_id", issueId);
+
+    if (childCountError) {
+      return { error: childCountError.message };
+    }
+
+    if ((count ?? 0) > 0) {
+      return {
+        error: "Parent issues must be top-level before they can be assigned to another parent",
+      };
+    }
+  }
+
+  return { data: parent };
+}
+
+async function createHierarchyActivities({
+  supabase,
+  workspaceId,
+  actorId,
+  projectId,
+  action,
+  childIssue,
+  parentIssue,
+}: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  workspaceId: string;
+  actorId: string;
+  projectId: string;
+  action: "added_sub_issue" | "removed_from_parent";
+  childIssue: Pick<IssueRecord, "id" | "issue_key" | "title">;
+  parentIssue: Pick<IssueRecord, "id" | "issue_key" | "title" | "assignee_id">;
+}) {
+  const metadata = {
+    project_id: projectId,
+    child_issue_id: childIssue.id,
+    child_issue_key: childIssue.issue_key,
+    child_title: childIssue.title,
+    parent_issue_id: parentIssue.id,
+    parent_issue_key: parentIssue.issue_key,
+    parent_title: parentIssue.title,
+  };
+
+  const [parentActivity, childActivity] = await Promise.all([
+    createActivity({
+      supabase,
+      workspaceId,
+      actorId,
+      action,
+      entityType: "issue",
+      entityId: parentIssue.id,
+      metadata: {
+        ...metadata,
+        issue_key: parentIssue.issue_key,
+        title: parentIssue.title,
+      },
+    }),
+    createActivity({
+      supabase,
+      workspaceId,
+      actorId,
+      action,
+      entityType: "issue",
+      entityId: childIssue.id,
+      metadata: {
+        ...metadata,
+        issue_key: childIssue.issue_key,
+        title: childIssue.title,
+      },
+    }),
+  ]);
+
+  if (action === "added_sub_issue" && parentIssue.assignee_id) {
+    await createNotificationsForActivity({
+      supabase,
+      workspaceId,
+      actorId,
+      activityId: parentActivity.id,
+      recipientIds: [parentIssue.assignee_id],
+      type: "general",
+    });
+  }
+
+  return { parentActivity, childActivity };
+}
+
 export async function createIssue(
   formData: FormData
 ): Promise<ActionResponse<Tables<"issues">>> {
@@ -31,12 +180,27 @@ export async function createIssue(
     ? Number(formData.get("storyPoints"))
     : null;
   const sortOrder = Number(formData.get("sortOrder") || 0);
+  const parentId = (formData.get("parentId") as string) || null;
   const labelIdsRaw = formData.get("labelIds") as string;
   const labelIds = labelIdsRaw ? labelIdsRaw.split(",").filter(Boolean) : [];
 
   if (!workspaceId || !projectId || !title) {
     return { error: "Workspace, project, and title are required" };
   }
+
+  const parentResult = await validateParentIssue(supabase, {
+    parentId,
+    workspaceId,
+    projectId,
+  });
+  if (parentResult.error) {
+    return { error: parentResult.error };
+  }
+
+  const resolvedParent = parentResult.data;
+  const resolvedSprintId = resolvedParent
+    ? resolvedParent.sprint_id ?? null
+    : sprintId;
 
   const { data, error } = await supabase.rpc("create_issue", {
     p_workspace_id: workspaceId,
@@ -46,11 +210,12 @@ export async function createIssue(
     p_status: status,
     p_priority: priority,
     p_assignee_id: assigneeId,
-    p_sprint_id: sprintId,
+    p_sprint_id: resolvedSprintId,
     p_due_date: dueDate,
     p_story_points: storyPoints,
     p_sort_order: sortOrder,
     p_label_ids: labelIds,
+    p_parent_id: resolvedParent?.id ?? null,
   });
 
   if (error) {
@@ -74,6 +239,8 @@ export async function createIssue(
         status,
         priority,
         assignee_id: assigneeId,
+        parent_issue_id: resolvedParent?.id ?? null,
+        parent_issue_key: resolvedParent?.issue_key ?? null,
       },
     });
 
@@ -85,6 +252,22 @@ export async function createIssue(
         activityId: activity.id,
         recipientIds: [assigneeId],
         type: "assigned",
+      });
+    }
+
+    if (resolvedParent) {
+      await createHierarchyActivities({
+        supabase,
+        workspaceId,
+        actorId: user.id,
+        projectId,
+        action: "added_sub_issue",
+        childIssue: {
+          id: issue.id,
+          issue_key: issue.issue_key,
+          title: issue.title,
+        },
+        parentIssue: resolvedParent,
       });
     }
   } catch {
@@ -103,6 +286,7 @@ export async function updateIssue(
     status?: IssueStatus;
     priority?: number;
     assignee_id?: string | null;
+    parent_id?: string | null;
     sprint_id?: string | null;
     due_date?: string | null;
     story_points?: number | null;
@@ -116,6 +300,44 @@ export async function updateIssue(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
+
+  const { data: currentIssue, error: currentIssueError } = await supabase
+    .from("issues")
+    .select(
+      "id, workspace_id, project_id, issue_key, title, assignee_id, parent_id",
+    )
+    .eq("id", issueId)
+    .single();
+
+  if (currentIssueError || !currentIssue) {
+    return { error: currentIssueError?.message ?? "Issue not found" };
+  }
+
+  let previousParent: HierarchyIssueSummary | null = null;
+  if (currentIssue.parent_id) {
+    const { data: parent } = await supabase
+      .from("issues")
+      .select(
+        "id, workspace_id, project_id, issue_key, title, sprint_id, assignee_id, parent_id",
+      )
+      .eq("id", currentIssue.parent_id)
+      .maybeSingle();
+    previousParent = parent ?? null;
+  }
+
+  let nextParent: HierarchyIssueSummary | null | undefined;
+  if (updates.parent_id !== undefined) {
+    const parentResult = await validateParentIssue(supabase, {
+      parentId: updates.parent_id,
+      workspaceId: currentIssue.workspace_id,
+      projectId: currentIssue.project_id,
+      issueId,
+    });
+    if (parentResult.error) {
+      return { error: parentResult.error };
+    }
+    nextParent = parentResult.data;
+  }
 
   // Set completed_at when moving to done
   const updateData: Record<string, unknown> = { ...updates };
@@ -148,7 +370,7 @@ export async function updateIssue(
         title: data.title,
         issue_key: data.issue_key,
         project_id: data.project_id,
-        changes: updates,
+        changes: updateData,
       },
     });
 
@@ -174,6 +396,40 @@ export async function updateIssue(
         recipientIds: recipients,
         type: notifType,
       });
+    }
+
+    if (updates.parent_id !== undefined && previousParent?.id !== nextParent?.id) {
+      if (previousParent) {
+        await createHierarchyActivities({
+          supabase,
+          workspaceId: data.workspace_id,
+          actorId: user.id,
+          projectId: data.project_id,
+          action: "removed_from_parent",
+          childIssue: {
+            id: data.id,
+            issue_key: data.issue_key,
+            title: data.title,
+          },
+          parentIssue: previousParent,
+        });
+      }
+
+      if (nextParent) {
+        await createHierarchyActivities({
+          supabase,
+          workspaceId: data.workspace_id,
+          actorId: user.id,
+          projectId: data.project_id,
+          action: "added_sub_issue",
+          childIssue: {
+            id: data.id,
+            issue_key: data.issue_key,
+            title: data.title,
+          },
+          parentIssue: nextParent,
+        });
+      }
     }
   } catch {
     // Activity logging should not block the primary operation

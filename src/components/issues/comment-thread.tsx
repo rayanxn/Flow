@@ -48,6 +48,8 @@ function getActivityIcon(activity: ActivityWithActor) {
 
   if (activity.action === "created") return Plus;
   if (activity.action === "commented") return MessageSquare;
+  if (activity.action === "added_sub_issue") return Plus;
+  if (activity.action === "removed_from_parent") return Trash2;
   if (field === "status" || changes?.status) return ArrowRight;
   if (field === "assignee" || changes?.assignee_id) return UserCheck;
   return Pencil;

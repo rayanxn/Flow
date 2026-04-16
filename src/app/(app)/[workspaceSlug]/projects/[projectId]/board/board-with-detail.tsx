@@ -7,11 +7,13 @@ import { useIssueFromUrl } from "@/lib/hooks/use-issue-from-url";
 import { FilterBar } from "@/components/filters/filter-bar";
 import { useIssueFilters } from "@/lib/hooks/use-issue-filters";
 import type { IssueWithDetails } from "@/lib/queries/issues";
+import { getIssueClient } from "@/lib/queries/issues-client";
 
 interface BoardWithDetailProps {
   initialIssues: IssueWithDetails[];
   projectId: string;
   members?: { user_id: string; profile: { id: string; full_name: string | null; email: string; avatar_url: string | null } }[];
+  sprints?: { id: string; name: string; status: string; project_id?: string }[];
   labels?: { id: string; name: string; color: string }[];
 }
 
@@ -19,18 +21,25 @@ function BoardWithDetailInner({
   initialIssues,
   projectId,
   members = [],
+  sprints = [],
   labels = [],
 }: BoardWithDetailProps) {
-  const [selectedIssue, setSelectedIssue] = useState<IssueWithDetails | null>(null);
+  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
+  const [selectedIssueFallback, setSelectedIssueFallback] = useState<IssueWithDetails | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const openIssue = useCallback(
     (issue: IssueWithDetails) => {
-      setSelectedIssue(issue);
+      setSelectedIssueId(issue.id);
+      setSelectedIssueFallback(issue);
       setDetailOpen(true);
     },
     []
   );
+
+  const selectedIssue = selectedIssueId
+    ? initialIssues.find((issue) => issue.id === selectedIssueId) ?? selectedIssueFallback
+    : null;
 
   const {
     filters,
@@ -48,8 +57,10 @@ function BoardWithDetailInner({
   });
 
   const handleIssueClick = useCallback(
-    (id: string) => {
-      const issue = initialIssues.find((i) => i.id === id);
+    async (id: string) => {
+      const issue =
+        initialIssues.find((item) => item.id === id) ??
+        (await getIssueClient(id));
       if (issue) openIssue(issue);
     },
     [initialIssues, openIssue]
@@ -81,10 +92,14 @@ function BoardWithDetailInner({
         issueFilter={issueFilterFn}
       />
       <IssueDetailPanel
+        key={selectedIssue?.id ?? "issue-detail-empty"}
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}
         members={members}
+        sprints={sprints}
+        labels={labels}
+        onIssueNavigate={handleIssueClick}
       />
     </>
   );

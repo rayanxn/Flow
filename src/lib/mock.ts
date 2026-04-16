@@ -200,6 +200,7 @@ function mockIssue(
     status: overrides.status,
     priority: overrides.priority,
     assignee_id: overrides.assignee_id ?? MOCK_USER_ID,
+    parent_id: overrides.parent_id ?? null,
     sprint_id: overrides.sprint_id ?? null,
     due_date: overrides.due_date ?? null,
     story_points: overrides.story_points ?? null,
@@ -213,6 +214,10 @@ function mockIssue(
       ? { id: projectRef.id, name: projectRef.name, color: projectRef.color }
       : null,
     labels: overrides.labels ?? [],
+    parent: overrides.parent ?? null,
+    sub_issues_count: overrides.sub_issues_count ?? 0,
+    sub_issues_done_count: overrides.sub_issues_done_count ?? 0,
+    sub_issues_story_points: overrides.sub_issues_story_points ?? 0,
     checklist: [],
   };
 }

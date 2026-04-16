@@ -129,6 +129,7 @@ export function InboxClient({
 
       {/* Issue detail panel */}
       <IssueDetailPanel
+        key={selectedIssue?.id ?? "issue-detail-empty"}
         issue={selectedIssue}
         open={detailOpen}
         onOpenChange={setDetailOpen}

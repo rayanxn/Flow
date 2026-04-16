@@ -54,7 +54,12 @@ export default async function ListPage({
       />
 
       {hasIssues && (
-        <ListViewContent issues={issues} members={members} labels={labels} />
+        <ListViewContent
+          issues={issues}
+          members={members}
+          sprints={sprints}
+          labels={labels}
+        />
       )}
     </div>
   );

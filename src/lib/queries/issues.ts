@@ -1,10 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Tables, IssueStatus } from "@/lib/types";
 
+export type IssueParentSummary = {
+  id: string;
+  issue_key: string;
+  title: string;
+};
+
 export type IssueWithDetails = Tables<"issues"> & {
   assignee: { id: string; full_name: string | null; email: string; avatar_url: string | null } | null;
   project: { id: string; name: string; color: string } | null;
   labels: { id: string; name: string; color: string }[];
+  parent: IssueParentSummary | null;
+  sub_issues_count: number;
+  sub_issues_done_count: number;
+  sub_issues_story_points: number;
 };
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -88,6 +98,47 @@ export async function enrichIssues(
     }
   }
 
+  const parentIds = [
+    ...new Set(issues.map((issue) => issue.parent_id).filter(Boolean)),
+  ] as string[];
+  const parentMap = new Map<string, IssueParentSummary>();
+
+  if (parentIds.length > 0) {
+    const { data: parents } = await supabase
+      .from("issues")
+      .select("id, issue_key, title")
+      .in("id", parentIds);
+
+    for (const parent of parents ?? []) {
+      parentMap.set(parent.id, parent);
+    }
+  }
+
+  const parentIssueIds = issues.map((issue) => issue.id);
+  const { data: children } = await supabase
+    .from("issues")
+    .select("id, parent_id, status, story_points")
+    .in("parent_id", parentIssueIds);
+
+  const childCounts = new Map<string, number>();
+  const childDoneCounts = new Map<string, number>();
+  const childStoryPoints = new Map<string, number>();
+
+  for (const child of children ?? []) {
+    if (!child.parent_id) continue;
+    childCounts.set(child.parent_id, (childCounts.get(child.parent_id) ?? 0) + 1);
+    if (child.status === "done") {
+      childDoneCounts.set(
+        child.parent_id,
+        (childDoneCounts.get(child.parent_id) ?? 0) + 1,
+      );
+    }
+    childStoryPoints.set(
+      child.parent_id,
+      (childStoryPoints.get(child.parent_id) ?? 0) + (child.story_points ?? 0),
+    );
+  }
+
   return issues.map((issue) => ({
     ...issue,
     assignee: issue.assignee_id
@@ -95,6 +146,10 @@ export async function enrichIssues(
       : null,
     project: projectMap.get(issue.project_id) ?? null,
     labels: issueLabelMap.get(issue.id) ?? [],
+    parent: issue.parent_id ? parentMap.get(issue.parent_id) ?? null : null,
+    sub_issues_count: childCounts.get(issue.id) ?? 0,
+    sub_issues_done_count: childDoneCounts.get(issue.id) ?? 0,
+    sub_issues_story_points: childStoryPoints.get(issue.id) ?? 0,
   }));
 }
 
@@ -159,4 +214,36 @@ export async function getMyIssues(
   if (!issues || issues.length === 0) return [];
 
   return enrichIssues(issues, supabase);
+}
+
+export async function getSubIssues(
+  parentId: string
+): Promise<IssueWithDetails[]> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("*")
+    .eq("parent_id", parentId)
+    .order("sort_order", { ascending: true });
+
+  if (!issues || issues.length === 0) return [];
+
+  return enrichIssues(issues, supabase);
+}
+
+export async function getSubIssueProgress(
+  parentId: string
+): Promise<{ done: number; total: number }> {
+  const supabase = await createClient();
+
+  const { data: issues } = await supabase
+    .from("issues")
+    .select("status")
+    .eq("parent_id", parentId);
+
+  const total = issues?.length ?? 0;
+  const done = (issues ?? []).filter((issue) => issue.status === "done").length;
+
+  return { done, total };
 }

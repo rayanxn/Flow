@@ -2,12 +2,25 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { IssueWithDetails } from "@/lib/queries/issues";
+import type {
+  IssueParentSummary,
+  IssueWithDetails,
+} from "@/lib/queries/issues";
 import type { Tables } from "@/lib/types";
 
 interface UseRealtimeIssuesOptions {
   projectId: string;
   initialIssues: IssueWithDetails[];
+}
+
+function toParentSummary(
+  issue: Pick<IssueWithDetails, "id" | "issue_key" | "title">,
+): IssueParentSummary {
+  return {
+    id: issue.id,
+    issue_key: issue.issue_key,
+    title: issue.title,
+  };
 }
 
 export function useRealtimeIssues({
@@ -27,11 +40,18 @@ export function useRealtimeIssues({
       // Only add if not already in state (avoid duplicates from optimistic add)
       setIssues((prev) => {
         if (prev.some((i) => i.id === row.id)) return prev;
+        const parentIssue = row.parent_id
+          ? prev.find((issue) => issue.id === row.parent_id)
+          : null;
         const stub: IssueWithDetails = {
           ...row,
           assignee: null,
           project: null,
           labels: [],
+          parent: parentIssue ? toParentSummary(parentIssue) : null,
+          sub_issues_count: 0,
+          sub_issues_done_count: 0,
+          sub_issues_story_points: 0,
         };
         return [...prev, stub];
       });
@@ -42,19 +62,32 @@ export function useRealtimeIssues({
   const handleUpdate = useCallback(
     (payload: { new: Tables<"issues"> }) => {
       const row = payload.new;
-      setIssues((prev) =>
-        prev.map((issue) => {
+      setIssues((prev) => {
+        const parentIssue = row.parent_id
+          ? prev.find((issue) => issue.id === row.parent_id)
+          : null;
+
+        return prev.map((issue) => {
           if (issue.id !== row.id) return issue;
-          // Merge scalar fields, preserve relations
+
+          const parent = row.parent_id
+            ? parentIssue
+              ? toParentSummary(parentIssue)
+              : issue.parent?.id === row.parent_id
+                ? issue.parent
+                : null
+            : null;
+
           return {
             ...issue,
             ...row,
             assignee: issue.assignee,
             project: issue.project,
             labels: issue.labels,
+            parent,
           };
-        }),
-      );
+        });
+      });
     },
     [],
   );
@@ -62,7 +95,15 @@ export function useRealtimeIssues({
   const handleDelete = useCallback(
     (payload: { old: { id: string } }) => {
       const id = payload.old.id;
-      setIssues((prev) => prev.filter((i) => i.id !== id));
+      setIssues((prev) =>
+        prev
+          .filter((issue) => issue.id !== id)
+          .map((issue) =>
+            issue.parent_id === id
+              ? { ...issue, parent_id: null, parent: null }
+              : issue,
+          ),
+      );
     },
     [],
   );

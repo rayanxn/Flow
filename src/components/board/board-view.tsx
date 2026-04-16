@@ -26,6 +26,7 @@ interface BoardViewProps {
   initialIssues: IssueWithDetails[];
   projectId: string;
   showProject?: boolean;
+  showHierarchy?: boolean;
   onIssueClick?: (id: string) => void;
   issueFilter?: (issue: IssueWithDetails) => boolean;
 }
@@ -83,6 +84,7 @@ export function BoardView({
   initialIssues,
   projectId,
   showProject = false,
+  showHierarchy = true,
   onIssueClick,
   issueFilter,
 }: BoardViewProps) {
@@ -103,13 +105,50 @@ export function BoardView({
     }),
   );
 
+  const hierarchyIssues = useMemo(() => {
+    if (!showHierarchy) return issues;
+
+    const issueMap = new Map(issues.map((issue) => [issue.id, issue]));
+    const childStats = new Map<string, { done: number; total: number }>();
+
+    for (const issue of issues) {
+      if (!issue.parent_id) continue;
+      const stats = childStats.get(issue.parent_id) ?? { done: 0, total: 0 };
+      stats.total += 1;
+      if (issue.status === "done") {
+        stats.done += 1;
+      }
+      childStats.set(issue.parent_id, stats);
+    }
+
+    return issues.map((issue) => {
+      const parent = issue.parent_id
+        ? issueMap.has(issue.parent_id)
+          ? {
+              id: issue.parent_id,
+              issue_key: issueMap.get(issue.parent_id)!.issue_key,
+              title: issueMap.get(issue.parent_id)!.title,
+            }
+          : issue.parent
+        : null;
+      const stats = childStats.get(issue.id);
+
+      return {
+        ...issue,
+        parent,
+        sub_issues_count: stats?.total ?? issue.sub_issues_count,
+        sub_issues_done_count: stats?.done ?? issue.sub_issues_done_count,
+      };
+    });
+  }, [issues, showHierarchy]);
+
   // Group and sort issues into columns, applying optional filter for display
   const columns = useMemo(() => {
     const map = new Map<IssueStatus, IssueWithDetails[]>();
     for (const s of STATUS_ORDER) {
       map.set(s, []);
     }
-    for (const issue of issues) {
+    for (const issue of hierarchyIssues) {
       if (issueFilter && !issueFilter(issue)) continue;
       const col = map.get(issue.status as IssueStatus);
       if (col) col.push(issue);
@@ -118,10 +157,10 @@ export function BoardView({
       col.sort((a, b) => a.sort_order - b.sort_order);
     }
     return map;
-  }, [issues, issueFilter]);
+  }, [hierarchyIssues, issueFilter]);
 
   const activeIssue = activeId
-    ? issues.find((i) => i.id === activeId) ?? null
+    ? hierarchyIssues.find((i) => i.id === activeId) ?? null
     : null;
 
   // --- Drag Handlers ---
@@ -139,12 +178,12 @@ export function BoardView({
       const { active, over } = event;
       if (!over) return;
 
-      const activeIssueStatus = issues.find(
+      const activeIssueStatus = hierarchyIssues.find(
         (i) => i.id === active.id,
       )?.status as IssueStatus | undefined;
       const overColumn = findColumnOfOver(
         over.id,
-        issues,
+        hierarchyIssues,
         over.data?.current as Record<string, unknown> | undefined,
       );
 
@@ -158,7 +197,7 @@ export function BoardView({
         ),
       );
     },
-    [issues, setIssues],
+    [hierarchyIssues, setIssues],
   );
 
   const handleDragEnd = useCallback(
@@ -169,18 +208,18 @@ export function BoardView({
       if (!over) return;
 
       const activeIssueId = active.id as string;
-      const activeIssue = issues.find((i) => i.id === activeIssueId);
+      const activeIssue = hierarchyIssues.find((i) => i.id === activeIssueId);
       if (!activeIssue) return;
 
       const targetColumn = findColumnOfOver(
         over.id,
-        issues,
+        hierarchyIssues,
         over.data?.current as Record<string, unknown> | undefined,
       );
       if (!targetColumn) return;
 
       const newStatus = targetColumn;
-      const columnIssues = issues
+      const columnIssues = hierarchyIssues
         .filter((i) => i.status === newStatus && i.id !== activeIssueId)
         .sort((a, b) => a.sort_order - b.sort_order);
 
@@ -219,7 +258,7 @@ export function BoardView({
 
       // Rebalance if needed
       if (needsRebalance(columnIssues, targetIndex)) {
-        const allColumnIssues = issues
+        const allColumnIssues = hierarchyIssues
           .filter((i) => i.status === newStatus || i.id === activeIssueId)
           .filter((i) => i.status === newStatus)
           .sort((a, b) => a.sort_order - b.sort_order);
@@ -243,7 +282,7 @@ export function BoardView({
         );
       }
     },
-    [issues, setIssues],
+    [hierarchyIssues, setIssues],
   );
 
   const handleDragCancel = useCallback(() => {
@@ -271,12 +310,14 @@ export function BoardView({
             status={status}
             issues={columns.get(status) ?? []}
             showProject={showProject}
+            showHierarchy={showHierarchy}
             projectId={projectId}
             quickAddActive={quickAddStatus === status}
             onQuickAddOpen={() => setQuickAddStatus(status)}
             onQuickAddClose={() => setQuickAddStatus(null)}
             onQuickAddCreated={handleQuickAddCreated}
             onIssueClick={onIssueClick}
+            onParentClick={onIssueClick}
           />
         ))}
       </div>
@@ -298,7 +339,11 @@ export function BoardView({
             projectColor={
               showProject ? activeIssue.project?.color : undefined
             }
+            parent={showHierarchy ? activeIssue.parent : null}
+            subIssueDoneCount={showHierarchy ? activeIssue.sub_issues_done_count : 0}
+            subIssueTotalCount={showHierarchy ? activeIssue.sub_issues_count : 0}
             isDragOverlay
+            onParentClick={onIssueClick}
           />
         ) : null}
       </DragOverlay>

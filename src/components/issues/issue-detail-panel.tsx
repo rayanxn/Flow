@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -15,11 +15,17 @@ import { PRIORITY_CONFIG } from "@/lib/utils/priorities";
 import { STATUS_CONFIG, STATUS_ORDER } from "@/lib/utils/statuses";
 import { formatDate } from "@/lib/utils/dates";
 import { updateIssue } from "@/lib/actions/issues";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils/format";
 import { TiptapEditor } from "./tiptap-editor";
 import { IssueChecklist } from "./issue-checklist";
 import { CommentThread } from "./comment-thread";
+import { CreateIssueModal } from "./create-issue-modal";
+import { ParentIssuePicker } from "./parent-issue-picker";
 import type { ChecklistItem } from "./issue-checklist";
 import type { IssueWithDetails } from "@/lib/queries/issues";
+import { getSubIssuesClient } from "@/lib/queries/issues-client";
+import type { ParentIssueSearchResult } from "@/lib/queries/search";
 import type { IssuePriority, IssueStatus } from "@/lib/types";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
@@ -33,7 +39,24 @@ interface IssueDetailPanelProps {
     user_id: string;
     profile: { full_name: string | null; email: string };
   }[];
+  sprints?: { id: string; name: string; status: string; project_id?: string }[];
+  labels?: { id: string; name: string; color: string; project_id?: string }[];
+  onIssueNavigate?: (issueId: string) => void;
   syncUrl?: boolean;
+}
+
+function toParentIssueValue(
+  issue: IssueWithDetails | null,
+): ParentIssueSearchResult | null {
+  if (!issue?.parent) return null;
+
+  return {
+    id: issue.parent.id,
+    issue_key: issue.parent.issue_key,
+    title: issue.parent.title,
+    project_id: issue.project_id,
+    sprint_id: null,
+  };
 }
 
 // ─── Component ───────────────────────────────────────────────
@@ -43,6 +66,9 @@ export function IssueDetailPanel({
   open,
   onOpenChange,
   members = [],
+  sprints = [],
+  labels = [],
+  onIssueNavigate,
   syncUrl = true,
 }: IssueDetailPanelProps) {
   const router = useRouter();
@@ -50,36 +76,57 @@ export function IssueDetailPanel({
   const searchParams = useSearchParams();
 
   // ── Local field state ──────────────────────────────────────
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<IssueStatus>("todo");
-  const [priority, setPriority] = useState<IssuePriority>(3);
-  const [assigneeId, setAssigneeId] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [storyPoints, setStoryPoints] = useState("");
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [title, setTitle] = useState(issue?.title ?? "");
+  const [description, setDescription] = useState(issue?.description ?? "");
+  const [status, setStatus] = useState<IssueStatus>(
+    (issue?.status as IssueStatus) ?? "todo",
+  );
+  const [priority, setPriority] = useState<IssuePriority>(
+    (issue?.priority as IssuePriority) ?? 3,
+  );
+  const [assigneeId, setAssigneeId] = useState(issue?.assignee_id ?? "");
+  const [dueDate, setDueDate] = useState(issue?.due_date ?? "");
+  const [storyPoints, setStoryPoints] = useState(
+    issue?.story_points != null ? String(issue.story_points) : "",
+  );
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(() => {
+    const raw = issue?.checklist as unknown;
+    return Array.isArray(raw) ? (raw as ChecklistItem[]) : [];
+  });
+  const [parentIssue, setParentIssue] = useState<ParentIssueSearchResult | null>(
+    toParentIssueValue(issue),
+  );
+  const [subIssues, setSubIssues] = useState<IssueWithDetails[]>([]);
+  const [createSubIssueOpen, setCreateSubIssueOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Track current issue id to avoid stale saves
   const issueRef = useRef(issue);
-  issueRef.current = issue;
-
-  // ── Sync state from issue prop ─────────────────────────────
   useEffect(() => {
-    if (issue) {
-      setTitle(issue.title);
-      setDescription(issue.description ?? "");
-      setStatus(issue.status as IssueStatus);
-      setPriority(issue.priority as IssuePriority);
-      setAssigneeId(issue.assignee_id ?? "");
-      setDueDate(issue.due_date ?? "");
-      setStoryPoints(
-        issue.story_points != null ? String(issue.story_points) : ""
-      );
-      const raw = (issue as Record<string, unknown>).checklist;
-      setChecklist(Array.isArray(raw) ? (raw as ChecklistItem[]) : []);
-    }
+    issueRef.current = issue;
   }, [issue]);
+
+  useEffect(() => {
+    if (!open || !issue || issue.parent_id) {
+      return;
+    }
+
+    let cancelled = false;
+
+    getSubIssuesClient(issue.id)
+      .then((items) => {
+        if (cancelled) return;
+        setSubIssues(items);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSubIssues([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, issue, createSubIssueOpen]);
 
   // ── URL sync ───────────────────────────────────────────────
   useEffect(() => {
@@ -104,7 +151,7 @@ export function IssueDetailPanel({
   const save = useCallback(
     async (updates: Parameters<typeof updateIssue>[1]) => {
       const current = issueRef.current;
-      if (!current) return;
+      if (!current) return { error: "Issue not found" };
       setSaving(true);
       const result = await updateIssue(current.id, updates);
       setSaving(false);
@@ -113,9 +160,19 @@ export function IssueDetailPanel({
       } else {
         router.refresh();
       }
+      return result;
     },
     [router]
   );
+
+  // ── Copy permalink ─────────────────────────────────────────
+  const copyPermalink = useCallback(() => {
+    if (!issue) return;
+    const url = `${window.location.origin}${pathname}?issue=${issue.issue_key}`;
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success("Link copied");
+    });
+  }, [issue, pathname]);
 
   // ── Keyboard shortcuts ─────────────────────────────────────
   useEffect(() => {
@@ -130,7 +187,6 @@ export function IssueDetailPanel({
         target.isContentEditable;
       if (isEditable) return;
 
-      // 1-4 for priority
       if (e.key >= "1" && e.key <= "4") {
         e.preventDefault();
         const p = (Number(e.key) - 1) as IssuePriority;
@@ -139,7 +195,6 @@ export function IssueDetailPanel({
         return;
       }
 
-      // S to cycle status
       if (e.key === "s" || e.key === "S") {
         e.preventDefault();
         setStatus((prev) => {
@@ -151,27 +206,42 @@ export function IssueDetailPanel({
         return;
       }
 
-      // C to copy permalink
-      if (e.key === "c" || e.key === "C") {
-        if (!e.metaKey && !e.ctrlKey) {
-          e.preventDefault();
-          copyPermalink();
-        }
+      if ((e.key === "c" || e.key === "C") && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        copyPermalink();
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, save]);
+  }, [open, save, copyPermalink]);
 
-  // ── Copy permalink ─────────────────────────────────────────
-  const copyPermalink = useCallback(() => {
-    if (!issue) return;
-    const url = `${window.location.origin}${pathname}?issue=${issue.issue_key}`;
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success("Link copied");
-    });
-  }, [issue, pathname]);
+  const hasSubIssues =
+    subIssues.length > 0 || (issue?.sub_issues_count ?? 0) > 0;
+  const subIssueDoneCount =
+    subIssues.length > 0
+      ? subIssues.filter((subIssue) => subIssue.status === "done").length
+      : issue?.sub_issues_done_count ?? 0;
+  const subIssueTotalCount =
+    subIssues.length > 0 ? subIssues.length : issue?.sub_issues_count ?? 0;
+  const subIssueStoryPoints =
+    subIssues.length > 0
+      ? subIssues.reduce((sum, subIssue) => sum + (subIssue.story_points ?? 0), 0)
+      : issue?.sub_issues_story_points ?? 0;
+  const canCreateSubIssues = Boolean(issue && !issue.parent_id && issue.project);
+
+  async function handleParentChange(nextParent: ParentIssueSearchResult | null) {
+    if (nextParent?.id === parentIssue?.id) {
+      return;
+    }
+    if (!nextParent && !parentIssue) {
+      return;
+    }
+    const result = await save({ parent_id: nextParent?.id ?? null });
+    if (!result?.error) {
+      setParentIssue(nextParent);
+    }
+  }
 
   if (!issue) return null;
 
@@ -264,6 +334,85 @@ export function IssueDetailPanel({
                   }}
                 />
               </div>
+
+              {canCreateSubIssues && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-text-secondary">
+                        Sub-Issues
+                      </label>
+                      <p className="mt-1 text-xs text-text-muted">
+                        {`${subIssueDoneCount}/${subIssueTotalCount} sub-issues done`}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCreateSubIssueOpen(true)}
+                      className="inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-text transition-colors hover:bg-surface-hover"
+                    >
+                      <Plus className="size-3.5" />
+                      Add sub-issue
+                    </button>
+                  </div>
+
+                  {subIssues.length > 0 ? (
+                    <div className="space-y-2">
+                      {subIssues.map((subIssue) => {
+                        const statusConfig =
+                          STATUS_CONFIG[subIssue.status as IssueStatus];
+                        return (
+                          <button
+                            key={subIssue.id}
+                            type="button"
+                            onClick={() => onIssueNavigate?.(subIssue.id)}
+                            disabled={!onIssueNavigate}
+                            className={cn(
+                              "flex w-full items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 text-left transition-colors",
+                              onIssueNavigate
+                                ? "hover:bg-surface-hover"
+                                : "cursor-default",
+                            )}
+                          >
+                            <span
+                              className="size-2 shrink-0 rounded-full"
+                              style={{ backgroundColor: statusConfig?.color }}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="text-[11px] font-mono text-text-muted">
+                                {subIssue.issue_key}
+                              </div>
+                              <div className="truncate text-sm text-text">
+                                {subIssue.title}
+                              </div>
+                            </div>
+                            {subIssue.assignee && (
+                              <Avatar size="sm" className="size-7 text-[10px]">
+                                {subIssue.assignee.avatar_url && (
+                                  <AvatarImage
+                                    src={subIssue.assignee.avatar_url}
+                                    alt={subIssue.assignee.full_name ?? ""}
+                                  />
+                                )}
+                                <AvatarFallback>
+                                  {getInitials(
+                                    subIssue.assignee.full_name,
+                                    subIssue.assignee.email,
+                                  )}
+                                </AvatarFallback>
+                              </Avatar>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border bg-surface px-3 py-4 text-sm text-text-muted">
+                      No sub-issues yet.
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Comments & Activity */}
               <div className="space-y-1.5">
@@ -384,23 +533,64 @@ export function IssueDetailPanel({
                 />
               </SidebarField>
 
+              <SidebarField label="Parent Issue">
+                {parentIssue && (
+                  <button
+                    type="button"
+                    onClick={() => onIssueNavigate?.(parentIssue.id)}
+                    disabled={!onIssueNavigate}
+                    className={cn(
+                      "flex w-full flex-col items-start rounded-lg border border-border bg-surface px-2.5 py-2 text-left transition-colors",
+                      onIssueNavigate ? "hover:bg-surface-hover" : "cursor-default",
+                    )}
+                  >
+                    <span className="text-[11px] font-mono text-text-muted">
+                      {parentIssue.issue_key}
+                    </span>
+                    <span className="line-clamp-1 text-xs text-text">
+                      {parentIssue.title}
+                    </span>
+                  </button>
+                )}
+                {!hasSubIssues ? (
+                  <ParentIssuePicker
+                    projectId={issue.project_id}
+                    value={parentIssue}
+                    onChange={handleParentChange}
+                    excludeIssueId={issue.id}
+                    placeholder="Search same-project parents..."
+                  />
+                ) : (
+                  <p className="text-xs text-text-muted">
+                    Remove this issue&apos;s sub-issues before assigning it to a parent.
+                  </p>
+                )}
+              </SidebarField>
+
               {/* Story Points */}
               <SidebarField label="Story Points">
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  placeholder="0"
-                  value={storyPoints}
-                  onChange={(e) => setStoryPoints(e.target.value)}
-                  onBlur={() => {
-                    const pts = storyPoints ? Number(storyPoints) : null;
-                    if (pts !== issue.story_points) {
-                      save({ story_points: pts });
-                    }
-                  }}
-                  className="h-8 text-xs"
-                />
+                <div className="space-y-1.5">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    placeholder="0"
+                    value={storyPoints}
+                    onChange={(e) => setStoryPoints(e.target.value)}
+                    onBlur={() => {
+                      const pts = storyPoints ? Number(storyPoints) : null;
+                      if (pts !== issue.story_points) {
+                        save({ story_points: pts });
+                      }
+                    }}
+                    className="h-8 text-xs"
+                  />
+                  {hasSubIssues && (
+                    <p className="text-[11px] text-text-muted">
+                      {subIssueStoryPoints} pts from sub-issues
+                    </p>
+                  )}
+                </div>
               </SidebarField>
 
               {/* Labels */}
@@ -448,6 +638,25 @@ export function IssueDetailPanel({
             </div>
           </div>
         </div>
+
+        {issue.project && (
+          <CreateIssueModal
+            open={createSubIssueOpen}
+            onOpenChange={setCreateSubIssueOpen}
+            defaultProjectId={issue.project_id}
+            defaultParentIssue={{
+              id: issue.id,
+              issue_key: issue.issue_key,
+              title: issue.title,
+              project_id: issue.project_id,
+              sprint_id: issue.sprint_id,
+            }}
+            projects={[issue.project]}
+            members={members}
+            sprints={sprints}
+            labels={labels}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
