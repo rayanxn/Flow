@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Github } from "lucide-react";
 import { signUp, signInWithOAuth } from "@/lib/actions/auth";
 import type { ActionResponse } from "@/lib/types";
 
-export default function SignUpPage() {
+function SignUpPageContent() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const [state, formAction, pending] = useActionState<
@@ -164,5 +164,13 @@ export default function SignUpPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-md" />}>
+      <SignUpPageContent />
+    </Suspense>
   );
 }
