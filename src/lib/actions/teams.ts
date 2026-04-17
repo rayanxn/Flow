@@ -38,6 +38,12 @@ async function requireTeamManager(
   return { data: { userId: user.id } };
 }
 
+function getManagerId(
+  result: ActionResponse<{ userId: string }>
+): string | null {
+  return result.data?.userId ?? null;
+}
+
 async function getTeamRecord(
   supabase: SupabaseClient,
   teamId: string
@@ -165,6 +171,8 @@ export async function createTeam(
 
   const managerResult = await requireTeamManager(supabase, workspaceId);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const { data, error } = await supabase
     .from("teams")
@@ -183,7 +191,7 @@ export async function createTeam(
     await createActivity({
       supabase,
       workspaceId,
-      actorId: managerResult.data.userId,
+      actorId: managerId,
       action: "created",
       entityType: "team",
       entityId: data.id,
@@ -215,6 +223,8 @@ export async function renameTeam(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const { data, error } = await supabase
     .from("teams")
@@ -231,7 +241,7 @@ export async function renameTeam(
     await createActivity({
       supabase,
       workspaceId: data.workspace_id,
-      actorId: managerResult.data.userId,
+      actorId: managerId,
       action: "updated",
       entityType: "team",
       entityId: data.id,
@@ -262,6 +272,8 @@ export async function deleteTeam(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const [{ count: linkedProjectCount }, { count: memberCount }] = await Promise.all([
     supabase
@@ -287,7 +299,7 @@ export async function deleteTeam(
     await createActivity({
       supabase,
       workspaceId: team.workspace_id,
-      actorId: managerResult.data.userId,
+      actorId: managerId,
       action: "deleted",
       entityType: "team",
       entityId: team.id,
@@ -318,6 +330,8 @@ export async function addTeamMember(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const [{ data: workspaceMembership }, { data: profile }] = await Promise.all([
     supabase
@@ -354,7 +368,7 @@ export async function addTeamMember(
     await createActivity({
       supabase,
       workspaceId: team.workspace_id,
-      actorId: managerResult.data.userId,
+      actorId: managerId,
       action: "member_added",
       entityType: "team",
       entityId: team.id,
@@ -393,6 +407,8 @@ export async function removeTeamMember(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -413,7 +429,7 @@ export async function removeTeamMember(
     await createActivity({
       supabase,
       workspaceId: team.workspace_id,
-      actorId: managerResult.data.userId,
+      actorId: managerId,
       action: "member_removed",
       entityType: "team",
       entityId: team.id,
@@ -451,6 +467,8 @@ export async function linkProjectToTeam(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   if (project.team_id === team.id) {
     return { data: project };
@@ -476,13 +494,13 @@ export async function linkProjectToTeam(
     await Promise.all([
       createProjectTeamUpdateActivity({
         supabase,
-        actorId: managerResult.data.userId,
+        actorId: managerId,
         project: data,
         nextTeam: { id: team.id, name: team.name },
       }),
       recordProjectOwnershipActivities({
         supabase,
-        actorId: managerResult.data.userId,
+        actorId: managerId,
         project: data,
         previousTeam: previousTeam
           ? { id: previousTeam.id, name: previousTeam.name }
@@ -518,6 +536,8 @@ export async function unlinkProjectFromTeam(
 
   const managerResult = await requireTeamManager(supabase, team.workspace_id);
   if (managerResult.error) return { error: managerResult.error };
+  const managerId = getManagerId(managerResult);
+  if (!managerId) return { error: "Only owners and admins can manage teams" };
 
   const { data, error } = await supabase
     .from("projects")
@@ -534,13 +554,13 @@ export async function unlinkProjectFromTeam(
     await Promise.all([
       createProjectTeamUpdateActivity({
         supabase,
-        actorId: managerResult.data.userId,
+        actorId: managerId,
         project: data,
         nextTeam: null,
       }),
       recordProjectOwnershipActivities({
         supabase,
-        actorId: managerResult.data.userId,
+        actorId: managerId,
         project: data,
         previousTeam: { id: team.id, name: team.name },
         nextTeam: null,
