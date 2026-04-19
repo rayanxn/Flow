@@ -6,8 +6,7 @@
 
 ## About
 
-Flow is a project management app for small product teams. Projects, sprints, issues, and analytics, all in one app. I built it because I wanted something lighter than Jira without giving up on real structure.
-
+Flow is a project management app for small product teams. Projects, sprints, issues, and analytics, all in one app.
 ## A tour
 
 ### Dashboard
@@ -60,4 +59,4 @@ npx tsx scripts/seed-test-data.ts
 
 ---
 
-Built by [@rayanxn](https://github.com/rayanxn) as a senior project.
+Built as a Senior Project
