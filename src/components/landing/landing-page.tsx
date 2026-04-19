@@ -4,9 +4,8 @@ import { Navbar } from "./navbar";
 import { Hero } from "./hero";
 
 import { Features } from "./features";
-import { Manifesto } from "./manifesto";
 import { Workflow } from "./workflow";
-import { Pricing } from "./pricing";
+import { Stack } from "./stack";
 import { CtaBanner } from "./cta-banner";
 import { Footer } from "./footer";
 import { ScrollReveal } from "./scroll-reveal";
@@ -23,12 +22,11 @@ export function LandingPage() {
           <Features />
         </div>
       </ScrollReveal>
-      <Manifesto />
       <ScrollReveal>
         <Workflow />
       </ScrollReveal>
       <ScrollReveal>
-        <Pricing />
+        <Stack />
       </ScrollReveal>
       <ScrollReveal>
         <div className="pb-12">

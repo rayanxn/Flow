@@ -37,13 +37,13 @@ export function Hero() {
               data-hero="line1"
               className="block text-5xl font-bold tracking-tight text-text opacity-0 sm:text-6xl lg:text-8xl"
             >
-              Plan Fast.
+              Track work.
             </span>
             <span
               data-hero="line2"
               className="block font-serif text-5xl italic text-text opacity-0 sm:text-6xl lg:text-8xl"
             >
-              Ship Calm.
+              Ship it.
             </span>
           </h1>
 
@@ -51,8 +51,7 @@ export function Hero() {
             data-hero="subtitle"
             className="mt-8 max-w-md font-mono text-sm leading-relaxed text-text-secondary opacity-0 sm:text-base"
           >
-            Project management that moves at the speed of your team. No clutter, no ceremony — just
-            clarity.
+            A lightweight issue tracker for teams who&apos;d rather build than manage tickets.
           </p>
 
           <div data-hero="cta" className="mt-10 flex items-center gap-6 opacity-0">

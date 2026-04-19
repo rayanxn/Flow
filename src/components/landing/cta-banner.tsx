@@ -10,7 +10,7 @@ export function CtaBanner() {
               Ready to move work forward?
             </h3>
             <p className="mt-2 text-sm text-white/50">
-              14-day free trial on all paid plans. No credit card required.
+              Free to use. No credit card. Sign up and start tracking.
             </p>
           </div>
           <MagneticButton variant="inverted" href="/signup" size="lg">

@@ -21,7 +21,7 @@ const STEPS = [
   {
     number: "03",
     title: "Ship",
-    description: "Track progress in real-time. Ship with confidence, not anxiety.",
+    description: "See sprint progress in real-time. Know what's actually shipping.",
   },
 ];
 
@@ -165,8 +165,12 @@ export function Workflow() {
           {STEPS.map((step, i) => {
             const Mockup = MOCKUPS[i];
             return (
-              <div key={step.number} data-workflow-card className="opacity-0">
-                <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+              <div
+                key={step.number}
+                data-workflow-card
+                className="flex h-full flex-col opacity-0"
+              >
+                <div className="flex-1 overflow-hidden rounded-2xl border border-border bg-surface">
                   <Mockup />
                 </div>
 

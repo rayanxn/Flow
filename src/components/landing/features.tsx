@@ -16,7 +16,7 @@ const CARDS = [
   {
     component: FeatureSprint,
     title: "Sprint Planner",
-    description: "Plan your week visually. Commit when you're ready, not when you're told.",
+    description: "Plan your week visually. Drag, drop, ship.",
   },
 ];
 

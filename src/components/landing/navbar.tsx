@@ -7,8 +7,7 @@ import { ArrowRight } from "lucide-react";
 const NAV_LINKS = [
   { label: "Features", href: "#features" },
   { label: "Workflow", href: "#workflow" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Changelog", href: "#changelog" },
+  { label: "Stack", href: "#stack" },
 ];
 
 export function Navbar() {
