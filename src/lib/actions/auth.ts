@@ -2,11 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResponse } from "@/lib/types";
 import { buildAuthRedirectUrl, normalizeRedirectPath } from "@/lib/utils/redirect-path";
 import {
   resolvePostAuthRedirect,
 } from "@/lib/utils/auth-redirect";
+import { cloneGuestWorkspace } from "@/lib/guest/workspace-clone";
 
 export async function signUp(formData: FormData): Promise<ActionResponse> {
   const supabase = await createClient();
@@ -72,6 +74,51 @@ export async function signOutTo(nextPath: string | null | undefined): Promise<vo
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect(buildAuthRedirectUrl("/login", nextPath));
+}
+
+export async function continueAsGuest(): Promise<ActionResponse<void>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInAnonymously({
+    options: {
+      data: { full_name: "Guest Visitor" },
+    },
+  });
+
+  const guestUserId = data.user?.id;
+  if (error || !guestUserId) {
+    return {
+      error:
+        error?.message ??
+        "Guest mode is unavailable. Please try again in a moment.",
+    };
+  }
+
+  let workspaceSlug: string;
+  try {
+    const clone = await cloneGuestWorkspace({
+      guestUserId,
+      guestDisplayName: "Guest Visitor",
+    });
+    workspaceSlug = clone.workspace.slug;
+  } catch (cloneError) {
+    await supabase.auth.signOut();
+
+    try {
+      await createAdminClient().auth.admin.deleteUser(guestUserId);
+    } catch {
+      // Best-effort cleanup; the clone module removes partial workspace data.
+    }
+
+    return {
+      error:
+        cloneError instanceof Error
+          ? cloneError.message
+          : "Unable to prepare guest workspace. Please try again.",
+    };
+  }
+
+  redirect(`/${workspaceSlug}/dashboard`);
 }
 
 export async function forgotPassword(

@@ -3,8 +3,8 @@
 import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Github } from "lucide-react";
-import { signIn, signInWithOAuth } from "@/lib/actions/auth";
+import { DoorOpen, Github } from "lucide-react";
+import { continueAsGuest, signIn, signInWithOAuth } from "@/lib/actions/auth";
 import type { ActionResponse } from "@/lib/types";
 
 function LoginPageContent() {
@@ -15,6 +15,12 @@ function LoginPageContent() {
     FormData
   >(async (_prev, formData) => {
     return await signIn(formData);
+  }, null);
+  const [guestState, guestAction, guestPending] = useActionState<
+    ActionResponse | null,
+    FormData
+  >(async () => {
+    return await continueAsGuest();
   }, null);
 
   return (
@@ -35,6 +41,12 @@ function LoginPageContent() {
       {state?.error && (
         <div className="bg-danger-light border border-danger/20 text-danger rounded-lg px-4 py-3 text-sm mb-6">
           {state.error}
+        </div>
+      )}
+
+      {guestState?.error && (
+        <div className="bg-danger-light border border-danger/20 text-danger rounded-lg px-4 py-3 text-sm mb-6">
+          {guestState.error}
         </div>
       )}
 
@@ -138,6 +150,17 @@ function LoginPageContent() {
           GitHub
         </button>
       </div>
+
+      <form action={guestAction} className="mt-3">
+        <button
+          type="submit"
+          disabled={guestPending}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface text-sm font-medium text-text transition-colors hover:bg-surface-hover disabled:pointer-events-none disabled:opacity-50"
+        >
+          <DoorOpen className="h-5 w-5" />
+          {guestPending ? "Preparing guest workspace..." : "Continue as guest"}
+        </button>
+      </form>
 
       {/* Footer link */}
       <p className="text-center text-sm text-text-secondary mt-8">

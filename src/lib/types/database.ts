@@ -713,6 +713,60 @@ export type Database = {
           },
         ];
       };
+      guest_workspaces: {
+        Row: {
+          id: string;
+          workspace_id: string | null;
+          workspace_slug: string;
+          source_workspace_id: string | null;
+          source_workspace_slug: string;
+          guest_user_id: string;
+          created_at: string;
+          expires_at: string;
+          cleaned_at: string | null;
+          cleanup_error: string | null;
+        };
+        Insert: {
+          id?: string;
+          workspace_id?: string | null;
+          workspace_slug: string;
+          source_workspace_id?: string | null;
+          source_workspace_slug: string;
+          guest_user_id: string;
+          created_at?: string;
+          expires_at: string;
+          cleaned_at?: string | null;
+          cleanup_error?: string | null;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string | null;
+          workspace_slug?: string;
+          source_workspace_id?: string | null;
+          source_workspace_slug?: string;
+          guest_user_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          cleaned_at?: string | null;
+          cleanup_error?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "guest_workspaces_workspace_id_fkey";
+            columns: ["workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "guest_workspaces_source_workspace_id_fkey";
+            columns: ["source_workspace_id"];
+            isOneToOne: false;
+            referencedRelation: "workspaces";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
