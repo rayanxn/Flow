@@ -41,24 +41,5 @@ Notifications for activity on issues you care about. Filter by assigned or all, 
 - Backend: Supabase (Postgres, Auth, Row-Level Security), Server Actions, Realtime channels
 - Editor & UX: TipTap, Radix, dnd-kit, cmdk, Recharts
 
-## Run it locally
-
-```bash
-git clone https://github.com/rayanxn/Flow.git
-cd Flow
-npm install
-cp .env.local.example .env.local   # fill in your Supabase keys
-npm run dev
-```
-
-Open [localhost:3000](http://localhost:3000).
-
-To seed a realistic workspace (4 projects, 20 issues, 3 teams, notifications):
-
-```bash
-npx tsx scripts/seed-test-data.ts
-```
-
----
 
 Built as a Senior Project
