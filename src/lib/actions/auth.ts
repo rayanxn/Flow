@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResponse } from "@/lib/types";
+import { cloneGuestWorkspace } from "@/lib/guest/workspace-clone";
 import { buildAuthRedirectUrl, normalizeRedirectPath } from "@/lib/utils/redirect-path";
 import {
   resolvePostAuthRedirect,
@@ -60,6 +62,47 @@ export async function signIn(formData: FormData): Promise<ActionResponse> {
   }
 
   redirect(await resolvePostAuthRedirect(nextPath));
+}
+
+export async function continueAsGuest(): Promise<ActionResponse> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInAnonymously({
+    options: {
+      data: { full_name: "Guest User" },
+    },
+  });
+
+  if (error || !data.user) {
+    return {
+      error:
+        error?.message ??
+        "Unable to start guest mode. Please try again in a moment.",
+    };
+  }
+
+  let workspaceSlug: string;
+
+  try {
+    const { workspace } = await cloneGuestWorkspace({
+      guestUserId: data.user.id,
+    });
+    workspaceSlug = workspace.slug;
+  } catch {
+    await supabase.auth.signOut();
+
+    try {
+      await createAdminClient().auth.admin.deleteUser(data.user.id);
+    } catch {
+      // Best-effort cleanup; the lifecycle cleanup job handles abandoned users.
+    }
+
+    return {
+      error: "Unable to prepare guest workspace. Please try again.",
+    };
+  }
+
+  redirect(`/${workspaceSlug}/dashboard`);
 }
 
 export async function signOut(): Promise<void> {

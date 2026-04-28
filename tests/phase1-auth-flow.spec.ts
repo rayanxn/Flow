@@ -162,18 +162,30 @@ test.describe.serial("Phase 1: Auth → Onboarding → Board", () => {
     await page.getByRole("button", { name: "Sign In" }).click();
     await expect(page).toHaveURL(/dashboard/, { timeout: 10000 });
 
-    const { data: workspace } = await adminClient
+    const { data: workspace, error: workspaceError } = await adminClient
       .from("workspaces")
       .select("id")
       .eq("slug", TEST_WORKSPACE_SLUG)
       .single();
 
-    const { data: project } = await adminClient
+    if (workspaceError || !workspace) {
+      throw new Error(
+        `Failed to load onboarding workspace: ${workspaceError?.message ?? "missing"}`
+      );
+    }
+
+    const { data: project, error: projectError } = await adminClient
       .from("projects")
       .select("id")
       .eq("workspace_id", workspace.id)
       .order("created_at", { ascending: true })
       .single();
+
+    if (projectError || !project) {
+      throw new Error(
+        `Failed to load onboarding project: ${projectError?.message ?? "missing"}`
+      );
+    }
 
     await page.goto(`/${TEST_WORKSPACE_SLUG}/projects/${project.id}/board`);
 

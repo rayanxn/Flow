@@ -17,8 +17,34 @@ function getRequestedPath(request: NextRequest) {
   return `${request.nextUrl.pathname}${search}`;
 }
 
+function applyRedirectPath(url: URL, path: string) {
+  const [pathname, search = ""] = path.split("?");
+  url.pathname = pathname;
+  url.search = search ? `?${search}` : "";
+}
+
+async function getDefaultSignedInPath(
+  supabase: Awaited<ReturnType<typeof updateSession>>["supabase"],
+  userId: string,
+) {
+  const { data: membership } = await supabase
+    .from("workspace_members")
+    .select("workspace:workspaces(slug)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  const workspace = membership?.workspace as { slug: string } | null | undefined;
+  if (workspace?.slug) {
+    return `/${workspace.slug}/dashboard`;
+  }
+
+  return "/onboarding";
+}
+
 export async function proxy(request: NextRequest) {
-  const { user, supabaseResponse } = await updateSession(request);
+  const { user, supabase, supabaseResponse } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
   const isLandingPage = pathname === "/";
@@ -36,8 +62,7 @@ export async function proxy(request: NextRequest) {
   if (user && isAuthPage) {
     const nextPath = normalizeRedirectPath(request.nextUrl.searchParams.get("next"));
     const url = request.nextUrl.clone();
-    url.pathname = nextPath ?? "/";
-    url.search = "";
+    applyRedirectPath(url, nextPath ?? (await getDefaultSignedInPath(supabase, user.id)));
     return NextResponse.redirect(url);
   }
 

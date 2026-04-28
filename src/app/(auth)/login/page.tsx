@@ -3,8 +3,8 @@
 import { Suspense, useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Github } from "lucide-react";
-import { signIn, signInWithOAuth } from "@/lib/actions/auth";
+import { Github, UserRound } from "lucide-react";
+import { continueAsGuest, signIn, signInWithOAuth } from "@/lib/actions/auth";
 import type { ActionResponse } from "@/lib/types";
 
 function LoginPageContent() {
@@ -16,6 +16,13 @@ function LoginPageContent() {
   >(async (_prev, formData) => {
     return await signIn(formData);
   }, null);
+  const [guestState, guestFormAction, guestPending] = useActionState<
+    ActionResponse | null,
+    FormData
+  >(async () => {
+    return await continueAsGuest();
+  }, null);
+  const error = state?.error ?? guestState?.error;
 
   return (
     <div className="w-full max-w-md">
@@ -32,9 +39,9 @@ function LoginPageContent() {
       <p className="text-text-secondary mb-8">Sign in to your workspace</p>
 
       {/* Error message */}
-      {state?.error && (
+      {error && (
         <div className="bg-danger-light border border-danger/20 text-danger rounded-lg px-4 py-3 text-sm mb-6">
-          {state.error}
+          {error}
         </div>
       )}
 
@@ -85,10 +92,21 @@ function LoginPageContent() {
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || guestPending}
           className="bg-primary text-background w-full h-12 rounded-lg font-medium hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:pointer-events-none"
         >
           {pending ? "Signing In..." : "Sign In"}
+        </button>
+      </form>
+
+      <form action={guestFormAction} className="mt-3">
+        <button
+          type="submit"
+          disabled={pending || guestPending}
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface text-sm font-medium text-text transition-colors hover:bg-surface-hover disabled:pointer-events-none disabled:opacity-50"
+        >
+          <UserRound className="h-4 w-4" />
+          {guestPending ? "Preparing guest workspace..." : "Continue as guest"}
         </button>
       </form>
 
